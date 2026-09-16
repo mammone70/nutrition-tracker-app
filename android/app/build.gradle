@@ -78,6 +78,21 @@ android {
     }
 
     signingConfigs {
+        // Stable debug identity so CI sideload APKs (and local develop
+        // debug builds that pick up the same file) can update in place.
+        // Without this, each GitHub Actions runner mints its own
+        // ~/.android/debug.keystore and Android refuses the update with
+        // INSTALL_FAILED_UPDATE_INCOMPATIBLE. This key is debug-only —
+        // not the Play release key — and the password is intentional.
+        debug {
+            def ciDebugKeystore = rootProject.file('ci-debug.keystore')
+            if (ciDebugKeystore.exists()) {
+                storeFile ciDebugKeystore
+                storePassword 'android'
+                keyAlias 'ci-debug'
+                keyPassword 'android'
+            }
+        }
         release {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
@@ -99,6 +114,9 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             signingConfig signingConfigs.release
         }

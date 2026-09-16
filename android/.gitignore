@@ -11,3 +11,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Exception: dedicated debug-only key for CI sideload APKs so updates work
+# across runners. Not the Play release key.
+!ci-debug.keystore

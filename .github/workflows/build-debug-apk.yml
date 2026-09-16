@@ -5,6 +5,12 @@ name: Build debug APK
 #
 # Uses the `develop` flavor (applicationId suffix `.develop`) so it can be
 # installed alongside a Play Store / `full` build.
+#
+# Signed with android/ci-debug.keystore (not each runner's ephemeral debug
+# key) so successive artifacts can update an existing install. versionCode
+# is 100000 + github.run_number so each CI build is newer than the last.
+# One-time note: an install that was signed by an old runner keystore still
+# needs a single uninstall before the first CI-debug-signed APK will update.
 
 on:
   workflow_dispatch:
@@ -78,7 +84,24 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build develop debug APK
-        run: flutter build apk --flavor develop --debug
+        run: |
+          version_code=$((100000 + ${{ github.run_number }}))
+          version_name="$(awk '/^version:/ {print $2}' pubspec.yaml | cut -d+ -f1)-ci.${{ github.run_number }}"
+          echo "Building with versionCode=${version_code} versionName=${version_name}"
+          flutter build apk --flavor develop --debug \
+            --build-number="${version_code}" \
+            --build-name="${version_name}"
+
+      - name: Verify APK is signed with the CI debug key
+        run: |
+          apk="build/app/outputs/flutter-apk/app-develop-debug.apk"
+          test -f "$apk"
+          # Prefer a concrete build-tools dir; glob into a single binary.
+          apksigner="$(ls -1 "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
+          test -x "$apksigner"
+          # Fail the job if we somehow fell back to a runner-local debug key.
+          "$apksigner" verify --print-certs "$apk" | tee /tmp/apk-certs.txt
+          grep -F 'CN=Fitty Kitties CI Debug' /tmp/apk-certs.txt
 
       - name: Rename APK for download
         run: |
