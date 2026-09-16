@@ -24,5 +24,6 @@ class NavigationOptions {
   /// Named rather than pushed directly because Health Connect can ask for this
   /// screen from outside the app — see `HealthRationaleService` (#927).
   static const healthSyncRoute = "healthSync";
+  static const calorieTrackerSyncRoute = "calorieTrackerSync";
   static const manageProfilesRoute = "manageProfiles";
 }

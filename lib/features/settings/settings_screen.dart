@@ -32,6 +32,7 @@ import 'package:opennutritracker/features/settings/presentation/widgets/export_i
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/calorie_tracker_sync_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
@@ -484,6 +485,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: S.of(context).settingsHealthSyncSubtitle,
                     showChevron: true,
                     onTap: () => _openHealthSyncScreen(context),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-calorie-tracker-sync',
+                    palette: palette,
+                    icon: Icons.cloud_sync_rounded,
+                    title: S.of(context).calorieTrackerSyncTitle,
+                    subtitle: S.of(context).calorieTrackerSyncSubtitle,
+                    showChevron: true,
+                    onTap: () => _openCalorieTrackerSyncScreen(context),
                   ),
                   _SettingsTile(
                     identifier: 'settings-ai-assist',
@@ -1073,6 +1083,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // this same screen from outside the app (#927), and one registration is
     // easier to keep honest than two ways in.
     Navigator.of(context).pushNamed(NavigationOptions.healthSyncRoute);
+  }
+
+  void _openCalorieTrackerSyncScreen(BuildContext context) {
+    Navigator.of(context).pushNamed(NavigationOptions.calorieTrackerSyncRoute);
   }
 
   Future<void> _confirmClearOffCache(BuildContext context) async {

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/demo_mode_banner.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
+import 'package:opennutritracker/core/sync/sync_service.dart';
 import 'package:opennutritracker/core/utils/health_rationale_service.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_type_suggester.dart';
@@ -55,6 +58,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     // that an intent arrived.
     if (state == AppLifecycleState.resumed) {
       _maybeOpenHealthRationale();
+      // Drain the calorie-tracker outbox / pull when coming back online.
+      // Fire-and-forget: failures stay queued.
+      if (locator.isRegistered<SyncService>()) {
+        unawaited(locator<SyncService>().syncNow());
+      }
     }
   }
 

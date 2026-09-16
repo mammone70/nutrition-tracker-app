@@ -5,6 +5,15 @@
   </picture>
 </p>
 
+> **Fork notice:** This repository
+> ([mammone70/nutrition-tracker-app](https://github.com/mammone70/nutrition-tracker-app))
+> is based on [OpenNutriTracker](https://github.com/simonoppowa/OpenNutriTracker)
+> (GPLv3). It remains **local-first** (encrypted Hive on device) and adds an
+> optional offline-capable sync layer for the
+> [mammone70/calorie-tracker](https://github.com/mammone70/calorie-tracker) REST
+> API. See [UPSTREAM.md](UPSTREAM.md) and
+> [docs/calorie-tracker-sync.md](docs/calorie-tracker-sync.md).
+
 <p align="center">
   <b>Free. Open. Cited.</b><br />
   Open-source calorie, macro, and micronutrient logging for Android and iOS.
