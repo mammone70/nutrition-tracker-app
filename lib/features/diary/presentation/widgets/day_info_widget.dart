@@ -16,6 +16,7 @@ import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
@@ -188,9 +189,26 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             Dimens.spacing20,
             Dimens.spacing4,
           ),
-          child: Text(
-            DateFormat.yMMMMEEEEd().format(widget.selectedDay),
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat.yMMMMEEEEd().format(widget.selectedDay),
+                  style: textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              IconButton(
+                tooltip: S.of(context).dayMealPlanTitle,
+                icon: const Icon(Icons.restaurant_menu_outlined),
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    NavigationOptions.dayMealPlanRoute,
+                    arguments: widget.selectedDay,
+                  );
+                },
+              ),
+            ],
           ),
         ),
         const SizedBox(height: Dimens.spacing8),

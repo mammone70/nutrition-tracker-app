@@ -841,6 +841,8 @@ jobs:
 
       - name: Decide what this push may deploy and what it may publish
         id: decide
+        env:
+          ENABLE_STORE_RELEASES: ${{ vars.ENABLE_STORE_RELEASES }}
         run: |
           # Character-for-character the derivation `github-release` uses in its
           # "Prepare release tag and asset names" step. The two are deliberately
@@ -857,6 +859,13 @@ jobs:
           BUILD_NUMBER="${APP_VERSION##*+}"
           TAG_NAME="v${VERSION_NO_BUILD}"
           BUILD_TAG="deployed/${BUILD_NUMBER}"
+
+          if [ "${ENABLE_STORE_RELEASES:-}" != "true" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Store releases disabled (set repository variable ENABLE_STORE_RELEASES=true to re-enable)."
+            exit 0
+          fi
 
           # The build number is compared numerically below, so it has to BE a
           # number. `2.2.0` with no `+` would leave BUILD_NUMBER as the whole

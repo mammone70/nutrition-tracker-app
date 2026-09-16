@@ -32,7 +32,6 @@ import 'package:opennutritracker/features/settings/presentation/widgets/export_i
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/calorie_tracker_sync_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
@@ -293,6 +292,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: S.of(context).settingsNutrientGoalsLabel,
                     showChevron: true,
                     onTap: () => _openNutrientGoalsScreen(context),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-weekly-macro-targets',
+                    palette: palette,
+                    icon: Icons.calendar_view_week_rounded,
+                    title: S.of(context).settingsWeeklyTargetsLabel,
+                    subtitle: S.of(context).weeklyMacroTargetsSubtitle,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).pushNamed(
+                      NavigationOptions.weeklyMacroTargetsRoute,
+                    ),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-weekly-meal-plans',
+                    palette: palette,
+                    icon: Icons.restaurant_rounded,
+                    title: S.of(context).settingsWeeklyMealPlansLabel,
+                    subtitle: S.of(context).weeklyMealPlansSubtitle,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).pushNamed(
+                      NavigationOptions.weeklyMealPlansRoute,
+                    ),
                   ),
                   _SettingsTile(
                     identifier: 'settings-day-boundary',

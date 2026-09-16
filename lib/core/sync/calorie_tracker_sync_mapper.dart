@@ -1,5 +1,11 @@
+import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_meal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -13,6 +19,19 @@ class CalorieTrackerSyncMapper {
     final key = meal.code?.trim().isNotEmpty == true
         ? 'code:${meal.code!.trim()}'
         : 'name:${meal.name ?? 'unknown'}:${meal.brands ?? ''}';
+    return _uuid.v5(Namespace.url.value, 'opennutri-food:$key');
+  }
+
+  static String foodIdForManual({
+    required String name,
+    String? brand,
+    required double caloriesPer100,
+    required double proteinPer100,
+    required double fatPer100,
+    required double carbsPer100,
+  }) {
+    final key =
+        'manual:$name:${brand ?? ''}:$caloriesPer100:$proteinPer100:$fatPer100:$carbsPer100';
     return _uuid.v5(Namespace.url.value, 'opennutri-food:$key');
   }
 
@@ -72,6 +91,27 @@ class CalorieTrackerSyncMapper {
     };
   }
 
+  static Map<String, dynamic> foodPayloadFromPlanEntry({
+    required String foodName,
+    String? brand,
+    required double caloriesPer100,
+    required double proteinPer100,
+    required double fatPer100,
+    required double carbsPer100,
+  }) {
+    return {
+      'name': foodName.trim().isNotEmpty ? foodName.trim() : 'Food',
+      if (brand != null && brand.trim().isNotEmpty) 'brand': brand.trim(),
+      'source': 'user',
+      'nutrientsPer100g': {
+        'calories': caloriesPer100,
+        'protein': proteinPer100,
+        'fat': fatPer100,
+        'carbs': carbsPer100,
+      },
+    };
+  }
+
   static Map<String, dynamic> dayMealPayload({
     required DateTime date,
     required IntakeTypeEntity type,
@@ -81,6 +121,15 @@ class CalorieTrackerSyncMapper {
       'mealIndex': mealIndexFor(type),
       'name': type.name,
       'mealTime': null,
+    };
+  }
+
+  static Map<String, dynamic> dayMealEntityPayload(DayMealEntity meal) {
+    return {
+      'planDate': meal.planDate,
+      'mealIndex': meal.mealIndex,
+      'name': meal.name,
+      'mealTime': meal.mealTime,
     };
   }
 
@@ -109,6 +158,58 @@ class CalorieTrackerSyncMapper {
       'weight': weightKg,
       'unit': 'kg',
       'notes': ?note,
+    };
+  }
+
+  static Map<String, dynamic> weeklyMacroTargetPayload(
+    WeeklyMacroTargetEntity target,
+  ) {
+    return {
+      'dayOfWeek': target.dayOfWeek,
+      'calories': target.calories,
+      'proteinG': target.proteinG,
+      'fatG': target.fatG,
+      'carbsG': target.carbsG,
+    };
+  }
+
+  static Map<String, dynamic> macroTargetPayload(MacroTargetEntity target) {
+    return {
+      'targetDate': target.targetDate,
+      'calories': target.calories,
+      'proteinG': target.proteinG,
+      'fatG': target.fatG,
+      'carbsG': target.carbsG,
+    };
+  }
+
+  static Map<String, dynamic> weeklyMealPayload(WeeklyMealEntity meal) {
+    return {
+      'dayOfWeek': meal.dayOfWeek,
+      'mealIndex': meal.mealIndex,
+      'name': meal.name,
+      'mealTime': meal.mealTime,
+    };
+  }
+
+  static Map<String, dynamic> weeklyMealPlanEntryPayload(
+    WeeklyMealPlanEntryEntity entry,
+  ) {
+    return {
+      'weeklyMealId': entry.weeklyMealId,
+      'foodId': entry.foodId,
+      'quantity': entry.quantity,
+      'unit': entry.unit.isEmpty ? 'g' : entry.unit,
+    };
+  }
+
+  static Map<String, dynamic> mealPlanEntryPayload(MealPlanEntryEntity entry) {
+    return {
+      'planDate': entry.planDate,
+      'dayMealId': entry.dayMealId,
+      'foodId': entry.foodId,
+      'quantity': entry.quantity,
+      'unit': entry.unit.isEmpty ? 'g' : entry.unit,
     };
   }
 }

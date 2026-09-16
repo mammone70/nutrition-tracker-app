@@ -30,6 +30,12 @@ using the same local-first pattern as that project's web client:
 |------------------|-----------------|
 | Intake (meal log) | `foods` + `day_meals` + `food_log_entries` |
 | Weight log | `POST /api/body-weight` (`unit: kg`) |
+| Weekly macro targets | `weekly_macro_targets` |
+| Daily macro override | `macro_targets` |
+| Weekly meals | `weekly_meals` |
+| Weekly meal plan foods | `foods` + `weekly_meal_plan_entries` |
+| Day meal overrides | `day_meals` |
+| Day meal plan foods | `foods` + `meal_plan_entries` |
 | Activities / water / full profile | not mirrored yet |
 
 Food and day-meal IDs are deterministic UUIDv5 values so repeated logs of the
@@ -37,6 +43,9 @@ same product reuse one remote food row. Intake ids (already UUIDs) become
 `food_log_entries` ids.
 
 Meal slots: breakfast=0, lunch=1, dinner=2, snack=3.
+
+Weekly templates use `dayOfWeek` 0=Monday … 6=Sunday. Effective targets and
+meal plans resolve as: **day override → weekly template → none**.
 
 ## Code map
 
@@ -48,3 +57,8 @@ Meal slots: breakfast=0, lunch=1, dinner=2, snack=3.
 | HTTP client | `lib/core/sync/calorie_tracker_api_client.dart` |
 | Coordinator | `lib/core/sync/sync_service.dart` |
 | Settings UI | `lib/features/settings/presentation/widgets/calorie_tracker_sync_screen.dart` |
+| Weekly macro targets UI | `lib/features/meal_plan/weekly_macro_targets_screen.dart` |
+| Weekly meal plans UI | `lib/features/meal_plan/weekly_meal_plans_screen.dart` |
+| Day meal plan UI | `lib/features/meal_plan/day_meal_plan_screen.dart` |
+| Macro calorie helpers | `lib/core/utils/calc/macro_calories.dart` |
+| Meal plan helpers | `lib/core/utils/meal_plan_utils.dart` |

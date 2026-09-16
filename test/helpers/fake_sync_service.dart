@@ -1,5 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_meal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/sync/sync_service.dart';
 
@@ -12,10 +18,50 @@ class FakeSyncService extends Fake implements SyncService {
   Future<void> enqueueIntakeDelete(String intakeId) async {}
 
   @override
-  Future<void> enqueueWeightUpsert(WeightLogEntity entry) async {}
+  Future<void> enqueueWeightLogUpsert(WeightLogEntity entry) async {}
 
   @override
-  Future<void> enqueueWeightDelete(DateTime date) async {}
+  Future<void> enqueueWeightLogDelete(DateTime date) async {}
+
+  @override
+  Future<void> enqueueWeeklyMacroTargetUpsert(
+    WeeklyMacroTargetEntity target,
+  ) async {}
+
+  @override
+  Future<void> enqueueWeeklyMacroTargetDelete(String id) async {}
+
+  @override
+  Future<void> enqueueMacroTargetUpsert(MacroTargetEntity target) async {}
+
+  @override
+  Future<void> enqueueMacroTargetDelete(String id) async {}
+
+  @override
+  Future<void> enqueueWeeklyMealUpsert(WeeklyMealEntity meal) async {}
+
+  @override
+  Future<void> enqueueWeeklyMealDelete(String id) async {}
+
+  @override
+  Future<void> enqueueWeeklyMealPlanEntryUpsert(
+    WeeklyMealPlanEntryEntity entry,
+  ) async {}
+
+  @override
+  Future<void> enqueueWeeklyMealPlanEntryDelete(String id) async {}
+
+  @override
+  Future<void> enqueueDayMealUpsert(DayMealEntity meal) async {}
+
+  @override
+  Future<void> enqueueDayMealDelete(String id) async {}
+
+  @override
+  Future<void> enqueueMealPlanEntryUpsert(MealPlanEntryEntity entry) async {}
+
+  @override
+  Future<void> enqueueMealPlanEntryDelete(String id) async {}
 
   @override
   Future<void> enqueueActivityUpsert(Object _) async {}

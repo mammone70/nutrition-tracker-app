@@ -166,29 +166,101 @@
   "foodSourcesHelpText": "Výsledky vyhľadávania pochádzajú z týchto databáz potravín. Open Food Facts poháňa vyhľadávanie produktov a čiarových kódov a je vždy zapnutá.",
   "machineTranslatedNameHint": "Názov bol preložený automaticky",
   "measureUnitBar": "{count, plural, one{tyčinka} few{tyčinky} other{tyčiniek}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{fľaša} few{fľaše} other{fliaš}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{plechovka} few{plechovky} other{plechoviek}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{šálka} few{šálky} other{šálok}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{vajce} few{vajcia} other{vajec}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{balenie} few{balenia} other{balení}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{kus} few{kusy} other{kusov}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{porcia} few{porcie} other{porcií}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{porcia} few{porcie} other{porcií}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{plátok} few{plátky} other{plátkov}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{lyžica} few{lyžice} other{lyžíc}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{lyžička} few{lyžičky} other{lyžičiek}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Databázy potravín",
   "settingsFoodSourcesSubtitle": "Vyberte, odkiaľ pochádzajú výsledky vyhľadávania",
   "onboardingOtherOptionsLabel": "Ďalšie možnosti",
@@ -199,9 +271,9 @@
   "ageLabel": "Vek",
   "allItemsLabel": "Všetky",
   "alphaVersionName": "[Alfa]",
-  "appDescription": "OpenNutriTracker je bezplatná open-source aplikácia na sledovanie kalórií a živín, ktorá rešpektuje vaše súkromie.",
+  "appDescription": "Fitty Kitties is a free and open-source calorie and nutrient tracker that respects your privacy.",
   "appLicenseLabel": "Licencia GPL-3.0",
-  "appTitle": "OpenNutriTracker",
+  "appTitle": "Fitty Kitties",
   "appVersionName": "Verzia {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "Tento 13-miestny čiarový kód vyzerá ako preklep: posledná číslica nesedí so zvyškom",
   "baseQuantityLabel": "Výživové hodnoty na",
@@ -337,7 +409,7 @@
   "discardChangesContent": "Vaše neuložené zmeny budú stratené.",
   "discardChangesTitle": "Zahodiť zmeny?",
   "disclaimerAcknowledgeLabel": "Rozumiem",
-  "disclaimerText": "OpenNutriTracker nie je zdravotnícka aplikácia. Všetky poskytnuté údaje nie sú validované a mali by sa používať s opatrnosťou. Dodržiavajte zdravý životný štýl a v prípade ťažkostí sa poraďte s odborníkom. Používanie počas choroby, tehotenstva alebo dojčenia sa neodporúča. Recenzované zdroje za každým výpočtom nájdete cez ikonu informácií na obrazovke Domov alebo Profil.",
+  "disclaimerText": "Fitty Kitties nie je zdravotnícka aplikácia. Všetky poskytnuté údaje nie sú validované a mali by sa používať s opatrnosťou. Dodržiavajte zdravý životný štýl a v prípade ťažkostí sa poraďte s odborníkom. Používanie počas choroby, tehotenstva alebo dojčenia sa neodporúča. Recenzované zdroje za každým výpočtom nájdete cez ikonu informácií na obrazovke Domov alebo Profil.",
   "downloadSampleCsvAction": "Vzorové jedlá (csv)",
   "downloadSampleJsonAction": "Vzorové jedlá (json)",
   "downloadSampleRecipesCsvAction": "Vzorové recepty (csv)",
@@ -505,7 +577,7 @@
   "notificationsDailyReminderBody": "Nezabudnite si dnes zapísať svoje jedlá!",
   "notificationsDailyReminderChannelName": "Denné pripomenutia",
   "notificationsDailyReminderChannelDescription": "Denné pripomenutie na zaznamenanie jedál",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsDailyReminderTitle": "Fitty Kitties",
   "notificationsPermissionDeniedSnack": "Povolenie pre upozornenia bolo zamietnuté.",
   "nutrientPanelAllHiddenLabel": "Všetky živiny sú skryté — zapnite niektoré v Nastavenia → Živiny.",
   "nutrientPanelLimitLabel": "limit",
@@ -1008,12 +1080,12 @@
   "sourcesIconTooltip": "Zobraziť zdroje",
   "sourcesMacrosDescription": "Predvolené rozdelenie 60 % sacharidov, 25 % tukov a 15 % bielkovín spadá do odporúčaných rozsahov príjmu živín podľa WHO. V Nastavenia → Výpočty si ho môžete upraviť. Zdroj: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Rozdelenie makroživín",
-  "sourcesNonBinaryDescription": "Výskum energetického výdaja historicky používal binárne pohlavné kategórie, takže pre nebinárne osoby neexistuje jediný validovaný vzorec TDEE. OpenNutriTracker vám preto v Nastavenia → Výpočty ponúka voľbu medzi spriemerovanou referenciou, estrogénovo-typickou referenciou a testosterónovo-typickou referenciou. Ak na presnom čísle pre vašu starostlivosť skutočne záleží, prosím poraďte sa s klinikom, ktorý pozná váš hormonálny stav.",
+  "sourcesNonBinaryDescription": "Výskum energetického výdaja historicky používal binárne pohlavné kategórie, takže pre nebinárne osoby neexistuje jediný validovaný vzorec TDEE. Fitty Kitties vám preto v Nastavenia → Výpočty ponúka voľbu medzi spriemerovanou referenciou, estrogénovo-typickou referenciou a testosterónovo-typickou referenciou. Ak na presnom čísle pre vašu starostlivosť skutočne záleží, prosím poraďte sa s klinikom, ktorý pozná váš hormonálny stav.",
   "sourcesNutrientReferenceTitle": "Referenčné príjmy živín",
   "sourcesNutrientReferenceDescription": "Denné referenčné hodnoty zobrazené v paneli živín v denníku pochádzajú zo súhrnu Dietary Reference Intakes Institute of Medicine, ktorý pokrýva ciele pre jednotlivé živiny u dospelých.",
   "sourcesNonBinaryTitle": "Odhad kalórií pre nebinárne osoby",
   "sourcesOpenSourceLabel": "Zobraziť zdroj",
-  "sourcesScreenIntro": "OpenNutriTracker používa pre každý zobrazený výpočet zavedené, recenzované metódy. Nasledujúce odkazy vedú na pôvodné zdroje, takže si každé číslo môžete sami overiť.",
+  "sourcesScreenIntro": "Fitty Kitties používa pre každý zobrazený výpočet zavedené, recenzované metódy. Nasledujúce odkazy vedú na pôvodné zdroje, takže si každé číslo môžete sami overiť.",
   "sugarLabel": "cukor",
   "suggestedLabel": "Navrhnuté",
   "suppliedLabel": "prijaté",
@@ -1089,26 +1161,40 @@
   "customMealsMergeConfirmContent": "Tým sa všetky záznamy zapísané s {loser} nahradia, aby zobrazovali {winner}, a {loser} bude odstránené z vašich vlastných jedál. Túto akciu nemožno vrátiť späť.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Zlúčiť",
   "customMealsMergeSuccessSnackbarOne": "Zlúčené — {winner} má teraz 1 záznam.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Zlúčené — {winner} má teraz {count} záznamov.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Pôst · zostáva {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Časovač pôstu",
@@ -1171,7 +1257,7 @@
   "aiConsentChangeProviderNote": "Poskytovateľa môžeš neskôr zmeniť. Podmienky každého poskytovateľa nájdeš v nastaveniach a nič z toho, čo napíšeš alebo odfotíš, sa neodosiela, kým funkciu nepoužiješ.",
   "aiConsentOwnServerCheckNote": "Keď uložíš adresu svojho servera, aplikácia sa ho zároveň spýta, aké modely ponúka, a spustí jednu kontrolu nastavenia — pevne daný ukážkový riadok a našu vzorovú fotografiu, nikdy nič tvoje.",
   "aiConsentAgreeLabel": "ROZUMIEM",
-  "aiAssistDisclosureCommon": "Váš denník ani váš profil sa nikdy neodosielajú. Výživové hodnoty vždy pochádzajú z databáz potravín, nikdy od modelu. Kľúč je uložený len v tomto zariadení: OpenNutriTracker ho nikdy nevidí a neplatí za jeho použitie.",
+  "aiAssistDisclosureCommon": "Váš denník ani váš profil sa nikdy neodosielajú. Výživové hodnoty vždy pochádzajú z databáz potravín, nikdy od modelu. Kľúč je uložený len v tomto zariadení: Fitty Kitties ho nikdy nevidí a neplatí za jeho použitie.",
   "aiAssistDisclosureAnthropic": "S uloženým kľúčom sa text, ktorý zadáte na obrazovke hromadného pridávania — a každá fotka, ktorú tam necháte prečítať — odosiela spoločnosti Anthropic. Fotky sa odosielajú len pre túto jednu požiadavku a nikdy sa neukladajú.",
   "aiAssistDisclosureOpenRouter": "S uloženým kľúčom sa text, ktorý zadáte na obrazovke hromadného pridávania — a každá fotka, ktorú tam necháte prečítať — odosiela do OpenRouteru, ktorý ho odovzdá poskytovateľovi vami zvoleného modelu. OpenRouter navyše pri každej požiadavke odovzdáva tomuto poskytovateľovi identifikátor účtu a nedá sa to vypnúť. Váš obsah neuchováva dlhšie, než je potrebné na smerovanie požiadavky, s výnimkou toho, čo je nevyhnutné na detekciu zneužitia, bezpečnosť, fakturáciu alebo plnenie právnych povinností. Poskytovateľ, ktorý obsluhuje váš model, uchováva prijaté údaje podľa vlastných zásad.",
   "aiAssistDisclosureOpenAI": "S uloženým kľúčom sa text, ktorý zadáte na obrazovke hromadného pridávania — a každá fotka, ktorú tam necháte prečítať — odosiela spoločnosti OpenAI. OpenAI uchováva odoslaný obsah až 30 dní kvôli detekcii zneužitia, a dlhšie, ak to vyžaduje zákon alebo je to primerane nevyhnutné na ochranu jej služieb či tretích strán pred ujmou.",
@@ -1179,9 +1265,21 @@
   "aiAssistEndpointFieldLabel": "Adresa servera",
   "aiAssistModelFieldLabel": "Názov modelu",
   "aiAssistDisclosureOwnServerSecure": "S uloženou adresou sa text, ktorý zadáte na obrazovke hromadného pridávania, a každá fotografia, ktorú si tam necháte prečítať, odosiela na {host} — server, ktorý prevádzkujete vy. Nezískava ho žiadna tretia strana a projekt nemá k tomuto stroju žiadny vzťah a nemôže nič sľúbiť o tom, čo si uchováva. Spojenie je šifrované.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "S uloženou adresou sa text, ktorý zadáte na obrazovke hromadného pridávania, a každá fotografia, ktorú si tam necháte prečítať, odosiela na {host} — server, ktorý prevádzkujete vy. Nezískava ho žiadna tretia strana a projekt nemá k tomuto stroju žiadny vzťah a nemôže nič sľúbiť o tom, čo si uchováva. Táto adresa je obyčajné HTTP, takže spojenie nie je šifrované: čokoľvek v sieti medzi týmto telefónom a oným serverom si môže prečítať, čo sa odosiela.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Zadajte adresu začínajúcu na http:// alebo https://",
   "aiAssistModelRequiredLabel": "Zadajte názov modelu, ktorý má tento server použiť.",
   "aiAssistEndpointPublicPlaintextLabel": "Táto adresa je verejná a nešifrovaná, preto sú požiadavky na ňu odmietané. Použite https alebo privátnu adresu.",
@@ -1219,7 +1317,7 @@
   "bulkAddModelInsecureServerLabel": "AI sa nespustila: adresa je verejná a nešifrovaná.",
   "bulkAddModelTimedOutLabel": "AI sa nespustila: váš server neodpovedal včas.",
   "bulkAddPhotoLabel": "Načítať fotku",
-  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker si neponecháva vlastnú kópiu a fotka sa nikdy nedostane do vašich exportov.",
+  "bulkAddPhotoDisclosureCommon": "Fitty Kitties si neponecháva vlastnú kópiu a fotka sa nikdy nedostane do vašich exportov.",
   "bulkAddPhotoDisclosureAnthropic": "Fotka sa odošle spoločnosti Anthropic, aby rozpoznala potraviny na nej.",
   "bulkAddPhotoDisclosureOpenRouter": "Fotka sa odošle do OpenRouteru, ktorý ju odovzdá poskytovateľovi {provider}, aby rozpoznal potraviny na nej.",
   "bulkAddPhotoDisclosureOpenAI": "Fotka sa odošle spoločnosti OpenAI, aby rozpoznala potraviny na nej. OpenAI ju uchováva až 30 dní kvôli detekcii zneužitia, a dlhšie, ak to vyžaduje zákon alebo je to primerane nevyhnutné na ochranu jej služieb či tretích strán pred ujmou.",
@@ -1243,10 +1341,10 @@
   "healthSyncLastImportLabel": "Posledný import: {time}",
   "healthSyncNeverImportedLabel": "Zatiaľ neboli importované žiadne tréningy",
   "healthSyncImportedCountLabel": "{count, plural, =0{Žiadne nové tréningy} one{Importovaný 1 tréning} few{Importované {count} tréningy} many{Importovaných {count} tréningu} other{Importovaných {count} tréningov}}",
-  "healthSyncPermissionDeniedLabel": "Prístup k {platform} nebol udelený. Povoľ aplikácii OpenNutriTracker čítať tréningy, aby ich mohla importovať.",
+  "healthSyncPermissionDeniedLabel": "Prístup k {platform} nebol udelený. Povoľ aplikácii Fitty Kitties čítať tréningy, aby ich mohla importovať.",
   "healthSyncDisclosureTitle": "Importovať tréningy z {platform}?",
-  "healthSyncDisclosureBody": "OpenNutriTracker načíta tvoje dokončené tréningy z {platform} — ich typ, kedy prebehli, ako dlho trvali a energiu, ktorú uvádzajú.\n\nTréningy sa do denníka ukladajú ako aktivity, ktoré môžeš upraviť alebo odstrániť; uvedená energia zvýši kalorický cieľ daného dňa o podiel, ktorý si zvolíš.",
-  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker tiež načíta naposledy uložený podiel telesného tuku z {platform}. Údaj o telesnom tuku slúži na návrh tohto podielu.",
+  "healthSyncDisclosureBody": "Fitty Kitties načíta tvoje dokončené tréningy z {platform} — ich typ, kedy prebehli, ako dlho trvali a energiu, ktorú uvádzajú.\n\nTréningy sa do denníka ukladajú ako aktivity, ktoré môžeš upraviť alebo odstrániť; uvedená energia zvýši kalorický cieľ daného dňa o podiel, ktorý si zvolíš.",
+  "healthSyncDisclosureBodyFatAddendum": "Fitty Kitties tiež načíta naposledy uložený podiel telesného tuku z {platform}. Údaj o telesnom tuku slúži na návrh tohto podielu.",
   "healthSyncDisclosureFooter": "Do {platform} sa nič nezapisuje a nič sa nikam neodosiela — všetko zostáva v tomto zariadení.\n\nKedykoľvek to môžeš vypnúť; tým sa ďalšie načítanie zastaví.",
   "healthSyncDisclosureContinueAction": "Pokračovať",
   "healthSyncUnavailableLabel": "Zdravotné údaje nie sú na tomto zariadení dostupné. Import tréningov vyžaduje Health Connect v Androide alebo Apple Health v iOS.",
@@ -1266,9 +1364,41 @@
   "calorieTrackerSyncSavedLabel": "Saved",
   "calorieTrackerSyncProbeOkLabel": "API reachable",
   "calorieTrackerSyncProbeFailLabel": "Could not reach API: {error}",
-  "@calorieTrackerSyncProbeFailLabel": {"placeholders": {"error": {"type": "String"}}},
+  "@calorieTrackerSyncProbeFailLabel": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "calorieTrackerSyncSuccessLabel": "Sync finished",
   "calorieTrackerSyncFailedLabel": "Sync failed",
   "calorieTrackerSyncPendingLabel": "{count, plural, =0{No pending changes} one{1 change waiting to upload} other{{count} changes waiting to upload}}",
-  "@calorieTrackerSyncPendingLabel": {"placeholders": {"count": {"type": "num"}}}
+  "@calorieTrackerSyncPendingLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "weeklyMacroTargetsTitle": "Weekly calorie & macro targets",
+  "weeklyMacroTargetsSubtitle": "Default targets for each weekday; individual days can still override",
+  "weeklyMealPlansTitle": "Weekly meal plans",
+  "weeklyMealPlansSubtitle": "Template meals and foods for each weekday",
+  "dayMealPlanTitle": "Day meal plan",
+  "saveWeeklyTargetsLabel": "Save",
+  "macrosCaloriesMismatchLabel": "Calories must equal protein×4 + carbs×4 + fat×9 (within 1 cal)",
+  "materializeWeeklyLabel": "Copy from weekly",
+  "resetToWeeklyLabel": "Reset to weekly",
+  "addMealPlanFoodLabel": "Add food",
+  "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
+  "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
+  "settingsWeeklyMealPlansLabel": "Weekly meal plans",
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday"
 }
