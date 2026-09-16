@@ -1370,5 +1370,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "询问宏量营养素、膳食计划、进度与同步",
+  "fittyAgentEmptyHint": "让 Fitty Agent 设置宏量营养素、规划餐食、查看今日日记，或与 Calorie Tracker 同步。",
+  "fittyAgentInputHint": "向 Fitty Agent 发送消息…",
+  "fittyAgentClearChat": "清除聊天",
+  "fittyAgentSetupBody": "Fitty Agent 使用与 AI 膳食辅助相同的大模型，并可能向该提供方发送日记、膳食计划与个人资料摘要，以便回答并作出更改。",
+  "fittyAgentConfigureAi": "配置 AI 辅助",
+  "fittyAgentReviewConsent": "查看并同意",
+  "fittyAgentConsentTitle": "Fitty Agent 协议",
+  "fittyAgentConsentBody": "Fitty Agent 将使用您配置的 {provider} 模型。与 AI 膳食辅助不同，它可能会发送日记、膳食计划、宏量营养素、体重与目标摘要，以便模型回答并更新。更改先保存在本机，并在开启同步时通过 Calorie Tracker 同步。Fitty Kitties 绝不会看到您的 API 密钥。",
+  "fittyAgentConsentAgree": "我同意",
+  "fittyAgentConsentDecline": "暂不"
 }

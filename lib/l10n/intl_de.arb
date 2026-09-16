@@ -1400,5 +1400,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Fragen zu Makros, Essensplänen, Fortschritt und Sync",
+  "fittyAgentEmptyHint": "Bitte Fitty Agent, Makros zu setzen, Mahlzeiten zu planen, das heutige Tagebuch zu prüfen oder mit Calorie Tracker zu synchronisieren.",
+  "fittyAgentInputHint": "Nachricht an Fitty Agent…",
+  "fittyAgentClearChat": "Chat leeren",
+  "fittyAgentSetupBody": "Fitty Agent nutzt dieselbe KI wie die Mahlzeitenhilfe und kann Tagebuch-, Essensplan- und Profilzusammenfassungen an diesen Anbieter senden, um zu antworten und Änderungen vorzunehmen.",
+  "fittyAgentConfigureAi": "KI-Unterstützung einrichten",
+  "fittyAgentReviewConsent": "Lesen und zustimmen",
+  "fittyAgentConsentTitle": "Fitty-Agent-Zustimmung",
+  "fittyAgentConsentBody": "Fitty Agent nutzt Ihr konfiguriertes {provider}-Modell. Anders als die KI-Mahlzeitenhilfe kann es Zusammenfassungen von Tagebuch, Essensplänen, Makros, Gewicht und Profilzielen senden, damit das Modell antworten und aktualisieren kann. Änderungen werden zuerst auf diesem Gerät gespeichert und bei aktivem Sync über Calorie Tracker synchronisiert. Fitty Kitties sieht Ihren API-Schlüssel nie.",
+  "fittyAgentConsentAgree": "Ich stimme zu",
+  "fittyAgentConsentDecline": "Nicht jetzt"
 }

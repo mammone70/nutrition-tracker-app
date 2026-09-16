@@ -1692,5 +1692,24 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Ask about macros, meal plans, progress, and sync",
+  "fittyAgentEmptyHint": "Ask Fitty Agent to set macros, plan meals, check today’s diary, or sync with Calorie Tracker.",
+  "fittyAgentInputHint": "Message Fitty Agent…",
+  "fittyAgentClearChat": "Clear chat",
+  "fittyAgentSetupBody": "Fitty Agent uses the same LLM as AI meal assistance, and may send diary, meal-plan, and profile summaries to that provider so it can answer and make changes.",
+  "fittyAgentConfigureAi": "Configure AI Assist",
+  "fittyAgentReviewConsent": "Review and agree",
+  "fittyAgentConsentTitle": "Fitty Agent agreement",
+  "fittyAgentConsentBody": "Fitty Agent will use your configured {provider} model. Unlike AI meal assistance, it may send summaries of your diary, meal plans, macros, weight log, and profile goals so the model can answer and update them. Changes are saved on this device first and synced through Calorie Tracker when sync is on. Fitty Kitties never sees your API key.",
+  "@fittyAgentConsentBody": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "fittyAgentConsentAgree": "I agree",
+  "fittyAgentConsentDecline": "Not now"
 }

@@ -1369,5 +1369,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Pytania o makro, plany posiłków, postępy i sync",
+  "fittyAgentEmptyHint": "Poproś Fitty Agent o ustawienie makro, plan posiłków, sprawdzenie dzisiejszego dziennika lub sync z Calorie Tracker.",
+  "fittyAgentInputHint": "Wiadomość do Fitty Agent…",
+  "fittyAgentClearChat": "Wyczyść czat",
+  "fittyAgentSetupBody": "Fitty Agent używa tego samego LLM co AI pomoc przy posiłkach i może wysyłać podsumowania dziennika, planów i profilu do tego dostawcy, by odpowiadać i wprowadzać zmiany.",
+  "fittyAgentConfigureAi": "Skonfiguruj AI Assist",
+  "fittyAgentReviewConsent": "Przeczytaj i zaakceptuj",
+  "fittyAgentConsentTitle": "Zgoda Fitty Agent",
+  "fittyAgentConsentBody": "Fitty Agent użyje skonfigurowanego modelu {provider}. W przeciwieństwie do AI pomocy przy posiłkach może wysyłać podsumowania dziennika, planów, makro, wagi i celów profilu, by model mógł odpowiadać i je aktualizować. Zmiany są najpierw zapisywane na tym urządzeniu i synchronizowane przez Calorie Tracker, gdy sync jest włączony. Fitty Kitties nigdy nie widzi Twojego klucza API.",
+  "fittyAgentConsentAgree": "Zgadzam się",
+  "fittyAgentConsentDecline": "Nie teraz"
 }

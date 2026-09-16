@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/fitty_agent_consent_storage.dart';
 
 import '../helpers/hive_test_setup.dart';
 
@@ -203,6 +204,7 @@ void main() {
       _SilentNotificationService(),
       ConfigRepository(ConfigDataSource(provider)),
       credentials,
+      FittyAgentConsentStorage(storage: backing),
     );
   });
 

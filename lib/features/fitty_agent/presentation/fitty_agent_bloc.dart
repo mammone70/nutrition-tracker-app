@@ -1,0 +1,131 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_interpreter_exception.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/agent_message.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/fitty_agent_consent_storage.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/run_fitty_agent_usecase.dart';
+import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_event.dart';
+import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_state.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+
+class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
+  final RunFittyAgentUseCase _runAgent;
+  final FittyAgentConsentStorage _consent;
+  final AiCredentialStorage _credentials;
+
+  final List<AgentMessage> _history = [];
+
+  FittyAgentBloc({
+    required RunFittyAgentUseCase runAgent,
+    required FittyAgentConsentStorage consent,
+    required AiCredentialStorage credentials,
+  }) : _runAgent = runAgent,
+       _consent = consent,
+       _credentials = credentials,
+       super(const FittyAgentInitial()) {
+    on<FittyAgentStarted>(_onStarted);
+    on<FittyAgentConsentAccepted>(_onConsentAccepted);
+    on<FittyAgentMessageSubmitted>(_onSubmitted);
+    on<FittyAgentCleared>(_onCleared);
+  }
+
+  Future<void> _onStarted(
+    FittyAgentStarted event,
+    Emitter<FittyAgentState> emit,
+  ) async {
+    final hasConsent = await _consent.hasConsent();
+    final aiEnabled = await _credentials.isEnabled();
+    if (!hasConsent || !aiEnabled) {
+      emit(
+        FittyAgentNeedsSetup(
+          needsAiConfig: !aiEnabled,
+          needsConsent: !hasConsent,
+        ),
+      );
+      return;
+    }
+    emit(const FittyAgentReady(bubbles: []));
+  }
+
+  Future<void> _onConsentAccepted(
+    FittyAgentConsentAccepted event,
+    Emitter<FittyAgentState> emit,
+  ) async {
+    await _consent.setConsent(true);
+    add(const FittyAgentStarted());
+  }
+
+  Future<void> _onSubmitted(
+    FittyAgentMessageSubmitted event,
+    Emitter<FittyAgentState> emit,
+  ) async {
+    final text = event.text.trim();
+    if (text.isEmpty) return;
+
+    final current = state;
+    if (current is! FittyAgentReady || current.sending) return;
+
+    final bubbles = [
+      ...current.bubbles,
+      AgentChatBubble(fromUser: true, text: text),
+    ];
+    emit(current.copyWith(bubbles: bubbles, sending: true, clearError: true));
+
+    try {
+      final result = await _runAgent.send(userText: text, history: _history);
+      _history.addAll(result.newMessages);
+
+      final nextBubbles = [...bubbles];
+      for (final message in result.newMessages) {
+        if (message is AgentToolResultMessage) {
+          nextBubbles.add(
+            AgentChatBubble(
+              fromUser: false,
+              text: 'Used ${message.name}',
+              isToolActivity: true,
+            ),
+          );
+        }
+      }
+      nextBubbles.add(AgentChatBubble(fromUser: false, text: result.reply));
+      emit(FittyAgentReady(bubbles: nextBubbles));
+    } on FittyAgentNotConfiguredException {
+      emit(
+        const FittyAgentNeedsSetup(needsAiConfig: true, needsConsent: false),
+      );
+    } on FittyAgentConsentRequiredException {
+      emit(
+        const FittyAgentNeedsSetup(needsAiConfig: false, needsConsent: true),
+      );
+    } catch (e) {
+      final failure = e is MealInterpreterException ? e.failure : null;
+      emit(
+        FittyAgentReady(bubbles: bubbles, errorMessage: _errorLabel(failure)),
+      );
+    }
+  }
+
+  Future<void> _onCleared(
+    FittyAgentCleared event,
+    Emitter<FittyAgentState> emit,
+  ) async {
+    _history.clear();
+    if (state is FittyAgentReady) {
+      emit(const FittyAgentReady(bubbles: []));
+    }
+  }
+
+  String _errorLabel(MealInterpreterFailure? failure) {
+    return switch (failure) {
+      MealInterpreterFailure.auth => 'Authentication failed. Check AI Assist.',
+      MealInterpreterFailure.billing => 'Provider billing error.',
+      MealInterpreterFailure.unsupported =>
+        'This model does not support agent tools.',
+      MealInterpreterFailure.timeout => 'The request timed out. Try again.',
+      MealInterpreterFailure.rejected => 'The provider rejected the request.',
+      MealInterpreterFailure.insecureDestination =>
+        'That server address is not allowed for plaintext requests.',
+      MealInterpreterFailure.transient ||
+      null => 'Something went wrong. Check your connection and try again.',
+    };
+  }
+}

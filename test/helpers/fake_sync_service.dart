@@ -77,4 +77,22 @@ class FakeSyncService extends Fake implements SyncService {
 
   @override
   Future<void> enqueueUserUpsert(Object _) async {}
+
+  @override
+  Future<void> refreshPendingCount() async {}
+
+  @override
+  bool get isSyncing => false;
+
+  @override
+  int get pendingCount => 0;
+
+  @override
+  String? get lastError => null;
+
+  @override
+  DateTime? get lastSyncAt => null;
+
+  @override
+  Future<bool> syncNow({bool pull = true}) async => true;
 }

@@ -1400,5 +1400,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Makrolar, yemek planları, ilerleme ve senkron hakkında sor",
+  "fittyAgentEmptyHint": "Fitty Agent’tan makro ayarlamasını, yemek planlamasını, bugünkü günlüğü kontrol etmesini veya Calorie Tracker ile senkronize etmesini isteyin.",
+  "fittyAgentInputHint": "Fitty Agent’a mesaj…",
+  "fittyAgentClearChat": "Sohbeti temizle",
+  "fittyAgentSetupBody": "Fitty Agent, AI yemek yardımındaki aynı LLM’i kullanır; yanıt vermek ve değişiklik yapmak için günlük, yemek planı ve profil özetlerini o sağlayıcıya gönderebilir.",
+  "fittyAgentConfigureAi": "AI Assist’i yapılandır",
+  "fittyAgentReviewConsent": "İncele ve kabul et",
+  "fittyAgentConsentTitle": "Fitty Agent onayı",
+  "fittyAgentConsentBody": "Fitty Agent, yapılandırılmış {provider} modelinizi kullanacak. AI yemek yardımından farklı olarak günlük, yemek planı, makro, kilo ve profil hedeflerinin özetlerini göndererek modelin yanıt vermesini ve güncellemesini sağlayabilir. Değişiklikler önce bu cihazda kaydedilir; sync açıksa Calorie Tracker üzerinden senkronize edilir. Fitty Kitties API anahtarınızı asla görmez.",
+  "fittyAgentConsentAgree": "Kabul ediyorum",
+  "fittyAgentConsentDecline": "Şimdi değil"
 }

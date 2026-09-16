@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -200,6 +201,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
             ),
             const FastingHomeChip(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ActionChip(
+                  key: const ValueKey('home-fitty-agent'),
+                  avatar: const Icon(Icons.smart_toy_outlined, size: 18),
+                  label: Text(S.of(context).fittyAgentTitle),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pushNamed(NavigationOptions.fittyAgentRoute),
+                ),
+              ),
+            ),
             const SizedBox(height: Dimens.spacing8),
             DashboardWidget(
               totalKcalDaily: totalKcalDaily,

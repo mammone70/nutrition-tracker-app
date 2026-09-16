@@ -24,6 +24,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecas
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/fitty_agent_consent_storage.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
@@ -159,6 +160,7 @@ void main() {
           notifications,
           configRepository,
           AiCredentialStorage(_MemoryStorage()),
+          FittyAgentConsentStorage(storage: _MemoryStorage()),
         );
 
     test('the alarm the OS holds is cancelled, not merely forgotten', () async {

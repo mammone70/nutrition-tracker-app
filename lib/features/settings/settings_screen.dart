@@ -527,6 +527,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _openAiAssistDialog(context),
                 ),
                 _SettingsTile(
+                  identifier: 'settings-fitty-agent',
+                  palette: palette,
+                  icon: Icons.smart_toy_rounded,
+                  title: S.of(context).fittyAgentTitle,
+                  subtitle: S.of(context).fittyAgentSubtitle,
+                  badge: S.of(context).aiAssistExperimentalLabel,
+                  showChevron: true,
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pushNamed(NavigationOptions.fittyAgentRoute),
+                ),
+                _SettingsTile(
                   identifier: 'settings-import-custom-food',
                   palette: palette,
                   icon: Icons.restaurant_menu_rounded,

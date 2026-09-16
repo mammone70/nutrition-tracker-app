@@ -1369,5 +1369,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Domande su macro, piani pasti, progressi e sync",
+  "fittyAgentEmptyHint": "Chiedi a Fitty Agent di impostare i macro, pianificare i pasti, controllare il diario di oggi o sincronizzare con Calorie Tracker.",
+  "fittyAgentInputHint": "Messaggio a Fitty Agent…",
+  "fittyAgentClearChat": "Cancella chat",
+  "fittyAgentSetupBody": "Fitty Agent usa lo stesso LLM dell’assistenza AI ai pasti e può inviare riepiloghi di diario, piani pasti e profilo a quel provider per rispondere e apportare modifiche.",
+  "fittyAgentConfigureAi": "Configura assistenza AI",
+  "fittyAgentReviewConsent": "Leggi e accetta",
+  "fittyAgentConsentTitle": "Accordo Fitty Agent",
+  "fittyAgentConsentBody": "Fitty Agent userà il modello {provider} configurato. A differenza dell’assistenza AI ai pasti, può inviare riepiloghi di diario, piani pasti, macro, peso e obiettivi del profilo così il modello può rispondere e aggiornarli. Le modifiche si salvano prima su questo dispositivo e si sincronizzano con Calorie Tracker quando il sync è attivo. Fitty Kitties non vede mai la tua chiave API.",
+  "fittyAgentConsentAgree": "Accetto",
+  "fittyAgentConsentDecline": "Non ora"
 }
