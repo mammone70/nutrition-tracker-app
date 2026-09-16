@@ -12,10 +12,10 @@ class FakeSyncService extends Fake implements SyncService {
   Future<void> enqueueIntakeDelete(String intakeId) async {}
 
   @override
-  Future<void> enqueueWeightUpsert(WeightLogEntity entry) async {}
+  Future<void> enqueueWeightLogUpsert(WeightLogEntity entry) async {}
 
   @override
-  Future<void> enqueueWeightDelete(DateTime date) async {}
+  Future<void> enqueueWeightLogDelete(DateTime date) async {}
 
   @override
   Future<void> enqueueActivityUpsert(Object _) async {}
