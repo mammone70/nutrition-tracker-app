@@ -25,5 +25,8 @@ class NavigationOptions {
   /// screen from outside the app — see `HealthRationaleService` (#927).
   static const healthSyncRoute = "healthSync";
   static const calorieTrackerSyncRoute = "calorieTrackerSync";
+  static const weeklyMacroTargetsRoute = "weeklyMacroTargets";
+  static const weeklyMealPlansRoute = "weeklyMealPlans";
+  static const dayMealPlanRoute = "dayMealPlan";
   static const manageProfilesRoute = "manageProfiles";
 }

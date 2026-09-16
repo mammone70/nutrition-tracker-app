@@ -13,6 +13,12 @@ import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_plan_entry_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/hive_registrar.g.dart';
@@ -60,6 +66,13 @@ class HiveDBProvider extends ChangeNotifier {
   // intentionally keeps cancelled and completed sessions side by side with no
   // success/failure label on the record — see `FastingSessionDBO`.
   static const fastingBoxName = 'FastingBox';
+  // Local-first meal plans + macro templates (calorie-tracker sync).
+  static const weeklyMacroTargetBoxName = 'WeeklyMacroTargetBox';
+  static const macroTargetBoxName = 'MacroTargetBox';
+  static const weeklyMealBoxName = 'WeeklyMealBox';
+  static const weeklyMealPlanEntryBoxName = 'WeeklyMealPlanEntryBox';
+  static const dayMealBoxName = 'DayMealBox';
+  static const mealPlanEntryBoxName = 'MealPlanEntryBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -83,6 +96,12 @@ class HiveDBProvider extends ChangeNotifier {
     weightLogBoxName,
     waterIntakeBoxName,
     fastingBoxName,
+    weeklyMacroTargetBoxName,
+    macroTargetBoxName,
+    weeklyMealBoxName,
+    weeklyMealPlanEntryBoxName,
+    dayMealBoxName,
+    mealPlanEntryBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -110,6 +129,12 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
+  Box<WeeklyMacroTargetDBO>? _weeklyMacroTargetBox;
+  Box<MacroTargetDBO>? _macroTargetBox;
+  Box<WeeklyMealDBO>? _weeklyMealBox;
+  Box<WeeklyMealPlanEntryDBO>? _weeklyMealPlanEntryBox;
+  Box<DayMealDBO>? _dayMealBox;
+  Box<MealPlanEntryDBO>? _mealPlanEntryBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -131,6 +156,17 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
+  Box<WeeklyMacroTargetDBO> get weeklyMacroTargetBox =>
+      _requireBox(_weeklyMacroTargetBox, weeklyMacroTargetBoxName);
+  Box<MacroTargetDBO> get macroTargetBox =>
+      _requireBox(_macroTargetBox, macroTargetBoxName);
+  Box<WeeklyMealDBO> get weeklyMealBox =>
+      _requireBox(_weeklyMealBox, weeklyMealBoxName);
+  Box<WeeklyMealPlanEntryDBO> get weeklyMealPlanEntryBox =>
+      _requireBox(_weeklyMealPlanEntryBox, weeklyMealPlanEntryBoxName);
+  Box<DayMealDBO> get dayMealBox => _requireBox(_dayMealBox, dayMealBoxName);
+  Box<MealPlanEntryDBO> get mealPlanEntryBox =>
+      _requireBox(_mealPlanEntryBox, mealPlanEntryBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -228,6 +264,22 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(waterIntakeBoxName, suffix),
     );
     _fastingBox = await _openEncryptedBox(boxNameFor(fastingBoxName, suffix));
+    _weeklyMacroTargetBox = await _openEncryptedBox(
+      boxNameFor(weeklyMacroTargetBoxName, suffix),
+    );
+    _macroTargetBox = await _openEncryptedBox(
+      boxNameFor(macroTargetBoxName, suffix),
+    );
+    _weeklyMealBox = await _openEncryptedBox(
+      boxNameFor(weeklyMealBoxName, suffix),
+    );
+    _weeklyMealPlanEntryBox = await _openEncryptedBox(
+      boxNameFor(weeklyMealPlanEntryBoxName, suffix),
+    );
+    _dayMealBox = await _openEncryptedBox(boxNameFor(dayMealBoxName, suffix));
+    _mealPlanEntryBox = await _openEncryptedBox(
+      boxNameFor(mealPlanEntryBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -240,6 +292,12 @@ class HiveDBProvider extends ChangeNotifier {
       if (_weightLogBox != null) _weightLogBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
+      if (_weeklyMacroTargetBox != null) _weeklyMacroTargetBox!.close(),
+      if (_macroTargetBox != null) _macroTargetBox!.close(),
+      if (_weeklyMealBox != null) _weeklyMealBox!.close(),
+      if (_weeklyMealPlanEntryBox != null) _weeklyMealPlanEntryBox!.close(),
+      if (_dayMealBox != null) _dayMealBox!.close(),
+      if (_mealPlanEntryBox != null) _mealPlanEntryBox!.close(),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -249,6 +307,12 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
+    _weeklyMacroTargetBox = null;
+    _macroTargetBox = null;
+    _weeklyMealBox = null;
+    _weeklyMealPlanEntryBox = null;
+    _dayMealBox = null;
+    _mealPlanEntryBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile

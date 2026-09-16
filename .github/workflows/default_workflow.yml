@@ -842,10 +842,6 @@ jobs:
       - name: Decide what this push may deploy and what it may publish
         id: decide
         env:
-          # Opt-in for this fork. Upstream OpenNutriTracker always ships from
-          # main; mammone70/nutrition-tracker-app does not have App Store /
-          # Play / Match credentials, so leaving the gate "open" makes
-          # release-summary fail every main push (deploy=true, packages skipped).
           ENABLE_STORE_RELEASES: ${{ vars.ENABLE_STORE_RELEASES }}
         run: |
           # Character-for-character the derivation `github-release` uses in its
@@ -864,21 +860,10 @@ jobs:
           TAG_NAME="v${VERSION_NO_BUILD}"
           BUILD_TAG="deployed/${BUILD_NUMBER}"
 
-          # Fork default: do not attempt store deploys / GitHub releases until
-          # explicitly enabled. Without this, a green linux-checks on main still
-          # fails release-summary because packaging jobs skip (no secrets /
-          # environment approvals) while the gate promised deploy=true.
           if [ "${ENABLE_STORE_RELEASES:-}" != "true" ]; then
             echo "deploy=false" >> "$GITHUB_OUTPUT"
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Store releases disabled (set repository variable ENABLE_STORE_RELEASES=true to re-enable). Nothing will be packaged or published from this push."
-            {
-              echo "### Release summary for \`$APP_VERSION\`"
-              echo
-              echo 'Store releases are **disabled** for this repository'
-              echo '(`ENABLE_STORE_RELEASES` is not `true`). Packaging, deploy,'
-              echo 'and GitHub-release jobs are skipped on purpose.'
-            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::Store releases disabled (set repository variable ENABLE_STORE_RELEASES=true to re-enable)."
             exit 0
           fi
 

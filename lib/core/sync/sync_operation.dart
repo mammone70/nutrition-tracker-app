@@ -4,6 +4,10 @@ enum SyncEntityType {
   dayMeals('day_meals'),
   foodLogEntries('food_log_entries'),
   macroTargets('macro_targets'),
+  weeklyMacroTargets('weekly_macro_targets'),
+  weeklyMeals('weekly_meals'),
+  weeklyMealPlanEntries('weekly_meal_plan_entries'),
+  mealPlanEntries('meal_plan_entries'),
   exercises('exercises'),
   /// Local-only: pushed via `POST /api/body-weight`, not `/api/sync/push`.
   bodyWeight('__body_weight');

@@ -1,5 +1,5 @@
 name: opennutritracker
-description: Open-Source Calories & Activity Tracker
+description: Fitty Kitties — local-first calorie, macro, and meal-plan tracker
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -117,6 +117,9 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/icon/fitty_kitties_icon_1024.png
+    - assets/icon/fitty_kitties_icon_fg_1024.png
+    - assets/icon/fitty_kitties_icon_white_1024.png
     - assets/icon/ont_logo_square.svg
     - assets/icon/ont_splash_rings.svg
     - assets/icon/ont_splash_spoon.svg
@@ -174,13 +177,13 @@ flutter:
 
 flutter_launcher_icons:
   android: true
-  adaptive_icon_foreground: "assets/icon/ont_logo_square_color_back_1024x1024.png"
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_monochrome: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  adaptive_icon_foreground: "assets/icon/fitty_kitties_icon_fg_1024.png"
+  adaptive_icon_background: "#E85C47"
+  adaptive_icon_monochrome: "assets/icon/fitty_kitties_icon_white_1024.png"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icon/ont_logo_square_color_back_1024x1024.png"
-  image_path_ios_dark_transparent: "assets/icon/ont_logo_square_color_white_1024x1024.png"
-  image_path_ios_tinted_grayscale: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  image_path: "assets/icon/fitty_kitties_icon_1024.png"
+  image_path_ios_dark_transparent: "assets/icon/fitty_kitties_icon_white_1024.png"
+  image_path_ios_tinted_grayscale: "assets/icon/fitty_kitties_icon_white_1024.png"
   desaturate_tinted_to_grayscale_ios: true
   min_sdk_android: 21

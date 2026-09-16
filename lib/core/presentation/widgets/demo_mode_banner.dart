@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/usecase/ensure_default_user_usecase.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Persistent banner shown above every tab of `MainScreen` while the
 /// active profile holds seeded sample data (see
 /// `lib/core/utils/demo/demo_seeder.dart` and `ConfigEntity.isDemoData`).
-/// Tapping "Set up your profile" wipes the sample data (via
-/// `exitDemoMode`, not just `DeleteAllUserDataUsecase` — the demo also
-/// seeded recipes/custom meals/activity templates and renamed the
-/// profile, none of which that usecase touches) and returns to
-/// onboarding — mirrors `SettingsScreen._confirmDeleteAllData`'s
-/// confirm-then-wipe-then-route pattern, just with copy about leaving the
-/// demo rather than deleting real data.
+/// Tapping "Set up your profile" wipes the sample data and returns to the
+/// main diary with a default profile — setup forms are optional.
 class DemoModeBanner extends StatelessWidget {
   const DemoModeBanner({super.key});
 
@@ -113,9 +111,11 @@ class DemoModeBanner extends StatelessWidget {
     // StatelessWidget — use context.mounted (SettingsScreen uses State.mounted).
     if (!context.mounted) return;
     await exitDemoMode();
+    await locator<EnsureDefaultUserUsecase>().ensureExists();
     if (!context.mounted) return;
+    ProfileSwitchCoordinator.reloadTabBlocs();
     navigator.pushNamedAndRemoveUntil(
-      NavigationOptions.onboardingRoute,
+      NavigationOptions.mainRoute,
       (_) => false,
     );
   }

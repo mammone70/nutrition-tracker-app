@@ -118,29 +118,101 @@
   "foodSourcesHelpText": "Результати пошуку надходять із цих баз даних продуктів. Open Food Facts забезпечує пошук продуктів і штрих-кодів і завжди ввімкнена.",
   "machineTranslatedNameHint": "Назву перекладено автоматично",
   "measureUnitBar": "{count, plural, one{батончик} few{батончики} many{батончиків} other{батончика}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{пляшка} few{пляшки} many{пляшок} other{пляшки}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{банка} few{банки} many{банок} other{банки}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{чашка} few{чашки} many{чашок} other{чашки}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{яйце} few{яйця} many{яєць} other{яйця}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{упаковка} few{упаковки} many{упаковок} other{упаковки}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{шматок} few{шматки} many{шматків} other{шматка}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{порція} few{порції} many{порцій} other{порції}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{порція} few{порції} many{порцій} other{порції}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{скибка} few{скибки} many{скибок} other{скибки}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{столова ложка} few{столові ложки} many{столових ложок} other{столової ложки}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{чайна ложка} few{чайні ложки} many{чайних ложок} other{чайної ложки}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Бази даних продуктів",
   "settingsFoodSourcesSubtitle": "Виберіть, звідки надходять результати пошуку",
   "onboardingOtherOptionsLabel": "Інші параметри",
@@ -151,9 +223,9 @@
   "ageLabel": "Вік",
   "allItemsLabel": "Всі",
   "alphaVersionName": "[Альфа]",
-  "appDescription": "OpenNutriTracker — це безкоштовний трекер калорій та поживних речовин з відкритим кодом, який поважає вашу конфіденційність і не містить реклами",
+  "appDescription": "Fitty Kitties is a free and open-source calorie and nutrient tracker that respects your privacy.",
   "appLicenseLabel": "Ліцензія GPL-3.0",
-  "appTitle": "OpenNutriTracker",
+  "appTitle": "Fitty Kitties",
   "appVersionName": "Версія {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "Цей 13-значний штрих-код, схоже, введено з помилкою: остання цифра не збігається з рештою",
   "baseQuantityLabel": "Поживність на",
@@ -289,7 +361,7 @@
   "discardChangesContent": "Ваші незбережені зміни будуть втрачені.",
   "discardChangesTitle": "Скасувати зміни?",
   "disclaimerAcknowledgeLabel": "Зрозуміло",
-  "disclaimerText": "OpenNutriTracker не є медичним додатком. Всі надані дані не перевіряються і повинні використовуватися з обережністю. Будь ласка, ведіть здоровий спосіб життя і консультуйтеся з фахівцем, якщо у вас виникли проблеми. Використання під час хвороби, вагітності або лактації не рекомендується. Рецензовані джерела для кожного розрахунку відкриваються через піктограму інформації на екрані Головна або Профіль.",
+  "disclaimerText": "Fitty Kitties не є медичним додатком. Всі надані дані не перевіряються і повинні використовуватися з обережністю. Будь ласка, ведіть здоровий спосіб життя і консультуйтеся з фахівцем, якщо у вас виникли проблеми. Використання під час хвороби, вагітності або лактації не рекомендується. Рецензовані джерела для кожного розрахунку відкриваються через піктограму інформації на екрані Головна або Профіль.",
   "downloadSampleCsvAction": "Зразкові страви (csv)",
   "downloadSampleJsonAction": "Зразкові страви (json)",
   "downloadSampleRecipesCsvAction": "Зразкові рецепти (csv)",
@@ -457,7 +529,7 @@
   "notificationsDailyReminderBody": "Не забудьте сьогодні записати свої страви!",
   "notificationsDailyReminderChannelName": "Щоденні нагадування",
   "notificationsDailyReminderChannelDescription": "Щоденне нагадування записати прийоми їжі",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsDailyReminderTitle": "Fitty Kitties",
   "notificationsPermissionDeniedSnack": "У дозволі на сповіщення відмовлено.",
   "nutrientPanelAllHiddenLabel": "Усі поживні речовини приховано — увімкни деякі в Налаштування → Поживні речовини.",
   "nutrientPanelLimitLabel": "ліміт",
@@ -977,12 +1049,12 @@
   "sourcesIconTooltip": "Переглянути джерела",
   "sourcesMacrosDescription": "Стандартний розподіл 60% вуглеводів, 25% жирів і 15% білків входить у діапазони споживання поживних речовин, рекомендовані ВООЗ. Ти можеш змінити його в Налаштування → Розрахунки. Джерело: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Розподіл макроелементів",
-  "sourcesNonBinaryDescription": "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому OpenNutriTracker у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан.",
+  "sourcesNonBinaryDescription": "Дослідження енергетичних витрат історично використовували лише бінарні категорії статі, тому для небінарних осіб не існує єдиної підтвердженої формули TDEE. Тому Fitty Kitties у Налаштування → Розрахунки пропонує вибір між усередненим орієнтиром, орієнтиром, типовим для естрогену, та орієнтиром, типовим для тестостерону. Якщо точне значення є дійсно важливим для тебе, будь ласка, поговори з лікарем, який знає твій гормональний стан.",
   "sourcesNutrientReferenceTitle": "Референсні норми споживання поживних речовин",
   "sourcesNutrientReferenceDescription": "Щоденні референсні значення, показані в панелі поживних речовин щоденника, взяті зі зведеного звіту Dietary Reference Intakes Institute of Medicine, який охоплює цільові показники для кожної поживної речовини у дорослих.",
   "sourcesNonBinaryTitle": "Розрахунок калорій для небінарних осіб",
   "sourcesOpenSourceLabel": "Відкрити джерело",
-  "sourcesScreenIntro": "OpenNutriTracker використовує для кожного розрахунку усталені, рецензовані методики. Наведені нижче посилання ведуть до оригінальних джерел, щоб ти могла самостійно перевірити будь-яке число.",
+  "sourcesScreenIntro": "Fitty Kitties використовує для кожного розрахунку усталені, рецензовані методики. Наведені нижче посилання ведуть до оригінальних джерел, щоб ти могла самостійно перевірити будь-яке число.",
   "sugarLabel": "цукор",
   "suggestedLabel": "Запропоновано",
   "suppliedLabel": "спожито",
@@ -1058,26 +1130,40 @@
   "customMealsMergeConfirmContent": "Це замінить усі записи, додані з {loser}, щоб вони показували {winner}, і видалить {loser} з ваших власних страв. Цю дію не можна скасувати.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Об’єднати",
   "customMealsMergeSuccessSnackbarOne": "Об'єднано — {winner} тепер має 1 запис.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Об'єднано — {winner} тепер має {count} записів.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Голодування · залишилось {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Таймер голодування",
@@ -1140,7 +1226,7 @@
   "aiConsentChangeProviderNote": "Постачальника можна змінити пізніше. Умови кожного постачальника є в Налаштуваннях, і нічого з того, що ви вводите або фотографуєте, не надсилається, доки ви не скористаєтеся функцією.",
   "aiConsentOwnServerCheckNote": "Коли ви зберігаєте адресу свого сервера, застосунок також запитує в нього, які моделі він подає, і виконує одну перевірку налаштування — незмінний рядок-приклад і наше зразкове фото, ніколи нічого вашого.",
   "aiConsentAgreeLabel": "ЗРОЗУМІЛО",
-  "aiAssistDisclosureCommon": "Ваш щоденник і ваш профіль ніколи не надсилаються. Поживні значення завжди беруться з баз даних продуктів, а не від моделі. Ключ зберігається лише на цьому пристрої: OpenNutriTracker ніколи його не бачить і не платить за його використання.",
+  "aiAssistDisclosureCommon": "Ваш щоденник і ваш профіль ніколи не надсилаються. Поживні значення завжди беруться з баз даних продуктів, а не від моделі. Ключ зберігається лише на цьому пристрої: Fitty Kitties ніколи його не бачить і не платить за його використання.",
   "aiAssistDisclosureAnthropic": "Зі збереженим ключем текст, який ви вводите на екрані додавання кількох позицій — і будь-яке фото, яке ви там зчитуєте — надсилається до Anthropic. Фотографії надсилаються лише для цього одного запиту й ніколи не зберігаються.",
   "aiAssistDisclosureOpenRouter": "Зі збереженим ключем текст, який ви вводите на екрані додавання кількох позицій — і будь-яке фото, яке ви там зчитуєте — надсилається до OpenRouter, який передає його постачальнику обраної вами моделі. Крім того, OpenRouter із кожним запитом передає цьому постачальнику ідентифікатор облікового запису, і це неможливо вимкнути. Ваш вміст не зберігається довше, ніж потрібно для маршрутизації запиту, за винятком випадків, необхідних для виявлення зловживань, безпеки, виставлення рахунків або дотримання законодавства. Постачальник, який обслуговує вашу модель, зберігає отримане згідно з власною політикою.",
   "aiAssistDisclosureOpenAI": "Зі збереженим ключем текст, який ви вводите на екрані додавання кількох позицій — і будь-яке фото, яке ви там зчитуєте — надсилається до OpenAI. OpenAI зберігає надіслане до 30 днів для виявлення зловживань, а довше — якщо цього вимагає закон або це обґрунтовано необхідно для захисту її сервісів чи третіх осіб від шкоди.",
@@ -1148,9 +1234,21 @@
   "aiAssistEndpointFieldLabel": "Адреса сервера",
   "aiAssistModelFieldLabel": "Назва моделі",
   "aiAssistDisclosureOwnServerSecure": "Зі збереженою адресою текст, який ви вводите на екрані додавання кількох позицій, і будь-яке фото, яке ви даєте прочитати там, надсилається на {host} — сервер, який ви обслуговуєте самі. Його не отримує жодна третя сторона, і проєкт не має стосунку до цієї машини та нічого не може обіцяти щодо того, що вона зберігає. З’єднання зашифроване.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Зі збереженою адресою текст, який ви вводите на екрані додавання кількох позицій, і будь-яке фото, яке ви даєте прочитати там, надсилається на {host} — сервер, який ви обслуговуєте самі. Його не отримує жодна третя сторона, і проєкт не має стосунку до цієї машини та нічого не може обіцяти щодо того, що вона зберігає. Ця адреса використовує звичайний HTTP, тому з’єднання не зашифроване: усе в мережі між цим телефоном і тим сервером може прочитати те, що надсилається.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Введіть адресу, що починається з http:// або https://",
   "aiAssistModelRequiredLabel": "Вкажіть назву моделі, яку має використовувати цей сервер.",
   "aiAssistEndpointPublicPlaintextLabel": "Ця адреса публічна й незашифрована, тому запити до неї відхиляються. Використайте https або приватну адресу.",
@@ -1188,7 +1286,7 @@
   "bulkAddModelInsecureServerLabel": "ШІ не запущено: адреса публічна та незашифрована.",
   "bulkAddModelTimedOutLabel": "ШІ не запущено: ваш сервер не відповів вчасно.",
   "bulkAddPhotoLabel": "Зчитати фото",
-  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker не зберігає власної копії, і фото ніколи не потрапляє до ваших експортів.",
+  "bulkAddPhotoDisclosureCommon": "Fitty Kitties не зберігає власної копії, і фото ніколи не потрапляє до ваших експортів.",
   "bulkAddPhotoDisclosureAnthropic": "Фото надсилається до Anthropic, щоб розпізнати продукти на ньому.",
   "bulkAddPhotoDisclosureOpenRouter": "Фото надсилається до OpenRouter, який передає його до {provider}, щоб розпізнати продукти на ньому.",
   "bulkAddPhotoDisclosureOpenAI": "Фото надсилається до OpenAI, щоб розпізнати продукти на ньому. OpenAI зберігає його до 30 днів для виявлення зловживань, а довше — якщо цього вимагає закон або це обґрунтовано необхідно для захисту її сервісів чи третіх осіб від шкоди.",
@@ -1212,10 +1310,10 @@
   "healthSyncLastImportLabel": "Останній імпорт: {time}",
   "healthSyncNeverImportedLabel": "Тренування ще не імпортовано",
   "healthSyncImportedCountLabel": "{count, plural, =0{Немає нових тренувань} one{Імпортовано {count} тренування} few{Імпортовано {count} тренування} many{Імпортовано {count} тренувань} other{Імпортовано {count} тренування}}",
-  "healthSyncPermissionDeniedLabel": "Доступ до {platform} не надано. Дозволь OpenNutriTracker читати тренування, щоб імпортувати їх.",
+  "healthSyncPermissionDeniedLabel": "Доступ до {platform} не надано. Дозволь Fitty Kitties читати тренування, щоб імпортувати їх.",
   "healthSyncDisclosureTitle": "Імпортувати тренування з {platform}?",
-  "healthSyncDisclosureBody": "OpenNutriTracker прочитає твої завершені тренування з {platform} — їхній тип, коли вони відбулися, скільки тривали та енергію, яку вони показують.\n\nТренування потрапляють до щоденника як активності, які можна редагувати або видалити, а показана енергія збільшує калорійну ціль того дня на обрану тобою частку.",
-  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker також прочитає останній збережений відсоток жиру в організмі з {platform}. Показник жиру використовується, щоб запропонувати цю частку.",
+  "healthSyncDisclosureBody": "Fitty Kitties прочитає твої завершені тренування з {platform} — їхній тип, коли вони відбулися, скільки тривали та енергію, яку вони показують.\n\nТренування потрапляють до щоденника як активності, які можна редагувати або видалити, а показана енергія збільшує калорійну ціль того дня на обрану тобою частку.",
+  "healthSyncDisclosureBodyFatAddendum": "Fitty Kitties також прочитає останній збережений відсоток жиру в організмі з {platform}. Показник жиру використовується, щоб запропонувати цю частку.",
   "healthSyncDisclosureFooter": "Нічого не записується назад до {platform} і нічого нікуди не надсилається — усе залишається на цьому пристрої.\n\nТи можеш вимкнути це будь-коли; після цього нічого більше не читається.",
   "healthSyncDisclosureContinueAction": "Продовжити",
   "healthSyncUnavailableLabel": "Дані про здоров’я недоступні на цьому пристрої. Для імпорту тренувань потрібен Health Connect на Android або Apple Health на iOS.",
@@ -1235,9 +1333,41 @@
   "calorieTrackerSyncSavedLabel": "Saved",
   "calorieTrackerSyncProbeOkLabel": "API reachable",
   "calorieTrackerSyncProbeFailLabel": "Could not reach API: {error}",
-  "@calorieTrackerSyncProbeFailLabel": {"placeholders": {"error": {"type": "String"}}},
+  "@calorieTrackerSyncProbeFailLabel": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "calorieTrackerSyncSuccessLabel": "Sync finished",
   "calorieTrackerSyncFailedLabel": "Sync failed",
   "calorieTrackerSyncPendingLabel": "{count, plural, =0{No pending changes} one{1 change waiting to upload} other{{count} changes waiting to upload}}",
-  "@calorieTrackerSyncPendingLabel": {"placeholders": {"count": {"type": "num"}}}
+  "@calorieTrackerSyncPendingLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "weeklyMacroTargetsTitle": "Weekly calorie & macro targets",
+  "weeklyMacroTargetsSubtitle": "Default targets for each weekday; individual days can still override",
+  "weeklyMealPlansTitle": "Weekly meal plans",
+  "weeklyMealPlansSubtitle": "Template meals and foods for each weekday",
+  "dayMealPlanTitle": "Day meal plan",
+  "saveWeeklyTargetsLabel": "Save",
+  "macrosCaloriesMismatchLabel": "Calories must equal protein×4 + carbs×4 + fat×9 (within 1 cal)",
+  "materializeWeeklyLabel": "Copy from weekly",
+  "resetToWeeklyLabel": "Reset to weekly",
+  "addMealPlanFoodLabel": "Add food",
+  "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
+  "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
+  "settingsWeeklyMealPlansLabel": "Weekly meal plans",
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday"
 }

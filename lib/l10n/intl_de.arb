@@ -149,29 +149,101 @@
   "foodSourcesHelpText": "Suchergebnisse stammen aus diesen Lebensmitteldatenbanken. Open Food Facts liefert die Produkt- und Barcode-Suche und ist immer aktiviert.",
   "machineTranslatedNameHint": "Name automatisch übersetzt",
   "measureUnitBar": "{count, plural, one{Riegel} other{Riegel}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{Flasche} other{Flaschen}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{Dose} other{Dosen}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{Tasse} other{Tassen}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{Ei} other{Eier}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{Packung} other{Packungen}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{Stück} other{Stück}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{Portion} other{Portionen}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{Portion} other{Portionen}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{Scheibe} other{Scheiben}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{Esslöffel} other{Esslöffel}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{Teelöffel} other{Teelöffel}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Lebensmitteldatenbanken",
   "settingsFoodSourcesSubtitle": "Wähle, woher die Suchergebnisse stammen",
   "onboardingOtherOptionsLabel": "Weitere Optionen",
@@ -182,9 +254,9 @@
   "ageLabel": "Alter",
   "allItemsLabel": "Alle",
   "alphaVersionName": "[Alpha]",
-  "appDescription": "OpenNutriTracker ist ein kostenloser und  quelloffener Kalorien- und Nährstofftracker, der Ihre Privatsphäre respektiert.",
+  "appDescription": "Fitty Kitties is a free and open-source calorie and nutrient tracker that respects your privacy.",
   "appLicenseLabel": "GPL-3.0 Lizenz",
-  "appTitle": "OpenNutriTracker",
+  "appTitle": "Fitty Kitties",
   "appVersionName": "Version {versionNumber}",
   "barcodeInvalidEan13CheckDigit": "Dieser 13-stellige Barcode scheint einen Tippfehler zu haben: die letzte Ziffer passt nicht zu den übrigen",
   "baseQuantityLabel": "Nährwerte pro",
@@ -320,7 +392,7 @@
   "discardChangesContent": "Deine ungespeicherten Änderungen gehen verloren.",
   "discardChangesTitle": "Änderungen verwerfen?",
   "disclaimerAcknowledgeLabel": "Ich habe verstanden",
-  "disclaimerText": "OpenNutriTracker ist keine medizinische Anwendung. Alle bereitgestellten Daten sind nicht validiert und sollten mit Vorsicht verwendet werden. Bitte pflegen Sie einen gesunden Lebensstil und konsultieren Sie einen Fachmann, wenn Sie Probleme haben. Die Verwendung während einer Krankheit, Schwangerschaft oder Stillzeit wird nicht empfohlen.\n\n\nDie Anwendung befindet sich noch in der Entwicklung. Fehler, Bugs und Abstürze können auftreten.\n\nDie peer-reviewed Quellen zu jeder Berechnung findest du über das Info-Symbol auf der Start- oder Profilseite.",
+  "disclaimerText": "Fitty Kitties ist keine medizinische Anwendung. Alle bereitgestellten Daten sind nicht validiert und sollten mit Vorsicht verwendet werden. Bitte pflegen Sie einen gesunden Lebensstil und konsultieren Sie einen Fachmann, wenn Sie Probleme haben. Die Verwendung während einer Krankheit, Schwangerschaft oder Stillzeit wird nicht empfohlen.\n\n\nDie Anwendung befindet sich noch in der Entwicklung. Fehler, Bugs und Abstürze können auftreten.\n\nDie peer-reviewed Quellen zu jeder Berechnung findest du über das Info-Symbol auf der Start- oder Profilseite.",
   "downloadSampleCsvAction": "Beispiel-Mahlzeiten (csv)",
   "downloadSampleJsonAction": "Beispiel-Mahlzeiten (json)",
   "downloadSampleRecipesCsvAction": "Beispiel-Rezepte (csv)",
@@ -488,7 +560,7 @@
   "notificationsDailyReminderBody": "Vergiss nicht, heute deine Mahlzeiten zu protokollieren!",
   "notificationsDailyReminderChannelName": "Tägliche Erinnerungen",
   "notificationsDailyReminderChannelDescription": "Tägliche Erinnerung zum Erfassen deiner Mahlzeiten",
-  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsDailyReminderTitle": "Fitty Kitties",
   "notificationsPermissionDeniedSnack": "Benachrichtigungsberechtigung verweigert.",
   "nutrientPanelAllHiddenLabel": "Alle Nährstoffe ausgeblendet — schalte einige unter Einstellungen → Nährstoffe ein.",
   "nutrientPanelLimitLabel": "Limit",
@@ -1008,12 +1080,12 @@
   "sourcesIconTooltip": "Quellen anzeigen",
   "sourcesMacrosDescription": "Die Standardverteilung von 60 % Kohlenhydraten, 25 % Fett und 15 % Eiweiß liegt innerhalb der von der WHO empfohlenen Nährstoffspannen. In Einstellungen → Berechnungen kannst du sie anpassen. Quelle: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
   "sourcesMacrosTitle": "Makronährstoff-Verteilung",
-  "sourcesNonBinaryDescription": "Die Forschung zum Energieverbrauch hat historisch nur binäre Geschlechtskategorien verwendet, sodass es keine validierte TDEE-Formel für non-binäre Personen gibt. OpenNutriTracker bietet daher unter Einstellungen → Berechnungen eine gemittelte Referenz, eine Östrogen-typische Referenz und eine Testosteron-typische Referenz zur Auswahl. Wenn ein genauer Wert für deine Gesundheit wichtig ist, sprich bitte mit einer Ärztin oder einem Arzt, die deinen Hormonstatus kennen.",
+  "sourcesNonBinaryDescription": "Die Forschung zum Energieverbrauch hat historisch nur binäre Geschlechtskategorien verwendet, sodass es keine validierte TDEE-Formel für non-binäre Personen gibt. Fitty Kitties bietet daher unter Einstellungen → Berechnungen eine gemittelte Referenz, eine Östrogen-typische Referenz und eine Testosteron-typische Referenz zur Auswahl. Wenn ein genauer Wert für deine Gesundheit wichtig ist, sprich bitte mit einer Ärztin oder einem Arzt, die deinen Hormonstatus kennen.",
   "sourcesNutrientReferenceTitle": "Nährstoff-Referenzwerte",
   "sourcesNutrientReferenceDescription": "Die täglichen Referenzwerte im Nährstoff-Panel des Tagebuchs stammen aus der Zusammenfassung der Dietary Reference Intakes des Institute of Medicine — pro Nährstoff für Erwachsene.",
   "sourcesNonBinaryTitle": "Kalorienberechnung für non-binäre Personen",
   "sourcesOpenSourceLabel": "Quelle öffnen",
-  "sourcesScreenIntro": "OpenNutriTracker verwendet für alle Berechnungen etablierte, peer-reviewed Methoden. Die folgenden Quellenangaben verlinken auf die Originaltexte, damit du jede Zahl selbst überprüfen kannst.",
+  "sourcesScreenIntro": "Fitty Kitties verwendet für alle Berechnungen etablierte, peer-reviewed Methoden. Die folgenden Quellenangaben verlinken auf die Originaltexte, damit du jede Zahl selbst überprüfen kannst.",
   "sugarLabel": "Zucker",
   "suggestedLabel": "Vorschlag",
   "suppliedLabel": "zugeführt",
@@ -1089,26 +1161,40 @@
   "customMealsMergeConfirmContent": "Dadurch werden alle Einträge, die mit {loser} protokolliert wurden, ersetzt, sodass sie {winner} anzeigen. Außerdem wird {loser} aus deinen eigenen Mahlzeiten entfernt. Das kann nicht rückgängig gemacht werden.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Zusammenführen",
   "customMealsMergeSuccessSnackbarOne": "Zusammengeführt — {winner} hat jetzt 1 Eintrag.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Zusammengeführt — {winner} hat jetzt {count} Einträge.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Fasten · noch {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Fasten-Timer",
@@ -1171,7 +1257,7 @@
   "aiConsentChangeProviderNote": "Du kannst den Anbieter später wechseln. Die Bedingungen des jeweiligen Anbieters stehen in den Einstellungen, und nichts, was du eingibst oder fotografierst, wird gesendet, bevor du die Funktion nutzt.",
   "aiConsentOwnServerCheckNote": "Wenn du die Adresse deines Servers speicherst, wird er auch gefragt, welche Modelle er anbietet, und es läuft eine Einrichtungsprüfung — eine feste Beispielzeile und ein Beispielfoto von uns, nie etwas von dir.",
   "aiConsentAgreeLabel": "VERSTANDEN",
-  "aiAssistDisclosureCommon": "Dein Tagebuch und dein Profil werden nie gesendet. Nährwerte stammen immer aus den Lebensmitteldatenbanken, nie vom Modell. Der Schlüssel wird nur auf diesem Gerät gespeichert: OpenNutriTracker sieht ihn nie und zahlt nicht für seine Nutzung.",
+  "aiAssistDisclosureCommon": "Dein Tagebuch und dein Profil werden nie gesendet. Nährwerte stammen immer aus den Lebensmitteldatenbanken, nie vom Modell. Der Schlüssel wird nur auf diesem Gerät gespeichert: Fitty Kitties sieht ihn nie und zahlt nicht für seine Nutzung.",
   "aiAssistDisclosureAnthropic": "Mit gespeichertem Schlüssel wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst — und jedes Foto, das du dort auslesen lässt — an Anthropic gesendet. Fotos werden nur für diese eine Anfrage gesendet und nie gespeichert.",
   "aiAssistDisclosureOpenRouter": "Mit gespeichertem Schlüssel wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst — und jedes Foto, das du dort auslesen lässt — an OpenRouter gesendet, das ihn an den Anbieter des gewählten Modells weiterleitet. OpenRouter übermittelt diesem Anbieter bei jeder Anfrage außerdem eine kontobezogene Kennung, und das lässt sich nicht abschalten. Deine Inhalte werden über das Weiterleiten der Anfrage hinaus nicht aufbewahrt, außer soweit dies zur Missbrauchserkennung, Sicherheit, Abrechnung oder Erfüllung rechtlicher Pflichten erforderlich ist. Der Anbieter, der dein Modell bereitstellt, bewahrt das Erhaltene nach seinen eigenen Richtlinien auf.",
   "aiAssistDisclosureOpenAI": "Mit gespeichertem Schlüssel wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst — und jedes Foto, das du dort auslesen lässt — an OpenAI gesendet. OpenAI bewahrt das Gesendete bis zu 30 Tage zur Missbrauchserkennung auf, und länger, wenn das Gesetz es verlangt oder es vernünftigerweise erforderlich ist, um die eigenen Dienste oder Dritte vor Schaden zu bewahren.",
@@ -1179,9 +1265,21 @@
   "aiAssistEndpointFieldLabel": "Serveradresse",
   "aiAssistModelFieldLabel": "Modellname",
   "aiAssistDisclosureOwnServerSecure": "Mit gespeicherter Adresse wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an {host} gesendet — einen Server, den du selbst betreibst. Niemand Drittes erhält ihn, und das Projekt hat keine Beziehung zu dieser Maschine und kann nichts darüber zusagen, was sie aufbewahrt. Die Verbindung ist verschlüsselt.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Mit gespeicherter Adresse wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an {host} gesendet — einen Server, den du selbst betreibst. Niemand Drittes erhält ihn, und das Projekt hat keine Beziehung zu dieser Maschine und kann nichts darüber zusagen, was sie aufbewahrt. Diese Adresse ist einfaches HTTP, die Verbindung ist also nicht verschlüsselt: Alles im Netzwerk zwischen diesem Telefon und dem Server kann mitlesen, was gesendet wird.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Gib eine Adresse ein, die mit http:// oder https:// beginnt.",
   "aiAssistModelRequiredLabel": "Gib den Namen des Modells an, das dieser Server verwenden soll.",
   "aiAssistEndpointPublicPlaintextLabel": "Diese Adresse ist öffentlich und unverschlüsselt, deshalb werden Anfragen dorthin abgelehnt. Nimm https oder eine private Adresse.",
@@ -1219,7 +1317,7 @@
   "bulkAddModelInsecureServerLabel": "KI nicht ausgeführt: Adresse öffentlich, unverschlüsselt.",
   "bulkAddModelTimedOutLabel": "KI nicht ausgeführt: Dein Server hat nicht rechtzeitig geantwortet.",
   "bulkAddPhotoLabel": "Foto auslesen",
-  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
+  "bulkAddPhotoDisclosureCommon": "Fitty Kitties behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
   "bulkAddPhotoDisclosureAnthropic": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen.",
   "bulkAddPhotoDisclosureOpenRouter": "Das Foto wird an OpenRouter gesendet und von dort an {provider} weitergeleitet, um die darauf abgebildeten Lebensmittel zu erkennen.",
   "bulkAddPhotoDisclosureOpenAI": "Das Foto wird an OpenAI gesendet, um die darauf abgebildeten Lebensmittel zu erkennen. OpenAI bewahrt es bis zu 30 Tage zur Missbrauchserkennung auf, und länger, wenn das Gesetz es verlangt oder es vernünftigerweise erforderlich ist, um die eigenen Dienste oder Dritte vor Schaden zu bewahren.",
@@ -1243,10 +1341,10 @@
   "healthSyncLastImportLabel": "Letzter Import: {time}",
   "healthSyncNeverImportedLabel": "Noch keine Trainings importiert",
   "healthSyncImportedCountLabel": "{count, plural, =0{Keine neuen Trainings} one{1 Training importiert} other{{count} Trainings importiert}}",
-  "healthSyncPermissionDeniedLabel": "Kein Zugriff auf {platform} erteilt. Erlaube OpenNutriTracker, Trainings zu lesen, um sie zu importieren.",
+  "healthSyncPermissionDeniedLabel": "Kein Zugriff auf {platform} erteilt. Erlaube Fitty Kitties, Trainings zu lesen, um sie zu importieren.",
   "healthSyncDisclosureTitle": "Trainings aus {platform} importieren?",
-  "healthSyncDisclosureBody": "OpenNutriTracker liest deine abgeschlossenen Trainings aus {platform} — Art, Zeitpunkt, Dauer und die dabei angegebene Energie.\n\nTrainings werden als Aktivitäten in deinem Tagebuch abgelegt, die du bearbeiten oder löschen kannst; die angegebene Energie erhöht das Kalorienziel dieses Tages um einen Anteil, den du festlegst.",
-  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker liest außerdem den zuletzt in {platform} gespeicherten Körperfettanteil. Der Körperfettwert dient dazu, dir diesen Anteil vorzuschlagen.",
+  "healthSyncDisclosureBody": "Fitty Kitties liest deine abgeschlossenen Trainings aus {platform} — Art, Zeitpunkt, Dauer und die dabei angegebene Energie.\n\nTrainings werden als Aktivitäten in deinem Tagebuch abgelegt, die du bearbeiten oder löschen kannst; die angegebene Energie erhöht das Kalorienziel dieses Tages um einen Anteil, den du festlegst.",
+  "healthSyncDisclosureBodyFatAddendum": "Fitty Kitties liest außerdem den zuletzt in {platform} gespeicherten Körperfettanteil. Der Körperfettwert dient dazu, dir diesen Anteil vorzuschlagen.",
   "healthSyncDisclosureFooter": "Es wird nichts an {platform} zurückgeschrieben, und nichts davon wird irgendwohin gesendet — es bleibt auf diesem Gerät.\n\nDu kannst das jederzeit ausschalten; danach wird nichts mehr gelesen.",
   "healthSyncDisclosureContinueAction": "Weiter",
   "healthSyncUnavailableLabel": "Gesundheitsdaten sind auf diesem Gerät nicht verfügbar. Der Trainingsimport benötigt Health Connect unter Android oder Apple Health unter iOS.",
@@ -1266,9 +1364,41 @@
   "calorieTrackerSyncSavedLabel": "Gespeichert",
   "calorieTrackerSyncProbeOkLabel": "API erreichbar",
   "calorieTrackerSyncProbeFailLabel": "API nicht erreichbar: {error}",
-  "@calorieTrackerSyncProbeFailLabel": {"placeholders": {"error": {"type": "String"}}},
+  "@calorieTrackerSyncProbeFailLabel": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "calorieTrackerSyncSuccessLabel": "Sync abgeschlossen",
   "calorieTrackerSyncFailedLabel": "Sync fehlgeschlagen",
   "calorieTrackerSyncPendingLabel": "{count, plural, =0{Keine ausstehenden Änderungen} one{1 Änderung wartet auf Upload} other{{count} Änderungen warten auf Upload}}",
-  "@calorieTrackerSyncPendingLabel": {"placeholders": {"count": {"type": "num"}}}
+  "@calorieTrackerSyncPendingLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "weeklyMacroTargetsTitle": "Weekly calorie & macro targets",
+  "weeklyMacroTargetsSubtitle": "Default targets for each weekday; individual days can still override",
+  "weeklyMealPlansTitle": "Weekly meal plans",
+  "weeklyMealPlansSubtitle": "Template meals and foods for each weekday",
+  "dayMealPlanTitle": "Day meal plan",
+  "saveWeeklyTargetsLabel": "Save",
+  "macrosCaloriesMismatchLabel": "Calories must equal protein×4 + carbs×4 + fat×9 (within 1 cal)",
+  "materializeWeeklyLabel": "Copy from weekly",
+  "resetToWeeklyLabel": "Reset to weekly",
+  "addMealPlanFoodLabel": "Add food",
+  "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
+  "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
+  "settingsWeeklyMealPlansLabel": "Weekly meal plans",
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday"
 }

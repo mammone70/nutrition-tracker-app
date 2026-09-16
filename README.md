@@ -1,23 +1,21 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/icon/ont_banner_top_light.png">
-    <img alt="OpenNutriTracker" src="assets/icon/ont_banner_top.png" width="420" />
-  </picture>
+  <img alt="Fitty Kitties" src="assets/icon/fitty_kitties_icon_1024.png" width="160" />
 </p>
 
-> **Fork notice:** This repository
+<p align="center">
+  <b>Fitty Kitties</b><br />
+  Local-first calorie, macro, meal-plan, and micronutrient logging for Android and iOS.
+</p>
+
+> **Fork notice:** Fitty Kitties
 > ([mammone70/nutrition-tracker-app](https://github.com/mammone70/nutrition-tracker-app))
 > is based on [OpenNutriTracker](https://github.com/simonoppowa/OpenNutriTracker)
 > (GPLv3). It remains **local-first** (encrypted Hive on device) and adds an
 > optional offline-capable sync layer for the
 > [mammone70/calorie-tracker](https://github.com/mammone70/calorie-tracker) REST
-> API. See [UPSTREAM.md](UPSTREAM.md) and
+> API, including weekly/daily macro templates and meal plans. See
+> [UPSTREAM.md](UPSTREAM.md) and
 > [docs/calorie-tracker-sync.md](docs/calorie-tracker-sync.md).
-
-<p align="center">
-  <b>Free. Open. Cited.</b><br />
-  Open-source calorie, macro, and micronutrient logging for Android and iOS.
-</p>
 
 <p align="center">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPLv3-22de5f?style=flat-square" /></a>

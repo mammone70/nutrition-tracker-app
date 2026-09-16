@@ -7,7 +7,13 @@ import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_meal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weekly_meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_api_client.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_credentials.dart';
@@ -126,6 +132,174 @@ class SyncService extends ChangeNotifier {
       action: SyncAction.delete,
       entityId: date.toParsedDay(),
       payload: {'loggedOn': date.toParsedDay()},
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeeklyMacroTargetUpsert(
+    WeeklyMacroTargetEntity target,
+  ) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.weeklyMacroTargets,
+      action: SyncAction.create,
+      entityId: target.id,
+      payload: CalorieTrackerSyncMapper.weeklyMacroTargetPayload(target),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeeklyMacroTargetDelete(String id) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.weeklyMacroTargets,
+      action: SyncAction.delete,
+      entityId: id,
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueMacroTargetUpsert(MacroTargetEntity target) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.macroTargets,
+      action: SyncAction.create,
+      entityId: target.id,
+      payload: CalorieTrackerSyncMapper.macroTargetPayload(target),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueMacroTargetDelete(String id) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.macroTargets,
+      action: SyncAction.delete,
+      entityId: id,
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeeklyMealUpsert(WeeklyMealEntity meal) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.weeklyMeals,
+      action: SyncAction.create,
+      entityId: meal.id,
+      payload: CalorieTrackerSyncMapper.weeklyMealPayload(meal),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeeklyMealDelete(String id) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.weeklyMeals,
+      action: SyncAction.delete,
+      entityId: id,
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeeklyMealPlanEntryUpsert(
+    WeeklyMealPlanEntryEntity entry,
+  ) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.foods,
+      action: SyncAction.create,
+      entityId: entry.foodId,
+      payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
+        foodName: entry.foodName,
+        brand: entry.brand,
+        caloriesPer100: entry.caloriesPer100,
+        proteinPer100: entry.proteinPer100,
+        fatPer100: entry.fatPer100,
+        carbsPer100: entry.carbsPer100,
+      ),
+    );
+    await _outbox.enqueue(
+      entityType: SyncEntityType.weeklyMealPlanEntries,
+      action: SyncAction.create,
+      entityId: entry.id,
+      payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(entry),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeeklyMealPlanEntryDelete(String id) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.weeklyMealPlanEntries,
+      action: SyncAction.delete,
+      entityId: id,
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueDayMealUpsert(DayMealEntity meal) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.dayMeals,
+      action: SyncAction.create,
+      entityId: meal.id,
+      payload: CalorieTrackerSyncMapper.dayMealEntityPayload(meal),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueDayMealDelete(String id) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.dayMeals,
+      action: SyncAction.delete,
+      entityId: id,
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueMealPlanEntryUpsert(MealPlanEntryEntity entry) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.foods,
+      action: SyncAction.create,
+      entityId: entry.foodId,
+      payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
+        foodName: entry.foodName,
+        brand: entry.brand,
+        caloriesPer100: entry.caloriesPer100,
+        proteinPer100: entry.proteinPer100,
+        fatPer100: entry.fatPer100,
+        carbsPer100: entry.carbsPer100,
+      ),
+    );
+    await _outbox.enqueue(
+      entityType: SyncEntityType.mealPlanEntries,
+      action: SyncAction.create,
+      entityId: entry.id,
+      payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(entry),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueMealPlanEntryDelete(String id) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.mealPlanEntries,
+      action: SyncAction.delete,
+      entityId: id,
     );
     await refreshPendingCount();
     unawaited(syncNow());

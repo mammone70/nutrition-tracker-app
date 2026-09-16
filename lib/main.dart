@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/ensure_default_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/splash_screen.dart';
 import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
@@ -47,6 +48,9 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/calorie_tracker_sync_screen.dart';
+import 'package:opennutritracker/features/meal_plan/weekly_macro_targets_screen.dart';
+import 'package:opennutritracker/features/meal_plan/weekly_meal_plans_screen.dart';
+import 'package:opennutritracker/features/meal_plan/day_meal_plan_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -82,7 +86,13 @@ Future<void> _bootstrapApp() async {
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
 
-  final isUserInitialized = await locator<UserDataSource>().hasUserData();
+  var isUserInitialized = await locator<UserDataSource>().hasUserData();
+  // Never block first launch on profile questionnaires — seed a default user
+  // so calorie goals / home work immediately. Profile can be edited later.
+  if (!isUserInitialized) {
+    await locator<EnsureDefaultUserUsecase>().ensureExists();
+    isUserInitialized = true;
+  }
   final configRepo = locator<ConfigRepository>();
 
   final config = await configRepo.getConfig();
@@ -310,6 +320,15 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
         NavigationOptions.healthSyncRoute: (context) => const HealthSyncScreen(),
         NavigationOptions.calorieTrackerSyncRoute: (context) =>
             const CalorieTrackerSyncScreen(),
+        NavigationOptions.weeklyMacroTargetsRoute: (context) =>
+            const WeeklyMacroTargetsScreen(),
+        NavigationOptions.weeklyMealPlansRoute: (context) =>
+            const WeeklyMealPlansScreen(),
+        NavigationOptions.dayMealPlanRoute: (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final day = args is DateTime ? args : DateTime.now();
+          return DayMealPlanScreen(day: day);
+        },
         NavigationOptions.addMealRoute: (context) => const AddMealScreen(),
         NavigationOptions.bulkAddRoute: (context) => const BulkAddScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
