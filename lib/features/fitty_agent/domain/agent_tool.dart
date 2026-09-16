@@ -67,7 +67,8 @@ const List<AgentToolDefinition> fittyAgentTools = [
     name: 'set_weekly_macro_target',
     description:
         'Set the weekly macro template for one weekday '
-        '(0=Monday … 6=Sunday). Synced when configured.',
+        '(0=Monday … 6=Sunday). Prefer set_weekly_macro_targets when '
+        'updating several days at once. Synced when configured.',
     parameters: {
       'type': 'object',
       'properties': {
@@ -78,6 +79,41 @@ const List<AgentToolDefinition> fittyAgentTools = [
         'carbs_g': {'type': 'number'},
       },
       'required': ['day_of_week', 'calories', 'protein_g', 'fat_g', 'carbs_g'],
+      'additionalProperties': false,
+    },
+  ),
+  AgentToolDefinition(
+    name: 'set_weekly_macro_targets',
+    description:
+        'Set weekly macro templates for multiple weekdays in one call '
+        '(0=Monday … 6=Sunday). Use this for carb-cycling or any plan that '
+        'differs by day. Synced when configured.',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'targets': {
+          'type': 'array',
+          'items': {
+            'type': 'object',
+            'properties': {
+              'day_of_week': {'type': 'integer', 'minimum': 0, 'maximum': 6},
+              'calories': {'type': 'integer'},
+              'protein_g': {'type': 'number'},
+              'fat_g': {'type': 'number'},
+              'carbs_g': {'type': 'number'},
+            },
+            'required': [
+              'day_of_week',
+              'calories',
+              'protein_g',
+              'fat_g',
+              'carbs_g',
+            ],
+            'additionalProperties': false,
+          },
+        },
+      },
+      'required': ['targets'],
       'additionalProperties': false,
     },
   ),
@@ -296,8 +332,11 @@ Use tools to read or write local data. Writes are stored on-device first and syn
 Rules:
 - Prefer tools over guessing. If data is missing, say so.
 - Dates are YYYY-MM-DD. Weekdays use 0=Monday through 6=Sunday.
+- When setting macros for several weekdays (carb cycling, high/low days, etc.), use set_weekly_macro_targets once with every day — do not call set_weekly_macro_target seven times.
+- When you need several independent tools, call them together in one step.
+- Protein/carbs are 4 kcal/g and fat is 9 kcal/g when deriving carbs from remaining calories.
 - Never invent nutrition numbers for foods the user already logged; diary macros come from stored food data via get_diary_day.
 - For meal-plan foods, only use nutrition values the user provided in this chat or that tools returned.
 - Keep answers concise and actionable.
-- After writing, briefly confirm what changed.
+- After writing, briefly confirm what changed (include calories and macros per day type).
 ''';

@@ -9,7 +9,7 @@ abstract interface class AgentLlmApi {
     required List<AgentMessage> history,
     required List<AgentToolDefinition> tools,
     required Future<String> Function(AgentToolCall call) executeTool,
-    int maxRounds = 8,
+    int maxRounds = 24,
   });
 }
 
