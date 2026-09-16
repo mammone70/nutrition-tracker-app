@@ -1,6 +1,5 @@
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/sync/sync_enqueue_extensions.dart';
 import 'package:opennutritracker/core/sync/sync_service.dart';
 
 class AddUserActivityUsecase {

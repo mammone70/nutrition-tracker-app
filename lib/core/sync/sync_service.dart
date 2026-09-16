@@ -101,7 +101,7 @@ class SyncService extends ChangeNotifier {
     unawaited(syncNow());
   }
 
-  Future<void> enqueueWeightUpsert(WeightLogEntity entry) async {
+  Future<void> enqueueWeightLogUpsert(WeightLogEntity entry) async {
     if (!await _credentials.isConfigured()) return;
     await _outbox.enqueue(
       entityType: SyncEntityType.bodyWeight,
@@ -117,7 +117,7 @@ class SyncService extends ChangeNotifier {
     unawaited(syncNow());
   }
 
-  Future<void> enqueueWeightDelete(DateTime date) async {
+  Future<void> enqueueWeightLogDelete(DateTime date) async {
     if (!await _credentials.isConfigured()) return;
     // Body-weight delete needs the remote row id; queue a tombstone keyed by
     // day so a later online sync can resolve via range fetch if needed.
