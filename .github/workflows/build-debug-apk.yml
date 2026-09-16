@@ -1,0 +1,99 @@
+name: Build debug APK
+
+# Builds a sideloadable debug APK and uploads it as a workflow artifact.
+# Download from the run page → Artifacts → nutrition-tracker-debug-apk.
+#
+# Uses the `develop` flavor (applicationId suffix `.develop`) so it can be
+# installed alongside a Play Store / `full` build.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'cursor/**'
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.fvmrc'
+      - '.github/workflows/build-debug-apk.yml'
+      - '.github/actions/**'
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.fvmrc'
+      - '.github/workflows/build-debug-apk.yml'
+      - '.github/actions/**'
+
+concurrency:
+  group: build-debug-apk-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      - name: Cache Gradle
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Generate stub .env for CI
+        uses: ./.github/actions/write-env-file
+        with:
+          sentry_dns: https://stub@sentry.io/0
+          supabase_project_url: https://stub.supabase.co
+          supabase_project_anon_key: ci-stub
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build develop debug APK
+        run: flutter build apk --flavor develop --debug
+
+      - name: Rename APK for download
+        run: |
+          mkdir -p dist
+          src="build/app/outputs/flutter-apk/app-develop-debug.apk"
+          test -f "$src"
+          short_sha="${GITHUB_SHA::7}"
+          dest="dist/nutrition-tracker-develop-debug-${short_sha}.apk"
+          cp "$src" "$dest"
+          ls -lh dist/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nutrition-tracker-debug-apk
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 30
