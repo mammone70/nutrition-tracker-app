@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -15,7 +16,7 @@ import 'package:opennutritracker/features/add_meal/domain/meal_interpreter_excep
 class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
   static final _log = Logger('OpenAiCompatibleAgentLlmApi');
   static const _maxTokens = 4096;
-  static const defaultTimeout = Duration(seconds: 60);
+  static const defaultTimeout = Duration(seconds: 120);
 
   static final openAiEndpoint = Uri.parse(
     'https://api.openai.com/v1/chat/completions',
@@ -31,7 +32,6 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
   final Duration timeout;
   final List<String>? openRouterProviders;
   final bool openRouter;
-  final bool storeFalse;
 
   OpenAiCompatibleAgentLlmApi(
     this._client,
@@ -41,7 +41,6 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
     this.timeout = defaultTimeout,
     this.openRouterProviders,
     this.openRouter = false,
-    this.storeFalse = false,
   });
 
   factory OpenAiCompatibleAgentLlmApi.openAi(
@@ -55,7 +54,6 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
     endpoint: openAiEndpoint,
     model: model,
     timeout: timeout,
-    storeFalse: true,
   );
 
   factory OpenAiCompatibleAgentLlmApi.openRouter(
@@ -80,7 +78,7 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
     required List<AgentMessage> history,
     required List<AgentToolDefinition> tools,
     required Future<String> Function(AgentToolCall call) executeTool,
-    int maxRounds = 8,
+    int maxRounds = 24,
   }) async {
     final working = List<AgentMessage>.from(history);
     final added = <AgentMessage>[];
@@ -120,7 +118,7 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
 
     throw const MealInterpreterException(
       'agent tool loop exceeded max rounds',
-      failure: MealInterpreterFailure.transient,
+      failure: MealInterpreterFailure.rejected,
     );
   }
 
@@ -149,10 +147,6 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
           )
           .toList(),
     };
-    if (storeFalse) {
-      // OpenAI Chat Completions also accepts store; keep retention off.
-      payload['store'] = false;
-    }
     if (openRouter) {
       payload['provider'] = {
         if (openRouterProviders != null) 'order': openRouterProviders,
@@ -172,6 +166,11 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
       response = await _client
           .post(endpoint, headers: headers, body: jsonEncode(payload))
           .timeout(timeout);
+    } on TimeoutException {
+      throw const MealInterpreterException(
+        'request timed out',
+        failure: MealInterpreterFailure.timeout,
+      );
     } catch (_) {
       throw const MealInterpreterException('request failed');
     }

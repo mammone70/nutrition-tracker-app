@@ -240,5 +240,36 @@ void main() {
             )
             as Map<String, dynamic>;
     expect(weekly['targets'], isNotEmpty);
+
+    final batch =
+        jsonDecode(
+              await executor.execute(
+                const AgentToolCall(
+                  id: '4',
+                  name: 'set_weekly_macro_targets',
+                  arguments: {
+                    'targets': [
+                      {
+                        'day_of_week': 0,
+                        'calories': 4300,
+                        'protein_g': 225,
+                        'fat_g': 80,
+                        'carbs_g': 670,
+                      },
+                      {
+                        'day_of_week': 1,
+                        'calories': 3500,
+                        'protein_g': 225,
+                        'fat_g': 80,
+                        'carbs_g': 470,
+                      },
+                    ],
+                  },
+                ),
+              ),
+            )
+            as Map<String, dynamic>;
+    expect(batch['ok'], true);
+    expect((batch['saved'] as List).length, 2);
   });
 }

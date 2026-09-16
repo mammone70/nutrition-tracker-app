@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -13,7 +14,7 @@ class AnthropicAgentLlmApi implements AgentLlmApi {
   static const _endpoint = 'https://api.anthropic.com/v1/messages';
   static const _apiVersion = '2023-06-01';
   static const _maxTokens = 4096;
-  static const defaultTimeout = Duration(seconds: 60);
+  static const defaultTimeout = Duration(seconds: 120);
 
   final http.Client _client;
   final String Function() _apiKey;
@@ -33,7 +34,7 @@ class AnthropicAgentLlmApi implements AgentLlmApi {
     required List<AgentMessage> history,
     required List<AgentToolDefinition> tools,
     required Future<String> Function(AgentToolCall call) executeTool,
-    int maxRounds = 8,
+    int maxRounds = 24,
   }) async {
     final working = List<AgentMessage>.from(history);
     final added = <AgentMessage>[];
@@ -73,7 +74,7 @@ class AnthropicAgentLlmApi implements AgentLlmApi {
 
     throw const MealInterpreterException(
       'agent tool loop exceeded max rounds',
-      failure: MealInterpreterFailure.transient,
+      failure: MealInterpreterFailure.rejected,
     );
   }
 
@@ -111,6 +112,11 @@ class AnthropicAgentLlmApi implements AgentLlmApi {
             body: body,
           )
           .timeout(timeout);
+    } on TimeoutException {
+      throw const MealInterpreterException(
+        'request timed out',
+        failure: MealInterpreterFailure.timeout,
+      );
     } catch (_) {
       throw const MealInterpreterException('request failed');
     }

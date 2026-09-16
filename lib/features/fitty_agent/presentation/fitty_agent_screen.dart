@@ -268,7 +268,7 @@ class _Bubble extends StatelessWidget {
             color: bg,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Text(
+          child: SelectableText(
             bubble.text,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: fg,

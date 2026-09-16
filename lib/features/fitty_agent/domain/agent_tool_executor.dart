@@ -98,6 +98,8 @@ class AgentToolExecutor {
         return _getWeeklyMacrosTool();
       case 'set_weekly_macro_target':
         return _setWeeklyMacro(args);
+      case 'set_weekly_macro_targets':
+        return _setWeeklyMacrosBatch(args);
       case 'get_day_meal_plan':
         return _getDayMealPlan(args);
       case 'save_day_meal_plan':
@@ -188,6 +190,44 @@ class AgentToolExecutor {
   Future<Map<String, dynamic>> _setWeeklyMacro(
     Map<String, dynamic> args,
   ) async {
+    final entity = await _upsertWeeklyMacro(args);
+    return {
+      'ok': true,
+      'id': entity.id,
+      'day_of_week': entity.dayOfWeek,
+      'weekday': weekdays[entity.dayOfWeek],
+    };
+  }
+
+  Future<Map<String, dynamic>> _setWeeklyMacrosBatch(
+    Map<String, dynamic> args,
+  ) async {
+    final raw = args['targets'];
+    if (raw is! List || raw.isEmpty) {
+      return {'ok': false, 'error': 'targets must be a non-empty array'};
+    }
+    final saved = <Map<String, dynamic>>[];
+    for (final item in raw) {
+      if (item is! Map) {
+        return {'ok': false, 'error': 'each target must be an object'};
+      }
+      final entity = await _upsertWeeklyMacro(Map<String, dynamic>.from(item));
+      saved.add({
+        'id': entity.id,
+        'day_of_week': entity.dayOfWeek,
+        'weekday': weekdays[entity.dayOfWeek],
+        'calories': entity.calories,
+        'protein_g': entity.proteinG,
+        'fat_g': entity.fatG,
+        'carbs_g': entity.carbsG,
+      });
+    }
+    return {'ok': true, 'saved': saved};
+  }
+
+  Future<WeeklyMacroTargetEntity> _upsertWeeklyMacro(
+    Map<String, dynamic> args,
+  ) async {
     final dayOfWeek = (args['day_of_week'] as num).toInt();
     final existing = await _getWeeklyMacros.getByDayOfWeek(dayOfWeek);
     final entity = WeeklyMacroTargetEntity(
@@ -200,12 +240,7 @@ class AgentToolExecutor {
       updatedAt: DateTime.now().toUtc(),
     );
     await _saveWeeklyMacros.save(entity);
-    return {
-      'ok': true,
-      'id': entity.id,
-      'day_of_week': dayOfWeek,
-      'weekday': weekdays[dayOfWeek],
-    };
+    return entity;
   }
 
   Future<Map<String, dynamic>> _getDayMealPlan(
