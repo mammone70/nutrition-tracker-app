@@ -1,0 +1,11 @@
+{
+  "name": "Nutrition Tracker",
+  "install": "npm ci && npx prisma migrate deploy && npx prisma db seed",
+  "terminals": [
+    {
+      "name": "next-dev",
+      "command": "npm run dev"
+    }
+  ],
+  "ports": [3000]
+}
