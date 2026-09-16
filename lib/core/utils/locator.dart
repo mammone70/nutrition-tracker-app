@@ -45,6 +45,7 @@ import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/ensure_default_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
@@ -384,6 +385,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AddUserUsecase>(
     () => AddUserUsecase(locator(), locator()),
   );
+  locator.registerLazySingleton<EnsureDefaultUserUsecase>(
+    () => EnsureDefaultUserUsecase(locator(), locator()),
+  );
 
   // Profiles (#471)
   locator.registerLazySingleton<GetProfilesUsecase>(
@@ -521,12 +525,8 @@ Future<void> initLocator() async {
     () => GetEffectiveMacroTargetUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<GetEffectiveMealPlanUsecase>(
-    () => GetEffectiveMealPlanUsecase(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () =>
+        GetEffectiveMealPlanUsecase(locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton<MaterializeWeeklyToDayUsecase>(
     () => MaterializeWeeklyToDayUsecase(

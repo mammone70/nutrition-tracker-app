@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/ensure_default_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/splash_screen.dart';
 import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
@@ -85,7 +86,13 @@ Future<void> _bootstrapApp() async {
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
 
-  final isUserInitialized = await locator<UserDataSource>().hasUserData();
+  var isUserInitialized = await locator<UserDataSource>().hasUserData();
+  // Never block first launch on profile questionnaires — seed a default user
+  // so calorie goals / home work immediately. Profile can be edited later.
+  if (!isUserInitialized) {
+    await locator<EnsureDefaultUserUsecase>().ensureExists();
+    isUserInitialized = true;
+  }
   final configRepo = locator<ConfigRepository>();
 
   final config = await configRepo.getConfig();
