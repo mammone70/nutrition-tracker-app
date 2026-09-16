@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -212,6 +213,60 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalCarbsGoal: totalCarbsGoal,
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Dimens.spacing16,
+                Dimens.spacing12,
+                Dimens.spacing16,
+                Dimens.spacing4,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    S.of(context).mealPlanningLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: Dimens.spacing8),
+                  Wrap(
+                    spacing: Dimens.spacing8,
+                    runSpacing: Dimens.spacing8,
+                    children: [
+                      ActionChip(
+                        avatar: const Icon(
+                          Icons.calendar_view_week_rounded,
+                          size: 18,
+                        ),
+                        label: Text(S.of(context).settingsWeeklyTargetsLabel),
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushNamed(NavigationOptions.weeklyMacroTargetsRoute),
+                      ),
+                      ActionChip(
+                        avatar: const Icon(Icons.restaurant_rounded, size: 18),
+                        label: Text(S.of(context).settingsWeeklyMealPlansLabel),
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushNamed(NavigationOptions.weeklyMealPlansRoute),
+                      ),
+                      ActionChip(
+                        avatar: const Icon(
+                          Icons.restaurant_menu_outlined,
+                          size: 18,
+                        ),
+                        label: Text(S.of(context).dayMealPlanTitle),
+                        onPressed: () => Navigator.of(context).pushNamed(
+                          NavigationOptions.dayMealPlanRoute,
+                          arguments: DateTime.now(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             // Day-one / empty-day guidance: when nothing is logged yet, point
             // the way to the centre + rather than leaving a silent dashboard.
