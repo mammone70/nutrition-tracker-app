@@ -5,12 +5,7 @@ import 'package:opennutritracker/core/sync/sync_operation.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:uuid/uuid.dart';
 
-/// Persists pending sync mutations as JSON strings in an encrypted Hive box.
-///
-/// Uses [Box]<[String]> so no new Hive type adapter / build_runner step is
-/// required. The box is global (not per-profile): each operation carries its
-/// own resource id, and the active profile's local DB is the payload source
-/// when the worker drains the queue.
+/// Persists pending sync mutations as JSON in an encrypted Hive box.
 class SyncOutboxDataSource {
   static const boxName = 'SyncOutboxBox';
 
@@ -50,50 +45,22 @@ class SyncOutboxDataSource {
     return _requireBox.length;
   }
 
-  /// Enqueues an upsert. If a prior pending upsert/delete for the same
-  /// resource id exists, it is replaced so the queue stays compact.
-  Future<SyncOperation> enqueueUpsert({
-    required SyncResource resource,
-    required String resourceId,
-    required Map<String, dynamic> payload,
-  }) {
-    return _enqueue(
-      resource: resource,
-      resourceId: resourceId,
-      mutation: SyncMutation.upsert,
-      payload: payload,
-    );
-  }
-
-  Future<SyncOperation> enqueueDelete({
-    required SyncResource resource,
-    required String resourceId,
-  }) {
-    return _enqueue(
-      resource: resource,
-      resourceId: resourceId,
-      mutation: SyncMutation.delete,
-      payload: null,
-    );
-  }
-
-  Future<SyncOperation> _enqueue({
-    required SyncResource resource,
-    required String resourceId,
-    required SyncMutation mutation,
-    required Map<String, dynamic>? payload,
+  Future<SyncOperation> enqueue({
+    required SyncEntityType entityType,
+    required SyncAction action,
+    required String entityId,
+    Map<String, dynamic>? payload,
   }) async {
     await open();
     final box = _requireBox;
 
-    // Collapse prior ops for the same resource so offline edits do not
-    // accumulate redundant PUTs.
+    // Collapse prior ops for the same entity so offline edits stay compact.
     final toRemove = <String>[];
     for (final entry in box.toMap().entries) {
       final op = SyncOperation.fromJson(
         jsonDecode(entry.value) as Map<String, dynamic>,
       );
-      if (op.resource == resource && op.resourceId == resourceId) {
+      if (op.entityType == entityType && op.entityId == entityId) {
         toRemove.add(entry.key);
       }
     }
@@ -101,13 +68,15 @@ class SyncOutboxDataSource {
       await box.delete(key);
     }
 
+    final now = DateTime.now().toUtc();
     final op = SyncOperation(
       id: _uuid.v4(),
-      resource: resource,
-      mutation: mutation,
-      resourceId: resourceId,
+      entityType: entityType,
+      action: action,
+      entityId: entityId,
       payload: payload,
-      enqueuedAt: DateTime.now().toUtc(),
+      clientUpdatedAt: now,
+      enqueuedAt: now,
     );
     await box.put(op.id, jsonEncode(op.toJson()));
     return op;
@@ -121,6 +90,13 @@ class SyncOutboxDataSource {
   Future<void> remove(String operationId) async {
     await open();
     await _requireBox.delete(operationId);
+  }
+
+  Future<void> removeAll(Iterable<String> operationIds) async {
+    await open();
+    for (final id in operationIds) {
+      await _requireBox.delete(id);
+    }
   }
 
   Future<void> clear() async {

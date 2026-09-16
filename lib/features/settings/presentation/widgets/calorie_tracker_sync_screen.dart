@@ -9,9 +9,7 @@ import 'package:opennutritracker/core/sync/sync_service.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-/// Settings → Calorie Tracker sync: opt-in remote backup against the
-/// mammone70/calorie-tracker REST API while keeping Hive as the local source
-/// of truth.
+/// Settings → Calorie Tracker sync against mammone70/calorie-tracker.
 class CalorieTrackerSyncScreen extends StatefulWidget {
   const CalorieTrackerSyncScreen({super.key});
 
@@ -23,7 +21,8 @@ class CalorieTrackerSyncScreen extends StatefulWidget {
 class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
   final _log = Logger('CalorieTrackerSyncScreen');
   final _baseUrlController = TextEditingController();
-  final _tokenController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   late final CalorieTrackerSyncCredentials _credentials;
   late final SyncService _syncService;
@@ -32,7 +31,7 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
   bool _loading = true;
   bool _busy = false;
   bool _enabled = false;
-  bool _obscureToken = true;
+  bool _obscurePassword = true;
   int _pending = 0;
   String? _statusMessage;
 
@@ -50,7 +49,8 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
   void dispose() {
     _syncService.removeListener(_onSyncChanged);
     _baseUrlController.dispose();
-    _tokenController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -66,17 +66,25 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
 
   Future<void> _load() async {
     final enabled = await _credentials.isEnabled();
-    final baseUrl = await _credentials.getBaseUrl() ?? '';
-    final token = await _credentials.getBearerToken() ?? '';
+    final baseUrl = await _credentials.getBaseUrl();
+    final email = await _credentials.getEmail() ?? '';
+    final password = await _credentials.getPassword() ?? '';
     await _syncService.refreshPendingCount();
     if (!mounted) return;
     setState(() {
       _enabled = enabled;
       _baseUrlController.text = baseUrl;
-      _tokenController.text = token;
+      _emailController.text = email;
+      _passwordController.text = password;
       _pending = _syncService.pendingCount;
       _loading = false;
     });
+  }
+
+  Future<void> _persistFields() async {
+    await _credentials.setBaseUrl(_baseUrlController.text);
+    await _credentials.setEmail(_emailController.text);
+    await _credentials.setPassword(_passwordController.text);
   }
 
   Future<void> _setEnabled(bool value) async {
@@ -87,8 +95,7 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
   Future<void> _saveFields() async {
     setState(() => _busy = true);
     try {
-      await _credentials.setBaseUrl(_baseUrlController.text);
-      await _credentials.setBearerToken(_tokenController.text);
+      await _persistFields();
       if (!mounted) return;
       setState(() {
         _statusMessage = S.of(context).calorieTrackerSyncSavedLabel;
@@ -104,8 +111,7 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
       _statusMessage = null;
     });
     try {
-      await _credentials.setBaseUrl(_baseUrlController.text);
-      await _credentials.setBearerToken(_tokenController.text);
+      await _persistFields();
       final result = await _api.probe();
       if (!mounted) return;
       setState(() {
@@ -125,16 +131,16 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
     }
   }
 
-  Future<void> _syncNow() async {
+  Future<void> _signInAndSync() async {
     setState(() {
       _busy = true;
       _statusMessage = null;
     });
     try {
-      await _credentials.setBaseUrl(_baseUrlController.text);
-      await _credentials.setBearerToken(_tokenController.text);
+      await _persistFields();
       await _credentials.setEnabled(true);
       setState(() => _enabled = true);
+      await _api.login();
       final ok = await _syncService.syncNow();
       if (!mounted) return;
       setState(() {
@@ -143,6 +149,13 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
             ? S.of(context).calorieTrackerSyncSuccessLabel
             : (_syncService.lastError ??
                 S.of(context).calorieTrackerSyncFailedLabel);
+      });
+    } catch (error, stackTrace) {
+      _log.warning('Sign-in/sync failed', error, stackTrace);
+      if (!mounted) return;
+      setState(() {
+        _statusMessage =
+            S.of(context).calorieTrackerSyncProbeFailLabel(error.toString());
       });
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -181,27 +194,39 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
                   autocorrect: false,
                   decoration: InputDecoration(
                     labelText: S.of(context).calorieTrackerSyncBaseUrlLabel,
-                    hintText: 'https://api.example.com',
+                    hintText: CalorieTrackerSyncCredentials.defaultBaseUrl,
                     border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: Dimens.spacing12),
                 TextField(
-                  controller: _tokenController,
+                  controller: _emailController,
                   enabled: !_busy,
-                  obscureText: _obscureToken,
+                  keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   decoration: InputDecoration(
-                    labelText: S.of(context).calorieTrackerSyncTokenLabel,
+                    labelText: S.of(context).calorieTrackerSyncEmailLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: Dimens.spacing12),
+                TextField(
+                  controller: _passwordController,
+                  enabled: !_busy,
+                  obscureText: _obscurePassword,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).calorieTrackerSyncPasswordLabel,
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureToken
+                        _obscurePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscureToken = !_obscureToken),
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
                     ),
                   ),
                 ),
@@ -233,7 +258,7 @@ class _CalorieTrackerSyncScreenState extends State<CalorieTrackerSyncScreen> {
                       child: Text(S.of(context).calorieTrackerSyncTestLabel),
                     ),
                     FilledButton.tonal(
-                      onPressed: _busy ? null : _syncNow,
+                      onPressed: _busy ? null : _signInAndSync,
                       child: _busy
                           ? const SizedBox(
                               width: 18,

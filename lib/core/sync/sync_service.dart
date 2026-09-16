@@ -3,41 +3,29 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
-import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
-import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
-import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
-import 'package:opennutritracker/core/data/repository/user_repository.dart';
-import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
-import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_api_client.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_credentials.dart';
+import 'package:opennutritracker/core/sync/calorie_tracker_sync_mapper.dart';
 import 'package:opennutritracker/core/sync/sync_operation.dart';
 import 'package:opennutritracker/core/sync/sync_outbox_data_source.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:synchronized/synchronized.dart';
 
-/// Local-first sync coordinator.
+/// Local-first sync coordinator for mammone70/calorie-tracker.
 ///
-/// Write path: callers persist to Hive first, then [enqueueUpsert] /
-/// [enqueueDelete]. This service drains the outbox when online and
-/// optionally pulls remote changes into Hive.
-///
-/// Reads never block on the network — the UI always uses local repositories.
+/// Writes go to Hive first; this service queues API mutations and drains them
+/// through `POST /api/sync/push` (plus `POST /api/body-weight` for weight).
 class SyncService extends ChangeNotifier {
   final CalorieTrackerSyncCredentials _credentials;
   final SyncOutboxDataSource _outbox;
   final CalorieTrackerApiClient _api;
   final IntakeRepository _intakeRepository;
-  final UserActivityRepository _activityRepository;
-  final TrackedDayRepository _trackedDayRepository;
-  final WeightLogRepository _weightLogRepository;
-  final WaterIntakeRepository _waterIntakeRepository;
-  final UserRepository _userRepository;
 
   final _log = Logger('SyncService');
   final _lock = Lock();
@@ -52,20 +40,10 @@ class SyncService extends ChangeNotifier {
     required SyncOutboxDataSource outbox,
     required CalorieTrackerApiClient api,
     required IntakeRepository intakeRepository,
-    required UserActivityRepository activityRepository,
-    required TrackedDayRepository trackedDayRepository,
-    required WeightLogRepository weightLogRepository,
-    required WaterIntakeRepository waterIntakeRepository,
-    required UserRepository userRepository,
   })  : _credentials = credentials,
         _outbox = outbox,
         _api = api,
-        _intakeRepository = intakeRepository,
-        _activityRepository = activityRepository,
-        _trackedDayRepository = trackedDayRepository,
-        _weightLogRepository = weightLogRepository,
-        _waterIntakeRepository = waterIntakeRepository,
-        _userRepository = userRepository;
+        _intakeRepository = intakeRepository;
 
   bool get isSyncing => _syncing;
   String? get lastError => _lastError;
@@ -77,37 +55,90 @@ class SyncService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> enqueueUpsert({
-    required SyncResource resource,
-    required String resourceId,
-    required Map<String, dynamic> payload,
-  }) async {
+  Future<void> enqueueIntakeUpsert(IntakeEntity intake) async {
     if (!await _credentials.isConfigured()) return;
-    await _outbox.enqueueUpsert(
-      resource: resource,
-      resourceId: resourceId,
-      payload: payload,
+    final foodId = CalorieTrackerSyncMapper.foodIdForMeal(intake.meal);
+    final dayMealId =
+        CalorieTrackerSyncMapper.dayMealIdFor(intake.dateTime, intake.type);
+
+    await _outbox.enqueue(
+      entityType: SyncEntityType.foods,
+      action: SyncAction.create,
+      entityId: foodId,
+      payload: CalorieTrackerSyncMapper.foodPayload(intake.meal),
+    );
+    await _outbox.enqueue(
+      entityType: SyncEntityType.dayMeals,
+      action: SyncAction.create,
+      entityId: dayMealId,
+      payload: CalorieTrackerSyncMapper.dayMealPayload(
+        date: intake.dateTime,
+        type: intake.type,
+      ),
+    );
+    await _outbox.enqueue(
+      entityType: SyncEntityType.foodLogEntries,
+      action: SyncAction.create,
+      entityId: intake.id,
+      payload: CalorieTrackerSyncMapper.foodLogPayload(
+        intake: intake,
+        foodId: foodId,
+        dayMealId: dayMealId,
+      ),
     );
     await refreshPendingCount();
-    // Fire-and-forget drain; failures stay in the outbox.
     unawaited(syncNow());
   }
 
-  Future<void> enqueueDelete({
-    required SyncResource resource,
-    required String resourceId,
-  }) async {
+  Future<void> enqueueIntakeDelete(String intakeId) async {
     if (!await _credentials.isConfigured()) return;
-    await _outbox.enqueueDelete(
-      resource: resource,
-      resourceId: resourceId,
+    await _outbox.enqueue(
+      entityType: SyncEntityType.foodLogEntries,
+      action: SyncAction.delete,
+      entityId: intakeId,
     );
     await refreshPendingCount();
     unawaited(syncNow());
   }
 
-  /// Pushes the outbox, then pulls remote changes since the last successful
-  /// pull. No-op when sync is disabled or not configured.
+  Future<void> enqueueWeightUpsert(WeightLogEntity entry) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.bodyWeight,
+      action: SyncAction.create,
+      entityId: entry.date.toParsedDay(),
+      payload: CalorieTrackerSyncMapper.bodyWeightPayload(
+        date: entry.date,
+        weightKg: entry.weightKg,
+        note: entry.note,
+      ),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWeightDelete(DateTime date) async {
+    if (!await _credentials.isConfigured()) return;
+    // Body-weight delete needs the remote row id; queue a tombstone keyed by
+    // day so a later online sync can resolve via range fetch if needed.
+    await _outbox.enqueue(
+      entityType: SyncEntityType.bodyWeight,
+      action: SyncAction.delete,
+      entityId: date.toParsedDay(),
+      payload: {'loggedOn': date.toParsedDay()},
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  /// No-op stubs kept so activity/water/user use cases compile; those domains
+  /// are not mirrored 1:1 on calorie-tracker yet.
+  Future<void> enqueueActivityUpsert(Object _) async {}
+  Future<void> enqueueActivityDelete(String _) async {}
+  Future<void> enqueueWaterIntakeUpsert(Object _) async {}
+  Future<void> enqueueWaterIntakeDelete(String _) async {}
+  Future<void> enqueueUserUpsert(Object _) async {}
+
   Future<bool> syncNow({bool pull = true}) async {
     if (!await _credentials.isConfigured()) return false;
     return _lock.synchronized(() async {
@@ -137,18 +168,33 @@ class SyncService extends ChangeNotifier {
 
   Future<void> _pushOutbox() async {
     final pending = await _outbox.getAll();
-    for (final op in pending) {
+    if (pending.isEmpty) return;
+
+    final syncOps =
+        pending.where((op) => op.entityType.isSyncPushEntity).toList();
+    final weightOps =
+        pending.where((op) => op.entityType == SyncEntityType.bodyWeight).toList();
+
+    if (syncOps.isNotEmpty) {
+      // Prefer create→update mapping: collapsing always stores latest action;
+      // foods/day_meals use create (upsert-friendly on server with entityId).
+      await _api.pushMutations(syncOps);
+      await _outbox.removeAll(syncOps.map((op) => op.id));
+    }
+
+    for (final op in weightOps) {
       try {
-        await _api.apply(op);
+        if (op.action == SyncAction.delete) {
+          // Best-effort: without the remote id we skip hard delete for now.
+          await _outbox.remove(op.id);
+          continue;
+        }
+        await _api.upsertBodyWeight(op.payload ?? const {});
         await _outbox.remove(op.id);
       } catch (error) {
-        final updated = op.copyWith(
-          attempts: op.attempts + 1,
-          lastError: error.toString(),
+        await _outbox.update(
+          op.copyWith(attempts: op.attempts + 1, lastError: error.toString()),
         );
-        await _outbox.update(updated);
-        // Stop on first failure so ordering is preserved; later ops may
-        // depend on earlier creates.
         rethrow;
       }
     }
@@ -156,100 +202,88 @@ class SyncService extends ChangeNotifier {
 
   Future<void> _pullRemote() async {
     final since = await _credentials.getLastPullAt();
-    final remote = await _api.pullSince(since);
+    final pull = await _api.pullSince(since);
+    final logs = (pull['foodLogEntries'] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    final foods = (pull['foods'] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    final foodById = {
+      for (final f in foods) f['id'] as String: f,
+    };
 
-    for (final entry in remote.entries) {
-      switch (entry.key) {
-        case SyncResource.intake:
-          await _mergeIntakes(entry.value);
-        case SyncResource.activity:
-          await _mergeActivities(entry.value);
-        case SyncResource.trackedDay:
-          await _mergeTrackedDays(entry.value);
-        case SyncResource.weightLog:
-          await _mergeWeightLogs(entry.value);
-        case SyncResource.waterIntake:
-          await _mergeWaterIntakes(entry.value);
-        case SyncResource.user:
-          await _mergeUser(entry.value);
+    final pendingIds = (await _outbox.getAll())
+        .where((op) => op.entityType == SyncEntityType.foodLogEntries)
+        .map((op) => op.entityId)
+        .toSet();
+
+    final toApply = <IntakeDBO>[];
+    for (final log in logs) {
+      final id = log['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (log['deletedAt'] != null) {
+        // Soft-deleted remotely — drop local copy if present.
+        final existing = await _intakeRepository.getIntakeById(id);
+        if (existing != null) {
+          await _intakeRepository.deleteIntake(existing);
+        }
+        continue;
       }
+      final foodId = log['foodId'] as String?;
+      final food = foodId == null ? null : foodById[foodId];
+      toApply.add(_intakeFromRemote(log, food));
     }
-
-    await _credentials.setLastPullAt(DateTime.now().toUtc());
-  }
-
-  Future<void> _mergeIntakes(List<Map<String, dynamic>> items) async {
-    if (items.isEmpty) return;
-    final dbos = items.map(IntakeDBO.fromJson).toList();
-    // addAll overwrites by Hive key (intake id) — last write from remote wins
-    // for records not currently pending in the outbox.
-    final pendingIds = await _pendingResourceIds(SyncResource.intake);
-    final toApply =
-        dbos.where((dbo) => !pendingIds.contains(dbo.id)).toList();
     if (toApply.isNotEmpty) {
       await _intakeRepository.addAllIntakeDBOs(toApply);
     }
+
+    final serverTime = pull['serverTime'] as String?;
+    await _credentials.setLastPullAt(
+      serverTime != null
+          ? DateTime.parse(serverTime)
+          : DateTime.now().toUtc(),
+    );
   }
 
-  Future<void> _mergeActivities(List<Map<String, dynamic>> items) async {
-    if (items.isEmpty) return;
-    final dbos = items.map(UserActivityDBO.fromJson).toList();
-    final pendingIds = await _pendingResourceIds(SyncResource.activity);
-    final toApply =
-        dbos.where((dbo) => !pendingIds.contains(dbo.id)).toList();
-    if (toApply.isNotEmpty) {
-      await _activityRepository.addAllUserActivityDBOs(toApply);
-    }
-  }
+  IntakeDBO _intakeFromRemote(
+    Map<String, dynamic> log,
+    Map<String, dynamic>? food,
+  ) {
+    final nutrients = food?['nutrientsPer100g'] as Map<String, dynamic>? ?? {};
+    final meal = MealDBO(
+      code: food?['externalId'] as String?,
+      name: food?['name'] as String? ?? 'Food',
+      brands: food?['brand'] as String?,
+      thumbnailImageUrl: null,
+      mainImageUrl: null,
+      url: null,
+      mealQuantity: null,
+      mealUnit: log['unit'] as String? ?? 'g',
+      servingQuantity: null,
+      servingUnit: null,
+      servingSize: null,
+      source: MealSourceDBO.custom,
+      nutriments: MealNutrimentsDBO(
+        energyKcal100: (nutrients['calories'] as num?)?.toDouble(),
+        carbohydrates100: (nutrients['carbs'] as num?)?.toDouble(),
+        fat100: (nutrients['fat'] as num?)?.toDouble(),
+        proteins100: (nutrients['protein'] as num?)?.toDouble(),
+        sugars100: null,
+        saturatedFat100: null,
+        fiber100: null,
+      ),
+    );
 
-  Future<void> _mergeTrackedDays(List<Map<String, dynamic>> items) async {
-    if (items.isEmpty) return;
-    final dbos = items.map(TrackedDayDBO.fromJson).toList();
-    final pendingIds = await _pendingResourceIds(SyncResource.trackedDay);
-    final toApply = dbos
-        .where((dbo) => !pendingIds.contains(dbo.day.toParsedDay()))
-        .toList();
-    if (toApply.isNotEmpty) {
-      await _trackedDayRepository.addAllTrackedDays(toApply);
-    }
-  }
-
-  Future<void> _mergeWeightLogs(List<Map<String, dynamic>> items) async {
-    if (items.isEmpty) return;
-    final dbos = items.map(WeightLogDBO.fromJson).toList();
-    final pendingIds = await _pendingResourceIds(SyncResource.weightLog);
-    final toApply = dbos
-        .where((dbo) => !pendingIds.contains(dbo.date.toParsedDay()))
-        .toList();
-    if (toApply.isNotEmpty) {
-      await _weightLogRepository.addAllEntries(toApply);
-    }
-  }
-
-  Future<void> _mergeWaterIntakes(List<Map<String, dynamic>> items) async {
-    if (items.isEmpty) return;
-    final dbos = items.map(WaterIntakeDBO.fromJson).toList();
-    final pendingIds = await _pendingResourceIds(SyncResource.waterIntake);
-    final toApply =
-        dbos.where((dbo) => !pendingIds.contains(dbo.id)).toList();
-    if (toApply.isNotEmpty) {
-      await _waterIntakeRepository.addAllEntries(toApply);
-    }
-  }
-
-  Future<void> _mergeUser(List<Map<String, dynamic>> items) async {
-    if (items.isEmpty) return;
-    final pendingIds = await _pendingResourceIds(SyncResource.user);
-    if (pendingIds.contains('user')) return;
-    final dbo = UserDBO.fromJson(items.first);
-    await _userRepository.updateUserDataFromDBO(dbo);
-  }
-
-  Future<Set<String>> _pendingResourceIds(SyncResource resource) async {
-    final ops = await _outbox.getAll();
-    return ops
-        .where((op) => op.resource == resource)
-        .map((op) => op.resourceId)
-        .toSet();
+    return IntakeDBO(
+      id: log['id'] as String,
+      unit: log['unit'] as String? ?? 'g',
+      amount: (log['quantity'] as num).toDouble(),
+      type: IntakeTypeDBO.snack,
+      meal: meal,
+      dateTime: DateTime.parse(log['loggedAt'] as String).toLocal(),
+    );
   }
 }

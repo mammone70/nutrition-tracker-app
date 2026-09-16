@@ -599,11 +599,6 @@ Future<void> initLocator() async {
       outbox: locator(),
       api: locator(),
       intakeRepository: locator(),
-      activityRepository: locator(),
-      trackedDayRepository: locator(),
-      weightLogRepository: locator(),
-      waterIntakeRepository: locator(),
-      userRepository: locator(),
     ),
   );
 

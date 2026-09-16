@@ -5,7 +5,6 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_credentials.dart';
 import 'package:opennutritracker/core/sync/sync_operation.dart';
 
-/// Result of probing the configured calorie-tracker API.
 class CalorieTrackerApiProbeResult {
   final bool ok;
   final int? statusCode;
@@ -18,12 +17,7 @@ class CalorieTrackerApiProbeResult {
   });
 }
 
-/// HTTP client for the mammone70/calorie-tracker REST API.
-///
-/// Endpoint paths follow the provisional contract in
-/// `docs/calorie-tracker-sync.md`. When the live API differs, adapt the
-/// path helpers and payload mapping here — the outbox and local-first
-/// write path stay unchanged.
+/// HTTP client for mammone70/calorie-tracker (`/api` prefix).
 class CalorieTrackerApiClient {
   final http.Client _http;
   final CalorieTrackerSyncCredentials _credentials;
@@ -31,52 +25,33 @@ class CalorieTrackerApiClient {
 
   CalorieTrackerApiClient(this._http, this._credentials);
 
-  Future<Map<String, String>> _headers() async {
-    final token = await _credentials.getBearerToken();
-    return {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
-  }
-
   Future<Uri> _uri(String path, [Map<String, String>? query]) async {
     final base = await _credentials.getBaseUrl();
-    if (base == null || base.isEmpty) {
-      throw StateError('Calorie-tracker sync base URL is not configured.');
-    }
-    return Uri.parse('$base$path').replace(queryParameters: query);
+    final normalized = path.startsWith('/') ? path : '/$path';
+    return Uri.parse('$base$normalized').replace(queryParameters: query);
   }
 
-  String _collectionPath(SyncResource resource) {
-    switch (resource) {
-      case SyncResource.intake:
-        return '/v1/intakes';
-      case SyncResource.activity:
-        return '/v1/activities';
-      case SyncResource.trackedDay:
-        return '/v1/tracked-days';
-      case SyncResource.weightLog:
-        return '/v1/weight-log';
-      case SyncResource.waterIntake:
-        return '/v1/water-intake';
-      case SyncResource.user:
-        return '/v1/user';
+  Future<Map<String, String>> _headers({bool withAuth = true}) async {
+    final tz = await _credentials.getTimezone();
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-User-Timezone': tz,
+    };
+    if (withAuth) {
+      final token = await _credentials.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
     }
-  }
-
-  String _itemPath(SyncResource resource, String resourceId) {
-    if (resource == SyncResource.user) {
-      return '/v1/user';
-    }
-    return '${_collectionPath(resource)}/${Uri.encodeComponent(resourceId)}';
+    return headers;
   }
 
   Future<CalorieTrackerApiProbeResult> probe() async {
     try {
       final uri = await _uri('/health');
       final response = await _http
-          .get(uri, headers: await _headers())
+          .get(uri, headers: await _headers(withAuth: false))
           .timeout(const Duration(seconds: 10));
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return CalorieTrackerApiProbeResult(
@@ -92,117 +67,137 @@ class CalorieTrackerApiClient {
       );
     } catch (error, stackTrace) {
       _log.warning('Probe failed', error, stackTrace);
-      return CalorieTrackerApiProbeResult(
-        ok: false,
-        message: error.toString(),
-      );
+      return CalorieTrackerApiProbeResult(ok: false, message: error.toString());
     }
   }
 
-  /// Applies one outbox mutation to the remote API.
-  Future<void> apply(SyncOperation operation) async {
-    final headers = await _headers();
-    if (operation.mutation == SyncMutation.delete) {
-      final uri = await _uri(_itemPath(operation.resource, operation.resourceId));
-      final response = await _http
-          .delete(uri, headers: headers)
-          .timeout(const Duration(seconds: 30));
-      _throwIfFailed(response, 'DELETE ${operation.resource.name}');
-      return;
+  /// Email/password login; stores access + refresh tokens on success.
+  Future<void> login() async {
+    final email = await _credentials.getEmail();
+    final password = await _credentials.getPassword();
+    if (email == null || password == null) {
+      throw StateError('Email and password are required to sign in.');
     }
-
-    final payload = operation.payload;
-    if (payload == null) {
-      throw StateError(
-        'Upsert for ${operation.resource.name}/${operation.resourceId} '
-        'has no payload.',
-      );
-    }
-
-    if (operation.resource == SyncResource.user) {
-      final uri = await _uri('/v1/user');
-      final response = await _http
-          .put(uri, headers: headers, body: jsonEncode(payload))
-          .timeout(const Duration(seconds: 30));
-      _throwIfFailed(response, 'PUT user');
-      return;
-    }
-
-    final uri =
-        await _uri(_itemPath(operation.resource, operation.resourceId));
+    final uri = await _uri('/auth/login');
     final response = await _http
-        .put(uri, headers: headers, body: jsonEncode(payload))
+        .post(
+          uri,
+          headers: await _headers(withAuth: false),
+          body: jsonEncode({'email': email, 'password': password}),
+        )
         .timeout(const Duration(seconds: 30));
-    _throwIfFailed(response, 'PUT ${operation.resource.name}');
+    _throwIfFailed(response, 'POST /auth/login');
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    await _credentials.setTokens(
+      accessToken: body['accessToken'] as String,
+      refreshToken: body['refreshToken'] as String,
+    );
   }
 
-  /// Pulls remote records changed at or after [since] (inclusive).
-  ///
-  /// Returns a map of resource → list of JSON objects in export/DBO shape.
-  Future<Map<SyncResource, List<Map<String, dynamic>>>> pullSince(
-    DateTime? since,
+  Future<bool> refreshSession() async {
+    final refresh = await _credentials.getRefreshToken();
+    if (refresh == null || refresh.isEmpty) return false;
+    final uri = await _uri('/auth/refresh');
+    final response = await _http
+        .post(
+          uri,
+          headers: await _headers(withAuth: false),
+          body: jsonEncode({'refreshToken': refresh}),
+        )
+        .timeout(const Duration(seconds: 30));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return false;
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    await _credentials.setTokens(
+      accessToken: body['accessToken'] as String,
+      refreshToken: body['refreshToken'] as String,
+    );
+    return true;
+  }
+
+  /// Ensures a valid access token (login or refresh as needed).
+  Future<void> ensureAuthenticated() async {
+    final access = await _credentials.getAccessToken();
+    if (access != null && access.isNotEmpty) return;
+    if (await refreshSession()) return;
+    await login();
+  }
+
+  Future<http.Response> _authorized(
+    Future<http.Response> Function() send,
   ) async {
+    await ensureAuthenticated();
+    var response = await send();
+    if (response.statusCode == 401) {
+      final refreshed = await refreshSession();
+      if (!refreshed) {
+        await login();
+      }
+      response = await send();
+    }
+    return response;
+  }
+
+  Future<Map<String, dynamic>> pullSince(DateTime? since) async {
     final query = <String, String>{
       if (since != null) 'since': since.toUtc().toIso8601String(),
     };
-    final headers = await _headers();
-    final result = <SyncResource, List<Map<String, dynamic>>>{};
-
-    for (final resource in SyncResource.values) {
-      if (resource == SyncResource.user) {
-        final uri = await _uri('/v1/user');
-        final response = await _http
-            .get(uri, headers: headers)
-            .timeout(const Duration(seconds: 30));
-        if (response.statusCode == 404) {
-          result[resource] = const [];
-          continue;
-        }
-        _throwIfFailed(response, 'GET user');
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          result[resource] = [decoded];
-        } else {
-          result[resource] = const [];
-        }
-        continue;
-      }
-
-      final uri = await _uri(_collectionPath(resource), query);
-      final response = await _http
-          .get(uri, headers: headers)
-          .timeout(const Duration(seconds: 30));
-      _throwIfFailed(response, 'GET ${resource.name}');
-      result[resource] = _decodeList(response.body);
-    }
-    return result;
+    final response = await _authorized(() async {
+      final uri = await _uri('/sync', query);
+      return _http
+          .get(uri, headers: await _headers())
+          .timeout(const Duration(seconds: 60));
+    });
+    _throwIfFailed(response, 'GET /sync');
+    return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
   }
 
-  List<Map<String, dynamic>> _decodeList(String body) {
-    if (body.isEmpty) return const [];
-    final decoded = jsonDecode(body);
-    if (decoded is List) {
-      return decoded
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-    if (decoded is Map && decoded['items'] is List) {
-      return (decoded['items'] as List)
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-    if (decoded is Map<String, dynamic>) {
-      return [decoded];
-    }
-    return const [];
+  Future<void> pushMutations(List<SyncOperation> operations) async {
+    if (operations.isEmpty) return;
+    final body = {
+      'mutations': operations.map((op) => op.toPushMutation()).toList(),
+    };
+    final response = await _authorized(() async {
+      final uri = await _uri('/sync/push');
+      return _http
+          .post(
+            uri,
+            headers: await _headers(),
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 60));
+    });
+    _throwIfFailed(response, 'POST /sync/push');
+  }
+
+  Future<void> upsertBodyWeight(Map<String, dynamic> payload) async {
+    final response = await _authorized(() async {
+      final uri = await _uri('/body-weight');
+      return _http
+          .post(
+            uri,
+            headers: await _headers(),
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 30));
+    });
+    _throwIfFailed(response, 'POST /body-weight');
+  }
+
+  Future<void> deleteBodyWeight(String id) async {
+    final response = await _authorized(() async {
+      final uri = await _uri('/body-weight/${Uri.encodeComponent(id)}');
+      return _http
+          .delete(uri, headers: await _headers())
+          .timeout(const Duration(seconds: 30));
+    });
+    if (response.statusCode == 404) return;
+    _throwIfFailed(response, 'DELETE /body-weight');
   }
 
   void _throwIfFailed(http.Response response, String action) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
-    // Treat 404 on delete as success — remote already gone.
-    if (response.statusCode == 404 && action.startsWith('DELETE')) return;
     throw CalorieTrackerApiException(
       action: action,
       statusCode: response.statusCode,
