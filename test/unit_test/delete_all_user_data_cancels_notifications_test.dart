@@ -11,7 +11,13 @@ import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
@@ -99,6 +105,18 @@ void main() {
         weightLogBox: await Hive.openBox<WeightLogDBO>('delete_all_weight'),
         waterIntakeBox: await Hive.openBox<WaterIntakeDBO>('delete_all_water'),
         fastingBox: await Hive.openBox<FastingSessionDBO>('delete_all_fast'),
+        weeklyMacroTargetBox: await Hive.openBox<WeeklyMacroTargetDBO>(
+          'delete_all_wmacro',
+        ),
+        macroTargetBox: await Hive.openBox<MacroTargetDBO>('delete_all_macro'),
+        weeklyMealBox: await Hive.openBox<WeeklyMealDBO>('delete_all_wmeal'),
+        weeklyMealPlanEntryBox: await Hive.openBox<WeeklyMealPlanEntryDBO>(
+          'delete_all_wentry',
+        ),
+        dayMealBox: await Hive.openBox<DayMealDBO>('delete_all_dmeal'),
+        mealPlanEntryBox: await Hive.openBox<MealPlanEntryDBO>(
+          'delete_all_entry',
+        ),
       );
       final configDataSource = ConfigDataSource(provider);
       configRepository = ConfigRepository(configDataSource);
@@ -151,7 +169,8 @@ void main() {
       expect(
         notifications.cancels,
         1,
-        reason: 'nothing told the OS to drop the alarm, so it still fires at '
+        reason:
+            'nothing told the OS to drop the alarm, so it still fires at '
             '08:00 for a profile that no longer exists',
       );
       expect(configBox.isEmpty, isTrue, reason: 'the wipe must still happen');
@@ -167,7 +186,8 @@ void main() {
       expect(
         notifications.userDataStillOnFileWhenCancelled,
         isTrue,
-        reason: 'the alarm was cancelled after the data it belonged to was '
+        reason:
+            'the alarm was cancelled after the data it belonged to was '
             'already gone',
       );
     });
@@ -184,7 +204,8 @@ void main() {
       expect(
         afterWipe.notificationsEnabled,
         isFalse,
-        reason: 'a cold start would read this and reschedule the reminder the '
+        reason:
+            'a cold start would read this and reschedule the reminder the '
             'user just deleted everything to be rid of',
       );
     });

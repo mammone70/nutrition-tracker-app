@@ -2,13 +2,19 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/macro_target_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
@@ -29,6 +35,12 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<WeightLogDBO>? _weightLogBox;
   final Box<WaterIntakeDBO>? _waterIntakeBox;
   final Box<FastingSessionDBO>? _fastingBox;
+  final Box<WeeklyMacroTargetDBO>? _weeklyMacroTargetBox;
+  final Box<MacroTargetDBO>? _macroTargetBox;
+  final Box<WeeklyMealDBO>? _weeklyMealBox;
+  final Box<WeeklyMealPlanEntryDBO>? _weeklyMealPlanEntryBox;
+  final Box<DayMealDBO>? _dayMealBox;
+  final Box<MealPlanEntryDBO>? _mealPlanEntryBox;
 
   /// The profile the injected boxes belong to.
   ///
@@ -53,18 +65,30 @@ class FakeHiveDBProvider extends HiveDBProvider {
     Box<WeightLogDBO>? weightLogBox,
     Box<WaterIntakeDBO>? waterIntakeBox,
     Box<FastingSessionDBO>? fastingBox,
-  })  : _configBox = configBox,
-        _appConfigBox = appConfigBox ?? configBox,
-        _intakeBox = intakeBox,
-        _userActivityBox = userActivityBox,
-        _userBox = userBox,
-        _trackedDayBox = trackedDayBox,
-        _customMealBox = customMealBox,
-        _recipeBox = recipeBox,
-        _customActivityTemplateBox = customActivityTemplateBox,
-        _weightLogBox = weightLogBox,
-        _waterIntakeBox = waterIntakeBox,
-        _fastingBox = fastingBox;
+    Box<WeeklyMacroTargetDBO>? weeklyMacroTargetBox,
+    Box<MacroTargetDBO>? macroTargetBox,
+    Box<WeeklyMealDBO>? weeklyMealBox,
+    Box<WeeklyMealPlanEntryDBO>? weeklyMealPlanEntryBox,
+    Box<DayMealDBO>? dayMealBox,
+    Box<MealPlanEntryDBO>? mealPlanEntryBox,
+  }) : _configBox = configBox,
+       _appConfigBox = appConfigBox ?? configBox,
+       _intakeBox = intakeBox,
+       _userActivityBox = userActivityBox,
+       _userBox = userBox,
+       _trackedDayBox = trackedDayBox,
+       _customMealBox = customMealBox,
+       _recipeBox = recipeBox,
+       _customActivityTemplateBox = customActivityTemplateBox,
+       _weightLogBox = weightLogBox,
+       _waterIntakeBox = waterIntakeBox,
+       _fastingBox = fastingBox,
+       _weeklyMacroTargetBox = weeklyMacroTargetBox,
+       _macroTargetBox = macroTargetBox,
+       _weeklyMealBox = weeklyMealBox,
+       _weeklyMealPlanEntryBox = weeklyMealPlanEntryBox,
+       _dayMealBox = dayMealBox,
+       _mealPlanEntryBox = mealPlanEntryBox;
 
   T _require<T>(T? box) {
     if (box == null) {
@@ -98,4 +122,18 @@ class FakeHiveDBProvider extends HiveDBProvider {
   Box<WaterIntakeDBO> get waterIntakeBox => _require(_waterIntakeBox);
   @override
   Box<FastingSessionDBO> get fastingBox => _require(_fastingBox);
+  @override
+  Box<WeeklyMacroTargetDBO> get weeklyMacroTargetBox =>
+      _require(_weeklyMacroTargetBox);
+  @override
+  Box<MacroTargetDBO> get macroTargetBox => _require(_macroTargetBox);
+  @override
+  Box<WeeklyMealDBO> get weeklyMealBox => _require(_weeklyMealBox);
+  @override
+  Box<WeeklyMealPlanEntryDBO> get weeklyMealPlanEntryBox =>
+      _require(_weeklyMealPlanEntryBox);
+  @override
+  Box<DayMealDBO> get dayMealBox => _require(_dayMealBox);
+  @override
+  Box<MealPlanEntryDBO> get mealPlanEntryBox => _require(_mealPlanEntryBox);
 }

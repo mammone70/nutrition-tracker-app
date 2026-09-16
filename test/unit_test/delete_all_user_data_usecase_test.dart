@@ -7,7 +7,13 @@ import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/weekly_meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
@@ -94,6 +100,12 @@ class _TestHiveDBProvider extends HiveDBProvider {
   final Box<WeightLogDBO> weight;
   final Box<WaterIntakeDBO> water;
   final Box<FastingSessionDBO> fasting;
+  final Box<WeeklyMacroTargetDBO> weeklyMacro;
+  final Box<MacroTargetDBO> macro;
+  final Box<WeeklyMealDBO> weeklyMeal;
+  final Box<WeeklyMealPlanEntryDBO> weeklyEntry;
+  final Box<DayMealDBO> dayMeal;
+  final Box<MealPlanEntryDBO> mealEntry;
   final Box<ConfigDBO> sharedAppConfig;
 
   _TestHiveDBProvider({
@@ -105,6 +117,12 @@ class _TestHiveDBProvider extends HiveDBProvider {
     required this.weight,
     required this.water,
     required this.fasting,
+    required this.weeklyMacro,
+    required this.macro,
+    required this.weeklyMeal,
+    required this.weeklyEntry,
+    required this.dayMeal,
+    required this.mealEntry,
     required this.sharedAppConfig,
   });
 
@@ -124,6 +142,18 @@ class _TestHiveDBProvider extends HiveDBProvider {
   Box<WaterIntakeDBO> get waterIntakeBox => water;
   @override
   Box<FastingSessionDBO> get fastingBox => fasting;
+  @override
+  Box<WeeklyMacroTargetDBO> get weeklyMacroTargetBox => weeklyMacro;
+  @override
+  Box<MacroTargetDBO> get macroTargetBox => macro;
+  @override
+  Box<WeeklyMealDBO> get weeklyMealBox => weeklyMeal;
+  @override
+  Box<WeeklyMealPlanEntryDBO> get weeklyMealPlanEntryBox => weeklyEntry;
+  @override
+  Box<DayMealDBO> get dayMealBox => dayMeal;
+  @override
+  Box<MealPlanEntryDBO> get mealPlanEntryBox => mealEntry;
   @override
   Box<ConfigDBO> get appConfigBox => sharedAppConfig;
 }
@@ -155,6 +185,14 @@ void main() {
       weight: await Hive.openBox<WeightLogDBO>('wipe_weight_$tag'),
       water: await Hive.openBox<WaterIntakeDBO>('wipe_water_$tag'),
       fasting: await Hive.openBox<FastingSessionDBO>('wipe_fasting_$tag'),
+      weeklyMacro: await Hive.openBox<WeeklyMacroTargetDBO>('wipe_wmacro_$tag'),
+      macro: await Hive.openBox<MacroTargetDBO>('wipe_macro_$tag'),
+      weeklyMeal: await Hive.openBox<WeeklyMealDBO>('wipe_wmeal_$tag'),
+      weeklyEntry: await Hive.openBox<WeeklyMealPlanEntryDBO>(
+        'wipe_wentry_$tag',
+      ),
+      dayMeal: await Hive.openBox<DayMealDBO>('wipe_dmeal_$tag'),
+      mealEntry: await Hive.openBox<MealPlanEntryDBO>('wipe_entry_$tag'),
       sharedAppConfig: appConfigBox,
     );
 
