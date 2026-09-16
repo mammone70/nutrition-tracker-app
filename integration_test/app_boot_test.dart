@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:opennutritracker/core/presentation/main_screen.dart';
+import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/main.dart' as app;
 
 /// Single-boot smoke for the whole first-run path. Everything here shares
 /// one `app.main()` deliberately: `initLocator()` registers its GetIt
 /// singletons without a re-registration guard, so a second `app.main()` in
-/// the same process would throw. Keeping the checks in one boot (rather than
-/// several test files) is what lets the suite run unsharded — a single
-/// `flutter test integration_test/` per platform that pays the build and
-/// simulator cost once.
+/// the same process would throw.
 ///
 /// Fresh installs seed a default profile and land on MainScreen — profile
 /// questionnaires are optional, not a gate.
@@ -50,15 +48,33 @@ void main() {
         findsOneWidget,
         reason: 'fresh install should open the main app without onboarding',
       );
+      expect(
+        find.byType(HomeAppbar),
+        findsOneWidget,
+        reason: 'main home should show the branded app bar',
+      );
 
-      // Localisation is live (app title from ARB).
       final context = tester.element(find.byType(MainScreen));
       final title = S.of(context).appTitle;
       expect(title, isNotEmpty);
-      expect(find.text(title), findsWidgets);
       if (S.of(context).localeName.startsWith('en')) {
-        expect(title, 'Fitty Kitties');
+        expect(
+          title,
+          'Fitty Kitties',
+          reason: 'English appTitle should be Fitty Kitties',
+        );
       }
+
+      // HomeAppbar renders the title via RichText/TextSpan, so assert the
+      // span text rather than find.text (which only matches Text widgets).
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is RichText && widget.text.toPlainText().contains(title),
+        ),
+        findsWidgets,
+        reason: 'app title should render in the home app bar',
+      );
     },
   );
 }
