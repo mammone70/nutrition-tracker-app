@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/fitty_agent_consent_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Wipes the **active profile's** data, returning that profile to a
@@ -25,12 +26,14 @@ class DeleteAllUserDataUsecase {
   final NotificationService _notificationService;
   final ConfigRepository _configRepository;
   final AiCredentialStorage _aiCredentials;
+  final FittyAgentConsentStorage _fittyAgentConsent;
 
   DeleteAllUserDataUsecase(
     this._hiveDBProvider,
     this._notificationService,
     this._configRepository,
     this._aiCredentials,
+    this._fittyAgentConsent,
   );
 
   Future<void> deleteAll() async {
@@ -78,6 +81,7 @@ class DeleteAllUserDataUsecase {
     // server the user runs — the address of a machine on someone's network.
     // #892.
     await _aiCredentials.clearAll();
+    await _fittyAgentConsent.setConsent(false);
   }
 
   /// Stops the reminder in both of the places that keep it alive.
@@ -100,12 +104,12 @@ class DeleteAllUserDataUsecase {
     await _bestEffort(
       () => _configRepository.setNotificationsEnabled(false),
       'Could not switch the daily reminder off; the next launch may schedule '
-          'it again from a setting this wipe does not clear',
+      'it again from a setting this wipe does not clear',
     );
     await _bestEffort(
       () => _notificationService.cancelAllScheduled(),
       'Could not cancel scheduled notifications; an alarm may outlive the '
-          'data it was scheduled from',
+      'data it was scheduled from',
     );
   }
 

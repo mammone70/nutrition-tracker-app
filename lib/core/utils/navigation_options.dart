@@ -29,4 +29,5 @@ class NavigationOptions {
   static const weeklyMealPlansRoute = "weeklyMealPlans";
   static const dayMealPlanRoute = "dayMealPlan";
   static const manageProfilesRoute = "manageProfiles";
+  static const fittyAgentRoute = "fittyAgent";
 }

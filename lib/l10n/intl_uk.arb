@@ -1369,5 +1369,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Питання про макроси, плани харчування, прогрес і sync",
+  "fittyAgentEmptyHint": "Попросіть Fitty Agent встановити макроси, спланувати страви, перевірити сьогоднішній щоденник або синхронізувати з Calorie Tracker.",
+  "fittyAgentInputHint": "Повідомлення Fitty Agent…",
+  "fittyAgentClearChat": "Очистити чат",
+  "fittyAgentSetupBody": "Fitty Agent використовує той самий LLM, що й AI-допомога з їжею, і може надсилати підсумки щоденника, планів і профілю цьому провайдеру, щоб відповідати й вносити зміни.",
+  "fittyAgentConfigureAi": "Налаштувати AI Assist",
+  "fittyAgentReviewConsent": "Переглянути й погодитися",
+  "fittyAgentConsentTitle": "Угода Fitty Agent",
+  "fittyAgentConsentBody": "Fitty Agent використовуватиме налаштований модель {provider}. На відміну від AI-допомоги з їжею, він може надсилати підсумки щоденника, планів, макросів, ваги й цілей профілю, щоб модель могла відповідати й оновлювати їх. Зміни спочатку зберігаються на цьому пристрої й синхронізуються через Calorie Tracker, коли sync увімкнено. Fitty Kitties ніколи не бачить ваш API-ключ.",
+  "fittyAgentConsentAgree": "Погоджуюся",
+  "fittyAgentConsentDecline": "Не зараз"
 }

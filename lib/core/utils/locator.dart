@@ -104,6 +104,10 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpo
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/agent_tool_executor.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/fitty_agent_consent_storage.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/run_fitty_agent_usecase.dart';
+import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_bloc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
@@ -176,6 +180,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AiCredentialStorage>(
     () => AiCredentialStorage(),
   );
+  locator.registerLazySingleton<FittyAgentConsentStorage>(
+    () => FittyAgentConsentStorage(),
+  );
   // One client for the app rather than one per interpret call: a fresh
   // http.Client carries its own connection pool and is never closed here,
   // so building one each time the user taps Search would accumulate
@@ -211,6 +218,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator<AiCredentialStorage>(),
+      locator<FittyAgentConsentStorage>(),
     ),
   );
 
@@ -686,6 +694,40 @@ Future<void> initLocator() async {
       outbox: locator(),
       api: locator(),
       intakeRepository: locator(),
+    ),
+  );
+  locator.registerLazySingleton<AgentToolExecutor>(
+    () => AgentToolExecutor(
+      getEffectiveMacros: locator(),
+      getDailyMacros: locator(),
+      saveDailyMacros: locator(),
+      getWeeklyMacros: locator(),
+      saveWeeklyMacros: locator(),
+      getDayMeals: locator(),
+      saveDayMeals: locator(),
+      getWeeklyMeals: locator(),
+      saveWeeklyMeals: locator(),
+      getIntake: locator(),
+      getUser: locator(),
+      getWeightLog: locator(),
+      addWeightLog: locator(),
+      syncService: locator(),
+      syncCredentials: locator(),
+    ),
+  );
+  locator.registerLazySingleton<RunFittyAgentUseCase>(
+    () => RunFittyAgentUseCase(
+      credentials: locator(),
+      consent: locator(),
+      httpClient: locator(),
+      executor: locator(),
+    ),
+  );
+  locator.registerFactory<FittyAgentBloc>(
+    () => FittyAgentBloc(
+      runAgent: locator(),
+      consent: locator(),
+      credentials: locator(),
     ),
   );
 

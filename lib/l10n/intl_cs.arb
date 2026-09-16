@@ -1369,5 +1369,17 @@
   "weekdayThursday": "Thursday",
   "weekdayFriday": "Friday",
   "weekdaySaturday": "Saturday",
-  "weekdaySunday": "Sunday"
+  "weekdaySunday": "Sunday",
+  "fittyAgentTitle": "Fitty Agent",
+  "fittyAgentSubtitle": "Dotazy na makra, jídelníčky, pokrok a synchronizaci",
+  "fittyAgentEmptyHint": "Požádejte Fitty Agent o nastavení maker, plán jídel, kontrolu dnešního deníku nebo synchronizaci s Calorie Tracker.",
+  "fittyAgentInputHint": "Zpráva pro Fitty Agent…",
+  "fittyAgentClearChat": "Vymazat chat",
+  "fittyAgentSetupBody": "Fitty Agent používá stejný LLM jako AI pomoc při jídlech a může odesílat shrnutí deníku, jídelníčku a profilu tomuto poskytovateli, aby mohl odpovídat a provádět změny.",
+  "fittyAgentConfigureAi": "Nastavit AI pomoc",
+  "fittyAgentReviewConsent": "Přečíst a souhlasit",
+  "fittyAgentConsentTitle": "Souhlas s Fitty Agent",
+  "fittyAgentConsentBody": "Fitty Agent použije váš nakonfigurovaný model {provider}. Na rozdíl od AI pomoci při jídlech může odesílat shrnutí deníku, jídelníčků, maker, váhy a cílů profilu, aby model mohl odpovídat a aktualizovat je. Změny se nejdřív uloží v tomto zařízení a při zapnuté synchronizaci se odešlou přes Calorie Tracker. Fitty Kitties váš API klíč nikdy neuvidí.",
+  "fittyAgentConsentAgree": "Souhlasím",
+  "fittyAgentConsentDecline": "Teď ne"
 }

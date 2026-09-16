@@ -51,6 +51,7 @@ import 'package:opennutritracker/features/settings/presentation/widgets/calorie_
 import 'package:opennutritracker/features/meal_plan/weekly_macro_targets_screen.dart';
 import 'package:opennutritracker/features/meal_plan/weekly_meal_plans_screen.dart';
 import 'package:opennutritracker/features/meal_plan/day_meal_plan_screen.dart';
+import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -317,7 +318,8 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
         NavigationOptions.settingsRoute: (context) => const SettingsScreen(),
         NavigationOptions.accentColourRoute: (context) =>
             const AccentColourScreen(),
-        NavigationOptions.healthSyncRoute: (context) => const HealthSyncScreen(),
+        NavigationOptions.healthSyncRoute: (context) =>
+            const HealthSyncScreen(),
         NavigationOptions.calorieTrackerSyncRoute: (context) =>
             const CalorieTrackerSyncScreen(),
         NavigationOptions.weeklyMacroTargetsRoute: (context) =>
@@ -329,6 +331,8 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
           final day = args is DateTime ? args : DateTime.now();
           return DayMealPlanScreen(day: day);
         },
+        NavigationOptions.fittyAgentRoute: (context) =>
+            const FittyAgentScreen(),
         NavigationOptions.addMealRoute: (context) => const AddMealScreen(),
         NavigationOptions.bulkAddRoute: (context) => const BulkAddScreen(),
         NavigationOptions.scannerRoute: (context) => const ScannerScreen(),
