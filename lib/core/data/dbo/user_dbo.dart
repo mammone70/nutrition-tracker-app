@@ -64,4 +64,37 @@ class UserDBO extends HiveObject {
       caloriesTaperEnabled: entity.caloriesTaperEnabled,
     );
   }
+
+  /// Hand-written so calorie-tracker sync can enqueue/pull without adding
+  /// json_serializable to every nested user enum DBO.
+  factory UserDBO.fromJson(Map<String, dynamic> json) {
+    final profileRaw = json['caloriesProfile'] as String?;
+    return UserDBO(
+      birthday: DateTime.parse(json['birthday'] as String),
+      heightCM: (json['heightCM'] as num).toDouble(),
+      weightKG: (json['weightKG'] as num).toDouble(),
+      gender: UserGenderDBO.values.byName(json['gender'] as String),
+      goal: UserWeightGoalDBO.values.byName(json['goal'] as String),
+      pal: UserPALDBO.values.byName(json['pal'] as String),
+      weeklyWeightGoalKg: (json['weeklyWeightGoalKg'] as num?)?.toDouble(),
+      caloriesProfile: profileRaw == null
+          ? null
+          : CaloriesProfileDBO.values.byName(profileRaw),
+      targetWeightKg: (json['targetWeightKg'] as num?)?.toDouble(),
+      caloriesTaperEnabled: json['caloriesTaperEnabled'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'birthday': birthday.toIso8601String(),
+        'heightCM': heightCM,
+        'weightKG': weightKG,
+        'gender': gender.name,
+        'goal': goal.name,
+        'pal': pal.name,
+        'weeklyWeightGoalKg': weeklyWeightGoalKg,
+        'caloriesProfile': caloriesProfile?.name,
+        'targetWeightKg': targetWeightKg,
+        'caloriesTaperEnabled': caloriesTaperEnabled,
+      };
 }
