@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_bloc.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_consent_screen.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_event.dart';
+import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_model_dialog.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_state.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -48,6 +49,11 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
       appBar: AppBar(
         title: Text(s.fittyAgentTitle),
         actions: [
+          IconButton(
+            tooltip: s.fittyAgentChooseModel,
+            onPressed: () => FittyAgentModelDialog.show(context),
+            icon: const Icon(Icons.tune_rounded),
+          ),
           IconButton(
             tooltip: s.fittyAgentClearChat,
             onPressed: () =>

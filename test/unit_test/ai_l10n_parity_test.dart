@@ -57,6 +57,15 @@ void main() {
     'aiAssistModelsEmptyLabel',
     'aiAssistModelsRejectedLabel',
     'aiAssistModelsInsecureLabel',
+    // Fitty Chat can pick a cheaper model than meal/photo assist.
+    'fittyAgentChooseModel',
+    'fittyAgentModelTitle',
+    'fittyAgentModelBody',
+    'fittyAgentModelRecommendedLabel',
+    'fittyAgentModelNeedsAiAssist',
+    'fittyAgentModelUsesAssist',
+    'fittyAgentSetupBody',
+    'fittyAgentConsentBody',
   ];
 
   final arb = {

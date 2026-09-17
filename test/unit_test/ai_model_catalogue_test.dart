@@ -103,6 +103,49 @@ void main() {
     });
   });
 
+  group('Fitty Agent chat defaults', () {
+    test('OpenRouter chat prefers luna over the meal-assist sonnet default', () {
+      expect(
+        AiModelCatalogue.defaultFor(AiProvider.openrouter)!.id,
+        'anthropic/claude-sonnet-5',
+      );
+      expect(
+        AiModelCatalogue.defaultForAgent(AiProvider.openrouter)!.id,
+        'openai/gpt-5.6-luna',
+      );
+      expect(
+        AiModelCatalogue.resolveForAgent(AiProvider.openrouter, null)!.id,
+        'openai/gpt-5.6-luna',
+      );
+    });
+
+    test('a stored agent id wins, and a retired id falls back to the chat default',
+        () {
+      expect(
+        AiModelCatalogue.resolveForAgent(
+          AiProvider.openrouter,
+          'anthropic/claude-haiku-4.5',
+        )!.id,
+        'anthropic/claude-haiku-4.5',
+      );
+      expect(
+        AiModelCatalogue.resolveForAgent(
+          AiProvider.openrouter,
+          'anthropic/gone',
+        )!.id,
+        'openai/gpt-5.6-luna',
+      );
+    });
+
+    test('ownServer has no agent default either', () {
+      expect(AiModelCatalogue.defaultForAgent(AiProvider.ownServer), isNull);
+      expect(
+        AiModelCatalogue.resolveForAgent(AiProvider.ownServer, 'gemma3:4b'),
+        isNull,
+      );
+    });
+  });
+
   group('the pin, which is what makes servedBy a guarantee', () {
     test('every brokered model pins, and every direct one does not', () {
       // `providers` constrains an OpenRouter route. A direct path has no

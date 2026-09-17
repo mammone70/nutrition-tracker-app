@@ -81,7 +81,7 @@ class DeleteAllUserDataUsecase {
     // server the user runs — the address of a machine on someone's network.
     // #892.
     await _aiCredentials.clearAll();
-    await _fittyAgentConsent.setConsent(false);
+    await _fittyAgentConsent.clearAll();
   }
 
   /// Stops the reminder in both of the places that keep it alive.

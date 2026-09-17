@@ -133,7 +133,7 @@ class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
       MealInterpreterFailure.auth => 'Authentication failed. Check AI Assist.',
       MealInterpreterFailure.billing => 'Provider billing error.',
       MealInterpreterFailure.unsupported =>
-        'This model does not support agent tools. Try another model in AI Assist.',
+        'This model does not support agent tools. Try another model under Fitty Agent → model.',
       MealInterpreterFailure.timeout =>
         'The model took too long to answer. Try again.',
       MealInterpreterFailure.rejected =>
