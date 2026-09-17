@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/domain/usecase/ensure_custom_meal_for_plan_food.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_mapper.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -128,7 +130,7 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
     );
   }
 
-  void _submitManual() {
+  Future<void> _submitManual() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
     final cal = double.tryParse(_calController.text) ?? 0;
@@ -145,19 +147,30 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
       fatPer100: fat,
       carbsPer100: carbs,
     );
-    Navigator.of(context).pop(
-      EditableMealPlanFood(
-        id: _uuid.v4(),
-        foodId: foodId,
-        foodName: name,
-        brand: brand.isEmpty ? null : brand,
-        caloriesPer100: cal,
-        proteinPer100: protein,
-        fatPer100: fat,
-        carbsPer100: carbs,
-        quantity: qty,
-      ),
+    final food = EditableMealPlanFood(
+      id: _uuid.v4(),
+      foodId: foodId,
+      foodName: name,
+      brand: brand.isEmpty ? null : brand,
+      caloriesPer100: cal,
+      proteinPer100: protein,
+      fatPer100: fat,
+      carbsPer100: carbs,
+      quantity: qty,
     );
+    await ensureCustomMealForPlanFood(
+      customMeals: locator<CustomMealDataSource>(),
+      name: food.foodName,
+      brand: food.brand,
+      caloriesPer100: food.caloriesPer100,
+      proteinPer100: food.proteinPer100,
+      fatPer100: food.fatPer100,
+      carbsPer100: food.carbsPer100,
+      unit: food.unit,
+      preferredCode: food.foodId,
+    );
+    if (!mounted) return;
+    Navigator.of(context).pop(food);
   }
 
   @override
@@ -396,12 +409,16 @@ Widget buildMealBlocksEditor({
                 ),
                 const SizedBox(height: Dimens.spacing8),
                 ...meal.entries.map((entry) {
+                  final s = S.of(context);
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(entry.foodName),
                     subtitle: Text(
                       '${entry.quantity.toStringAsFixed(0)} ${entry.unit} · '
-                      '${entry.calories.round()} kcal',
+                      '${entry.calories.round()} kcal · '
+                      '${s.proteinLabelShort.toUpperCase()} ${entry.proteinG.round()} · '
+                      '${s.fatLabelShort.toUpperCase()} ${entry.fatG.round()} · '
+                      '${s.carbsLabelShort.toUpperCase()} ${entry.carbsG.round()}',
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),

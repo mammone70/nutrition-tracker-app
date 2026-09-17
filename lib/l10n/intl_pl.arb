@@ -1387,11 +1387,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Pytania o makro, plany posiłków, postępy i sync",
-  "fittyAgentEmptyHint": "Poproś Fitty Agent o ustawienie makro, plan posiłków, sprawdzenie dzisiejszego dziennika lub sync z Calorie Tracker.",
+  "fittyAgentEmptyHint": "Poproś Fitty Agenta o makra, plan posiłków, dzisiejszy dziennik lub sync z Calorie Tracker. Możesz też dołączyć zdjęcia posiłków, aby zaktualizować plan.",
   "fittyAgentInputHint": "Wiadomość do Fitty Agent…",
   "fittyAgentClearChat": "Wyczyść czat",
-  "fittyAgentAttachPhoto": "Dołącz zdjęcie posiłku",
+  "fittyAgentAttachPhoto": "Dołącz zdjęcia posiłków",
   "fittyAgentPhotoAttachFailed": "Nie udało się dołączyć zdjęcia. Spróbuj innego obrazu.",
+  "fittyAgentPhotoLimitReached": "Możesz dołączyć do {count} zdjęć.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Te zdjęcia razem są za duże. Usuń jedno lub wybierz mniejsze obrazy.",
   "fittyAgentChooseModel": "Model czatu",
   "fittyAgentModelTitle": "Model Fitty Chat",
   "fittyAgentModelBody": "Fitty Chat może używać tańszego modelu niż analiza zdjęć posiłków. Ten wybór nie zmienia AI Assist.",

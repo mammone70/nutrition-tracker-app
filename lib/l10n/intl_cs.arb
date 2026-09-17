@@ -1387,11 +1387,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Dotazy na makra, jídelníčky, pokrok a synchronizaci",
-  "fittyAgentEmptyHint": "Požádejte Fitty Agent o nastavení maker, plán jídel, kontrolu dnešního deníku nebo synchronizaci s Calorie Tracker.",
+  "fittyAgentEmptyHint": "Požádej Fitty Agenta o nastavení makros, plán jídel, dnešní deník nebo sync s Calorie Tracker. Můžeš také přiložit fotky jídla a upravit plán.",
   "fittyAgentInputHint": "Zpráva pro Fitty Agent…",
   "fittyAgentClearChat": "Vymazat chat",
-  "fittyAgentAttachPhoto": "Přiložit fotku jídla",
+  "fittyAgentAttachPhoto": "Přiložit fotky jídla",
   "fittyAgentPhotoAttachFailed": "Fotku se nepodařilo přiložit. Zkus jiný obrázek.",
+  "fittyAgentPhotoLimitReached": "Můžeš přiložit až {count} fotek.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Tyto fotky jsou dohromady příliš velké. Odstraň jednu nebo vyber menší obrázky.",
   "fittyAgentChooseModel": "Model chatu",
   "fittyAgentModelTitle": "Model Fitty Chat",
   "fittyAgentModelBody": "Fitty Chat může používat levnější model než analýza fotek jídel. Tato volba nemění AI pomoc.",

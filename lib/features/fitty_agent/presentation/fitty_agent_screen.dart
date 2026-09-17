@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/agent_message.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_bloc.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_consent_screen.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_event.dart';
@@ -16,6 +17,17 @@ import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_m
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_state.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+/// Limits for meal photos attached to a single Fitty Chat turn.
+class FittyAgentPhotoLimits {
+  /// Hard cap on how many photos one message can carry.
+  static const maxCount = 10;
+
+  /// Total encoded (pre-base64) bytes across all attached photos.
+  /// Per-image encoding is already capped by [MealPhotoEncoder.maxBytes];
+  /// this keeps a full batch of 10 inside a reasonable request size.
+  static const maxTotalBytes = 10 * 1024 * 1024;
+}
 
 class FittyAgentScreen extends StatelessWidget {
   const FittyAgentScreen({super.key});
@@ -42,8 +54,7 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
 
-  List<int>? _attachedImageBytes;
-  String? _attachedImageMediaType;
+  final List<AgentAttachedImage> _attachedImages = [];
   bool _attaching = false;
 
   @override
@@ -52,6 +63,9 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
     _scrollController.dispose();
     super.dispose();
   }
+
+  int get _attachedTotalBytes =>
+      _attachedImages.fold(0, (sum, image) => sum + image.bytes.length);
 
   @override
   Widget build(BuildContext context) {
@@ -155,20 +169,25 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
                     ),
                   ),
                 ),
-              if (_attachedImageBytes != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _AttachedPhotoChip(
-                      bytes: _attachedImageBytes!,
-                      onClear: state.sending || _attaching
-                          ? null
-                          : () => setState(() {
-                              _attachedImageBytes = null;
-                              _attachedImageMediaType = null;
-                            }),
-                    ),
+              if (_attachedImages.isNotEmpty)
+                SizedBox(
+                  height: 56,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                    itemCount: _attachedImages.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final image = _attachedImages[index];
+                      return _AttachedPhotoChip(
+                        bytes: image.bytes,
+                        onClear: state.sending || _attaching
+                            ? null
+                            : () => setState(() {
+                                _attachedImages.removeAt(index);
+                              }),
+                      );
+                    },
                   ),
                 ),
               SafeArea(
@@ -179,9 +198,12 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
                     children: [
                       IconButton(
                         tooltip: s.fittyAgentAttachPhoto,
-                        onPressed: state.sending || _attaching
+                        onPressed: state.sending ||
+                                _attaching ||
+                                _attachedImages.length >=
+                                    FittyAgentPhotoLimits.maxCount
                             ? null
-                            : () => _attachPhoto(context),
+                            : () => _attachPhotos(context),
                         icon: _attaching
                             ? const SizedBox(
                                 width: 20,
@@ -232,7 +254,7 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
     );
   }
 
-  Future<void> _attachPhoto(BuildContext context) async {
+  Future<void> _attachPhotos(BuildContext context) async {
     final s = S.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final source = await showModalBottomSheet<ImageSource>(
@@ -258,26 +280,83 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
 
     setState(() => _attaching = true);
     try {
-      final picked = await ImagePicker().pickImage(source: source);
-      if (picked == null || !mounted) return;
+      final picker = ImagePicker();
+      final List<XFile> picked;
+      if (source == ImageSource.gallery) {
+        final remaining =
+            FittyAgentPhotoLimits.maxCount - _attachedImages.length;
+        if (remaining <= 0) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                s.fittyAgentPhotoLimitReached(FittyAgentPhotoLimits.maxCount),
+              ),
+            ),
+          );
+          return;
+        }
+        picked = await picker.pickMultiImage(limit: remaining);
+      } else {
+        final single = await picker.pickImage(source: source);
+        picked = single == null ? const [] : [single];
+      }
+      if (picked.isEmpty || !mounted) return;
+
+      if (_attachedImages.length + picked.length >
+          FittyAgentPhotoLimits.maxCount) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              s.fittyAgentPhotoLimitReached(FittyAgentPhotoLimits.maxCount),
+            ),
+          ),
+        );
+        return;
+      }
 
       final selection = await locator<AiCredentialStorage>().readSelection();
       final provider = selection?.provider ?? AiProvider.anthropic;
-      final photo = await MealPhotoEncoder.encodeAndDiscardSource(
-        picked.path,
-        format: MealPhotoFormat.forProvider(provider),
-      );
+      final format = MealPhotoFormat.forProvider(provider);
+      final encoded = <AgentAttachedImage>[];
+      var failed = 0;
+      for (final file in picked) {
+        final photo = await MealPhotoEncoder.encodeAndDiscardSource(
+          file.path,
+          format: format,
+        );
+        if (photo == null) {
+          failed++;
+          continue;
+        }
+        encoded.add(
+          AgentAttachedImage(bytes: photo.bytes, mediaType: photo.mediaType),
+        );
+      }
       if (!mounted) return;
-      if (photo == null) {
+
+      final nextTotal =
+          _attachedTotalBytes +
+          encoded.fold<int>(0, (sum, image) => sum + image.bytes.length);
+      if (nextTotal > FittyAgentPhotoLimits.maxTotalBytes) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(s.fittyAgentPhotoTotalSizeLimit)),
+        );
+        return;
+      }
+
+      if (encoded.isEmpty) {
         messenger.showSnackBar(
           SnackBar(content: Text(s.fittyAgentPhotoAttachFailed)),
         );
         return;
       }
-      setState(() {
-        _attachedImageBytes = photo.bytes;
-        _attachedImageMediaType = photo.mediaType;
-      });
+
+      setState(() => _attachedImages.addAll(encoded));
+      if (failed > 0) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(s.fittyAgentPhotoAttachFailed)),
+        );
+      }
     } catch (e, st) {
       _log.warning('Attaching Fitty Agent photo failed', e, st);
       if (mounted) {
@@ -292,20 +371,12 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
 
   void _submit(BuildContext context) {
     final text = _controller.text;
-    final imageBytes = _attachedImageBytes;
-    final imageMediaType = _attachedImageMediaType;
-    if (text.trim().isEmpty && imageBytes == null) return;
+    final images = List<AgentAttachedImage>.from(_attachedImages);
+    if (text.trim().isEmpty && images.isEmpty) return;
     _controller.clear();
-    setState(() {
-      _attachedImageBytes = null;
-      _attachedImageMediaType = null;
-    });
+    setState(() => _attachedImages.clear());
     context.read<FittyAgentBloc>().add(
-      FittyAgentMessageSubmitted(
-        text,
-        imageBytes: imageBytes,
-        imageMediaType: imageMediaType,
-      ),
+      FittyAgentMessageSubmitted(text, images: images),
     );
   }
 }
@@ -412,6 +483,7 @@ class _Bubble extends StatelessWidget {
     final fg = bubble.fromUser
         ? theme.colorScheme.onPrimaryContainer
         : theme.colorScheme.onSecondaryContainer;
+    final images = bubble.images.where((image) => image.isValid).toList();
 
     return Align(
       alignment: align,
@@ -429,15 +501,22 @@ class _Bubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (bubble.imageBytes != null) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.memory(
-                    Uint8List.fromList(bubble.imageBytes!),
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
+              if (images.isNotEmpty) ...[
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final image in images)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(
+                          Uint8List.fromList(image.bytes),
+                          width: images.length == 1 ? 120 : 72,
+                          height: images.length == 1 ? 120 : 72,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
               ],

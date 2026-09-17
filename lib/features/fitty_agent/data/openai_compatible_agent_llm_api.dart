@@ -253,21 +253,23 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
     final out = <Map<String, dynamic>>[];
     for (final message in messages) {
       switch (message) {
-        case AgentUserMessage(:final text, :final imageBytes, :final imageMediaType):
-          if (message.hasImage) {
-            // Text before image — same order as OpenAiCompatibleMealItemsApi /
+        case AgentUserMessage(:final text, :final images):
+          final validImages = images.where((image) => image.isValid).toList();
+          if (validImages.isNotEmpty) {
+            // Text before images — same order as OpenAiCompatibleMealItemsApi /
             // OpenRouter meal assist.
             out.add({
               'role': 'user',
               'content': [
                 {'type': 'text', 'text': text},
-                {
-                  'type': 'image_url',
-                  'image_url': {
-                    'url':
-                        'data:$imageMediaType;base64,${base64Encode(imageBytes!)}',
+                for (final image in validImages)
+                  {
+                    'type': 'image_url',
+                    'image_url': {
+                      'url':
+                          'data:${image.mediaType};base64,${base64Encode(image.bytes)}',
+                    },
                   },
-                },
               ],
             });
           } else {

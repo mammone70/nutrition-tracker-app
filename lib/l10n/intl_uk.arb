@@ -1387,11 +1387,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Питання про макроси, плани харчування, прогрес і sync",
-  "fittyAgentEmptyHint": "Попросіть Fitty Agent встановити макроси, спланувати страви, перевірити сьогоднішній щоденник або синхронізувати з Calorie Tracker.",
+  "fittyAgentEmptyHint": "Попросіть Fitty Agent про макроси, план їжі, щоденник на сьогодні або sync з Calorie Tracker. Також можна додати фото страв, щоб оновити план.",
   "fittyAgentInputHint": "Повідомлення Fitty Agent…",
   "fittyAgentClearChat": "Очистити чат",
-  "fittyAgentAttachPhoto": "Додати фото страви",
+  "fittyAgentAttachPhoto": "Додати фото страв",
   "fittyAgentPhotoAttachFailed": "Не вдалося додати фото. Спробуйте інше зображення.",
+  "fittyAgentPhotoLimitReached": "Можна додати до {count} фото.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Ці фото разом занадто великі. Видаліть одне або виберіть менші зображення.",
   "fittyAgentChooseModel": "Модель чату",
   "fittyAgentModelTitle": "Модель Fitty Chat",
   "fittyAgentModelBody": "Fitty Chat може використовувати дешевшу модель, ніж аналіз фото їжі. Цей вибір не змінює AI Assist.",

@@ -94,8 +94,9 @@ void main() {
         history: [
           AgentUserMessage(
             'Update dinner',
-            imageBytes: bytes,
-            imageMediaType: 'image/webp',
+            images: [
+              AgentAttachedImage(bytes: bytes, mediaType: 'image/webp'),
+            ],
           ),
         ],
         tools: tools,
@@ -115,6 +116,51 @@ void main() {
         },
       });
       expect(content[1], {'type': 'text', 'text': 'Update dinner'});
+    });
+
+    test('sends multiple meal photos as image content blocks', () async {
+      http.Request? seen;
+      final client = MockClient((request) async {
+        seen = request;
+        return http.Response(
+          jsonEncode({
+            'content': [
+              {'type': 'text', 'text': 'Got both photos.'},
+            ],
+          }),
+          200,
+        );
+      });
+
+      final api = AnthropicAgentLlmApi(
+        client,
+        () => 'sk-test',
+        model: 'claude-haiku-4-5',
+      );
+      const first = [1, 2];
+      const second = [3, 4, 5];
+      await api.runTurn(
+        system: 'sys',
+        history: [
+          AgentUserMessage(
+            'Update from these',
+            images: [
+              AgentAttachedImage(bytes: first, mediaType: 'image/webp'),
+              AgentAttachedImage(bytes: second, mediaType: 'image/jpeg'),
+            ],
+          ),
+        ],
+        tools: tools,
+        executeTool: (_) async => '{}',
+      );
+
+      final body = jsonDecode(seen!.body) as Map<String, dynamic>;
+      final messages = body['messages'] as List;
+      final content = (messages.first as Map)['content'] as List;
+      expect(content, hasLength(3));
+      expect(content[0]['type'], 'image');
+      expect(content[1]['type'], 'image');
+      expect(content[2], {'type': 'text', 'text': 'Update from these'});
     });
   });
 
@@ -335,8 +381,9 @@ void main() {
         history: [
           AgentUserMessage(
             'Add this to my meal plan',
-            imageBytes: bytes,
-            imageMediaType: 'image/webp',
+            images: [
+              AgentAttachedImage(bytes: bytes, mediaType: 'image/webp'),
+            ],
           ),
         ],
         tools: tools,

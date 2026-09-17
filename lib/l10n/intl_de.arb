@@ -1418,11 +1418,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Fragen zu Makros, Essensplänen, Fortschritt und Sync",
-  "fittyAgentEmptyHint": "Bitte Fitty Agent, Makros zu setzen, Mahlzeiten zu planen, das heutige Tagebuch zu prüfen oder mit Calorie Tracker zu synchronisieren.",
+  "fittyAgentEmptyHint": "Frage den Fitty Agent nach Makros, Essensplänen, dem heutigen Tagebuch oder Sync mit Calorie Tracker. Du kannst auch Essensfotos anhängen, um einen Plan zu aktualisieren.",
   "fittyAgentInputHint": "Nachricht an Fitty Agent…",
   "fittyAgentClearChat": "Chat leeren",
-  "fittyAgentAttachPhoto": "Essensfoto anhängen",
+  "fittyAgentAttachPhoto": "Essensfotos anhängen",
   "fittyAgentPhotoAttachFailed": "Foto konnte nicht angehängt werden. Versuche ein anderes Bild.",
+  "fittyAgentPhotoLimitReached": "Du kannst bis zu {count} Fotos anhängen.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Diese Fotos sind zusammen zu groß. Entferne eines oder wähle kleinere Bilder.",
   "fittyAgentChooseModel": "Chat-Modell",
   "fittyAgentModelTitle": "Fitty-Chat-Modell",
   "fittyAgentModelBody": "Fitty Chat kann ein günstigeres Modell nutzen als die Mahlzeiten-Fotoanalyse. Diese Wahl ändert die KI-Unterstützung nicht.",

@@ -3,27 +3,29 @@ sealed class AgentMessage {
   const AgentMessage();
 }
 
+/// An image attached to a user turn (encoded meal photo bytes + MIME type).
+final class AgentAttachedImage {
+  final List<int> bytes;
+  final String mediaType;
+
+  const AgentAttachedImage({required this.bytes, required this.mediaType});
+
+  bool get isValid => bytes.isNotEmpty && mediaType.isNotEmpty;
+}
+
 final class AgentUserMessage extends AgentMessage {
   final String text;
 
-  /// Encoded meal photo bytes for this turn (e.g. from [MealPhotoEncoder]).
-  /// When set, [imageMediaType] should also be set (e.g. `image/webp`).
-  final List<int>? imageBytes;
+  /// Encoded meal photos for this turn (e.g. from [MealPhotoEncoder]).
+  final List<AgentAttachedImage> images;
 
-  /// MIME type for [imageBytes], e.g. `image/webp` or `image/jpeg`.
-  final String? imageMediaType;
+  const AgentUserMessage(this.text, {this.images = const []});
 
-  const AgentUserMessage(
-    this.text, {
-    this.imageBytes,
-    this.imageMediaType,
-  });
+  bool get hasImages => images.any((image) => image.isValid);
 
-  bool get hasImage =>
-      imageBytes != null &&
-      imageBytes!.isNotEmpty &&
-      imageMediaType != null &&
-      imageMediaType!.isNotEmpty;
+  /// Valid images only, preserving order.
+  List<AgentAttachedImage> get validImages =>
+      images.where((image) => image.isValid).toList(growable: false);
 }
 
 final class AgentAssistantMessage extends AgentMessage {

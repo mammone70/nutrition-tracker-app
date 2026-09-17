@@ -145,20 +145,22 @@ class AnthropicAgentLlmApi implements AgentLlmApi {
     final out = <Map<String, dynamic>>[];
     for (final message in messages) {
       switch (message) {
-        case AgentUserMessage(:final text, :final imageBytes, :final imageMediaType):
-          if (message.hasImage) {
-            // Image before text — same order as AnthropicMealItemsApi.
+        case AgentUserMessage(:final text, :final images):
+          final validImages = images.where((image) => image.isValid).toList();
+          if (validImages.isNotEmpty) {
+            // Images before text — same order as AnthropicMealItemsApi.
             out.add({
               'role': 'user',
               'content': [
-                {
-                  'type': 'image',
-                  'source': {
-                    'type': 'base64',
-                    'media_type': imageMediaType,
-                    'data': base64Encode(imageBytes!),
+                for (final image in validImages)
+                  {
+                    'type': 'image',
+                    'source': {
+                      'type': 'base64',
+                      'media_type': image.mediaType,
+                      'data': base64Encode(image.bytes),
+                    },
                   },
-                },
                 {'type': 'text', 'text': text},
               ],
             });

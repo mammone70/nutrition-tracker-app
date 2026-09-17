@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
@@ -11,6 +12,7 @@ import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/daily_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/day_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/ensure_custom_meal_for_plan_food.dart';
 import 'package:opennutritracker/core/domain/usecase/get_effective_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
@@ -43,6 +45,7 @@ class AgentToolExecutor {
   final AddWeightLogUsecase _addWeightLog;
   final SyncService _syncService;
   final CalorieTrackerSyncCredentials _syncCredentials;
+  final CustomMealDataSource _customMeals;
 
   AgentToolExecutor({
     required GetEffectiveMacroTargetUsecase getEffectiveMacros,
@@ -60,6 +63,7 @@ class AgentToolExecutor {
     required AddWeightLogUsecase addWeightLog,
     required SyncService syncService,
     required CalorieTrackerSyncCredentials syncCredentials,
+    required CustomMealDataSource customMeals,
   }) : _getEffectiveMacros = getEffectiveMacros,
        _getDailyMacros = getDailyMacros,
        _saveDailyMacros = saveDailyMacros,
@@ -74,7 +78,8 @@ class AgentToolExecutor {
        _getWeightLog = getWeightLog,
        _addWeightLog = addWeightLog,
        _syncService = syncService,
-       _syncCredentials = syncCredentials;
+       _syncCredentials = syncCredentials,
+       _customMeals = customMeals;
 
   Future<String> execute(AgentToolCall call) async {
     try {
@@ -313,6 +318,7 @@ class AgentToolExecutor {
     }
 
     await _saveDayMeals.saveDay(planDate: date, meals: meals, entries: entries);
+    await _ensureCustomMealsForDayEntries(entries);
     return {
       'ok': true,
       'date': date,
@@ -343,6 +349,35 @@ class AgentToolExecutor {
       unit: (f['unit'] as String?) ?? 'g',
       updatedAt: now,
     );
+  }
+
+  Future<void> _ensureCustomMealsForDayEntries(
+    List<MealPlanEntryEntity> entries,
+  ) async {
+    for (final entry in entries) {
+      await ensureCustomMealForMealPlanEntryEntity(
+        customMeals: _customMeals,
+        entry: entry,
+      );
+    }
+  }
+
+  Future<void> _ensureCustomMealsForWeeklyEntries(
+    List<WeeklyMealPlanEntryEntity> entries,
+  ) async {
+    for (final entry in entries) {
+      await ensureCustomMealForPlanFood(
+        customMeals: _customMeals,
+        name: entry.foodName,
+        brand: entry.brand,
+        caloriesPer100: entry.caloriesPer100,
+        proteinPer100: entry.proteinPer100,
+        fatPer100: entry.fatPer100,
+        carbsPer100: entry.carbsPer100,
+        unit: entry.unit,
+        preferredCode: entry.foodId,
+      );
+    }
   }
 
   Future<Map<String, dynamic>> _getWeeklyMealPlan(
@@ -432,6 +467,7 @@ class AgentToolExecutor {
       meals: meals,
       entries: entries,
     );
+    await _ensureCustomMealsForWeeklyEntries(entries);
     return {
       'ok': true,
       'day_of_week': dayOfWeek,

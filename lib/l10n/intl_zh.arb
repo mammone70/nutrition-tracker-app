@@ -1388,11 +1388,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "询问宏量营养素、膳食计划、进度与同步",
-  "fittyAgentEmptyHint": "让 Fitty Agent 设置宏量营养素、规划餐食、查看今日日记，或与 Calorie Tracker 同步。",
+  "fittyAgentEmptyHint": "让 Fitty Agent 设置宏量营养素、规划餐食、查看今日日记或与 Calorie Tracker 同步。也可以附加餐食照片来更新计划。",
   "fittyAgentInputHint": "向 Fitty Agent 发送消息…",
   "fittyAgentClearChat": "清除聊天",
   "fittyAgentAttachPhoto": "附加餐食照片",
   "fittyAgentPhotoAttachFailed": "无法附加该照片。请换一张图片试试。",
+  "fittyAgentPhotoLimitReached": "最多可附加 {count} 张照片。",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "这些照片总大小过大。请移除一张或选择更小的图片。",
   "fittyAgentChooseModel": "聊天模型",
   "fittyAgentModelTitle": "Fitty Chat 模型",
   "fittyAgentModelBody": "Fitty Chat 可以使用比膳食照片分析更便宜的模型。此选择不会更改 AI 辅助。",

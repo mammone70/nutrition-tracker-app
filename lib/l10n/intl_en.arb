@@ -1710,12 +1710,21 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Ask about macros, meal plans, progress, and sync",
-  "fittyAgentEmptyHint": "Ask Fitty Agent to set macros, plan meals, check today’s diary, or sync with Calorie Tracker. You can also attach a meal photo to update a plan.",
+  "fittyAgentEmptyHint": "Ask Fitty Agent to set macros, plan meals, check today’s diary, or sync with Calorie Tracker. You can also attach meal photos to update a plan.",
   "fittyAgentInputHint": "Message Fitty Agent…",
   "fittyAgentClearChat": "Clear chat",
   "fittyAgentChooseModel": "Chat model",
-  "fittyAgentAttachPhoto": "Attach meal photo",
+  "fittyAgentAttachPhoto": "Attach meal photos",
   "fittyAgentPhotoAttachFailed": "Could not attach that photo. Try another image.",
+  "fittyAgentPhotoLimitReached": "You can attach up to {count} photos.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Those photos are too large together. Remove one or pick smaller images.",
   "fittyAgentModelTitle": "Fitty Chat model",
   "fittyAgentModelBody": "Fitty Chat can use a cheaper model than meal photo analysis. This choice does not change AI Assist.",
   "fittyAgentModelRecommendedLabel": "Recommended for chat",
