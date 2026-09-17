@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/dynamic_ont_logo.dart';
 import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
 import 'package:opennutritracker/core/presentation/widgets/badged_title.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -1473,9 +1474,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       showAboutDialog(
         context: context,
         applicationName: S.of(context).appTitle,
-        applicationIcon: SizedBox(
+        applicationIcon: const SizedBox(
           width: 40,
-          child: Image.asset('assets/icon/fitty_kitties_icon_1024.png'),
+          height: 40,
+          child: DynamicOntLogo(),
         ),
         applicationVersion: packageInfo.version,
         applicationLegalese: S.of(context).appLicenseLabel,

@@ -1367,6 +1367,8 @@
   "mealPlanningLabel": "膳食计划",
   "homePlannedMealsTitle": "今日计划餐食",
   "homeScheduledMacrosLabel": "计划宏量营养素",
+  "homePlannedTotalsLabel": "已计划",
+  "mealTimeShortLabel": "时间",
   "homeConfirmMealLabel": "确认整餐",
   "homeConfirmFoodLabel": "确认食物",
   "homeConfirmAllPlannedLabel": "全部确认",

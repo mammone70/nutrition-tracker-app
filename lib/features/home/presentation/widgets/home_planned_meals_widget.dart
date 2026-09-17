@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_plan/meal_plan_editor_widgets.dart';
+import 'package:opennutritracker/features/meal_plan/meal_plan_macro_summary.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Home-centered view of today's effective meal plan: scheduled macros,
@@ -152,23 +153,30 @@ class HomePlannedMealsWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Dimens.spacing8),
-          if (scheduledMacros.calories > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: Dimens.spacing8),
-              child: Text(
-                '${s.homeScheduledMacrosLabel}: '
-                '${scheduledMacros.calories} kcal · '
-                'P ${scheduledMacros.proteinG.round()} · '
-                'F ${scheduledMacros.fatG.round()} · '
-                'C ${scheduledMacros.carbsG.round()}'
-                '${_hasPlanFoods ? '  ·  '
-                    'Σ ${plannedKcal.round()} / '
-                    'P ${plannedProtein.round()} / '
-                    'F ${plannedFat.round()} / '
-                    'C ${plannedCarbs.round()}' : ''}',
-                style: theme.textTheme.bodyMedium,
-              ),
+          if (scheduledMacros.calories > 0) ...[
+            MealPlanMacroSummary(
+              label: s.homeScheduledMacrosLabel,
+              calories: scheduledMacros.calories,
+              proteinG: scheduledMacros.proteinG,
+              fatG: scheduledMacros.fatG,
+              carbsG: scheduledMacros.carbsG,
             ),
+            if (_hasPlanFoods) ...[
+              const SizedBox(height: Dimens.spacing12),
+              MealPlanMacroSummary(
+                label: s.homePlannedTotalsLabel,
+                calories: plannedKcal,
+                proteinG: plannedProtein,
+                fatG: plannedFat,
+                carbsG: plannedCarbs,
+                targetCalories: scheduledMacros.calories,
+                targetProteinG: scheduledMacros.proteinG,
+                targetFatG: scheduledMacros.fatG,
+                targetCarbsG: scheduledMacros.carbsG,
+              ),
+            ],
+            const SizedBox(height: Dimens.spacing8),
+          ],
           if (!_hasPlanFoods) ...[
             Text(
               s.homePlannedEmptyHint,
@@ -254,13 +262,14 @@ class HomePlannedMealsWidget extends StatelessWidget {
                           title: Text(food.foodName),
                           subtitle: InkWell(
                             onTap: () => _editQuantity(context, meal, food),
-                            child: Text(
-                              '${food.quantity.toStringAsFixed(food.quantity == food.quantity.roundToDouble() ? 0 : 1)}'
-                              ' ${food.unit.isEmpty ? 'g' : food.unit}'
-                              ' · ${food.calories.round()} kcal'
-                              ' · ${s.proteinLabelShort.toUpperCase()} ${food.proteinG.round()}'
-                              ' · ${s.fatLabelShort.toUpperCase()} ${food.fatG.round()}'
-                              ' · ${s.carbsLabelShort.toUpperCase()} ${food.carbsG.round()}',
+                            child: MealPlanFoodMacrosSubtitle(
+                              quantityLabel:
+                                  '${food.quantity.toStringAsFixed(food.quantity == food.quantity.roundToDouble() ? 0 : 1)}'
+                                  ' ${food.unit.isEmpty ? 'g' : food.unit}',
+                              calories: food.calories,
+                              proteinG: food.proteinG,
+                              fatG: food.fatG,
+                              carbsG: food.carbsG,
                             ),
                           ),
                           trailing: Row(

@@ -1366,6 +1366,8 @@
   "mealPlanningLabel": "Планування їжі",
   "homePlannedMealsTitle": "Заплановані страви на сьогодні",
   "homeScheduledMacrosLabel": "Заплановані макроси",
+  "homePlannedTotalsLabel": "Заплановано",
+  "mealTimeShortLabel": "Час",
   "homeConfirmMealLabel": "Підтвердити страву",
   "homeConfirmFoodLabel": "Підтвердити продукт",
   "homeConfirmAllPlannedLabel": "Підтвердити все",
