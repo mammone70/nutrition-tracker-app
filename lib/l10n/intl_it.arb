@@ -1363,7 +1363,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Pianificazione pasti",
+  "homePlannedMealsTitle": "Pasti pianificati di oggi",
+  "homeScheduledMacrosLabel": "Macro programmati",
+  "homeConfirmMealLabel": "Conferma pasto",
+  "homeConfirmFoodLabel": "Conferma alimento",
+  "homeConfirmAllPlannedLabel": "Conferma tutto",
+  "homePlannedEmptyHint": "Nessun alimento pianificato per oggi. Apri il piano di oggi o configura i pasti settimanali.",
+  "homeConfirmedToDiarySnack": "Aggiunti {count} alimenti pianificati al diario",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",

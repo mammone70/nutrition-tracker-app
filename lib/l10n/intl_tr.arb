@@ -1394,7 +1394,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Öğün planlama",
+  "homePlannedMealsTitle": "Bugünün planlanan öğünleri",
+  "homeScheduledMacrosLabel": "Planlanan makrolar",
+  "homeConfirmMealLabel": "Öğünü onayla",
+  "homeConfirmFoodLabel": "Yiyeceği onayla",
+  "homeConfirmAllPlannedLabel": "Tümünü onayla",
+  "homePlannedEmptyHint": "Bugün için henüz planlanmış yiyecek yok. Günün planını açın veya haftalık öğünleri ayarlayın.",
+  "homeConfirmedToDiarySnack": "Günlüğe {count} planlanmış yiyecek eklendi",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",

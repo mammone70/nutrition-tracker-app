@@ -1363,7 +1363,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Планування їжі",
+  "homePlannedMealsTitle": "Заплановані страви на сьогодні",
+  "homeScheduledMacrosLabel": "Заплановані макроси",
+  "homeConfirmMealLabel": "Підтвердити страву",
+  "homeConfirmFoodLabel": "Підтвердити продукт",
+  "homeConfirmAllPlannedLabel": "Підтвердити все",
+  "homePlannedEmptyHint": "На сьогодні ще немає запланованих продуктів. Відкрийте денний план або налаштуйте тижневі страви.",
+  "homeConfirmedToDiarySnack": "Додано {count} запланованих продуктів до щоденника",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",

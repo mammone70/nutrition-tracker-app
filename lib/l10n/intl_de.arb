@@ -1394,7 +1394,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Essensplanung",
+  "homePlannedMealsTitle": "Geplante Mahlzeiten heute",
+  "homeScheduledMacrosLabel": "Geplante Makros",
+  "homeConfirmMealLabel": "Mahlzeit bestätigen",
+  "homeConfirmFoodLabel": "Lebensmittel bestätigen",
+  "homeConfirmAllPlannedLabel": "Alles bestätigen",
+  "homePlannedEmptyHint": "Für heute sind noch keine Lebensmittel geplant. Öffnen Sie den Tagesplan oder richten Sie Ihre Wochenmahlzeiten ein.",
+  "homeConfirmedToDiarySnack": "{count} geplante Lebensmittel zum Tagebuch hinzugefügt",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",

@@ -60,6 +60,15 @@ class HomeLoadedState extends HomeState {
   final int waterMlToday;
   final int waterGoalMl;
   final List<WaterIntakeEntity> waterIntakes;
+  final EffectiveMealPlan mealPlan;
+  final EffectiveMacroTarget scheduledMacros;
+  final double plannedKcal;
+  final double plannedProtein;
+  final double plannedFat;
+  final double plannedCarbs;
+  /// Set after a confirm-to-diary action so the UI can show a snack; null
+  /// on ordinary reloads.
+  final int? confirmedToDiaryCount;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -94,6 +103,13 @@ class HomeLoadedState extends HomeState {
     required this.waterMlToday,
     required this.waterGoalMl,
     required this.waterIntakes,
+    required this.mealPlan,
+    required this.scheduledMacros,
+    required this.plannedKcal,
+    required this.plannedProtein,
+    required this.plannedFat,
+    required this.plannedCarbs,
+    this.confirmedToDiaryCount,
     this.showActivityTracking = true,
     this.showMealMacros = true,
   });
@@ -112,5 +128,12 @@ class HomeLoadedState extends HomeState {
     waterGoalMl,
     waterIntakes,
     showActivityTracking,
+    mealPlan,
+    scheduledMacros,
+    plannedKcal,
+    plannedProtein,
+    plannedFat,
+    plannedCarbs,
+    confirmedToDiaryCount,
   ];
 }

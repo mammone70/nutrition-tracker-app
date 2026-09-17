@@ -1364,7 +1364,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "膳食计划",
+  "homePlannedMealsTitle": "今日计划餐食",
+  "homeScheduledMacrosLabel": "计划宏量营养素",
+  "homeConfirmMealLabel": "确认整餐",
+  "homeConfirmFoodLabel": "确认食物",
+  "homeConfirmAllPlannedLabel": "全部确认",
+  "homePlannedEmptyHint": "今天还没有计划食物。打开今日计划或设置每周餐食。",
+  "homeConfirmedToDiarySnack": "已将 {count} 种计划食物添加到日记",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",

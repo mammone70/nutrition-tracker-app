@@ -1363,7 +1363,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Plánování jídel",
+  "homePlannedMealsTitle": "Dnešní plánovaná jídla",
+  "homeScheduledMacrosLabel": "Naplánované makra",
+  "homeConfirmMealLabel": "Potvrdit jídlo",
+  "homeConfirmFoodLabel": "Potvrdit potravinu",
+  "homeConfirmAllPlannedLabel": "Potvrdit vše",
+  "homePlannedEmptyHint": "Na dnes zatím nejsou naplánované žádné potraviny. Otevřete dnešní plán nebo nastavte týdenní jídelníček.",
+  "homeConfirmedToDiarySnack": "Do deníku přidáno {count} naplánovaných potravin",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",

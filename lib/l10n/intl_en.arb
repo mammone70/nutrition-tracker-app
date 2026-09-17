@@ -1687,6 +1687,20 @@
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
   "mealPlanningLabel": "Meal planning",
+  "homePlannedMealsTitle": "Today's planned meals",
+  "homeScheduledMacrosLabel": "Scheduled macros",
+  "homeConfirmMealLabel": "Confirm meal",
+  "homeConfirmFoodLabel": "Confirm food",
+  "homeConfirmAllPlannedLabel": "Confirm all",
+  "homePlannedEmptyHint": "No foods planned for today yet. Open today's plan or set up your weekly meals.",
+  "homeConfirmedToDiarySnack": "Added {count} planned food(s) to your diary",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",
