@@ -223,4 +223,33 @@ abstract final class AiModelCatalogue {
     }
     return models.isEmpty ? null : models.first;
   }
+
+  /// Default model for Fitty Agent chat (not meal/photo assist).
+  ///
+  /// Prefers cheaper curated rows when the list has them — chat tools do not
+  /// need the photo-quality default that leads meal assist. ownServer has no
+  /// curated list, so this returns null and the caller keeps the assist model.
+  static AiModel? defaultForAgent(AiProvider provider) {
+    final models = forProvider(provider);
+    if (models.isEmpty) return null;
+    for (final model in models) {
+      if (model.note == AiModelNote.cheapest) return model;
+    }
+    for (final model in models) {
+      if (model.note == AiModelNote.cheaper) return model;
+    }
+    return models.first;
+  }
+
+  /// Resolve a Fitty Agent model id, falling back to [defaultForAgent].
+  static AiModel? resolveForAgent(AiProvider provider, String? id) {
+    final models = forProvider(provider);
+    if (models.isEmpty) return null;
+    if (id != null) {
+      for (final model in models) {
+        if (model.id == id) return model;
+      }
+    }
+    return defaultForAgent(provider);
+  }
 }

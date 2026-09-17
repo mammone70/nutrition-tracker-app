@@ -118,7 +118,7 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
 
     throw const MealInterpreterException(
       'agent tool loop exceeded max rounds',
-      failure: MealInterpreterFailure.rejected,
+      failure: MealInterpreterFailure.transient,
     );
   }
 
@@ -152,11 +152,23 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
     } else {
       payload['max_tokens'] = _maxTokens;
     }
+    // GPT-5.6+ rejects tools on Chat Completions unless reasoning effort is
+    // none (or the request uses Responses). OpenAI-served OpenRouter rows are
+    // routed to Responses in the factory; this covers any leftover gpt-5 id
+    // still on this wire format.
+    if (_needsReasoningNoneForTools(model)) {
+      payload['reasoning'] = {'effort': 'none'};
+    }
     if (openRouter) {
+      // Same pin shape as meal assist: `only` + no fallbacks, so the vendor
+      // named beside the model is the one that answers.
       payload['provider'] = {
-        if (openRouterProviders != null) 'order': openRouterProviders,
-        'allow_fallbacks': false,
+        'require_parameters': true,
         'data_collection': 'deny',
+        if (openRouterProviders != null) ...{
+          'only': openRouterProviders,
+          'allow_fallbacks': false,
+        },
       };
     }
 
@@ -181,24 +193,44 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
     }
 
     if (response.statusCode != 200) {
-      _log.warning('Agent call failed with ${response.statusCode}');
+      final detail = _errorMessage(response.body);
+      _log.warning(
+        'Agent call failed with ${response.statusCode}'
+        '${detail == null ? '' : ': $detail'}',
+      );
       throw MealInterpreterException(
-        'provider returned ${response.statusCode}',
-        failure: _failureFor(response.statusCode),
+        detail ?? 'provider returned ${response.statusCode}',
+        failure: _failureFor(response.statusCode, detail),
         statusCode: response.statusCode,
       );
     }
     return response.body;
   }
 
-  static MealInterpreterFailure _failureFor(int statusCode) =>
-      switch (statusCode) {
-        401 || 403 => MealInterpreterFailure.auth,
-        400 || 422 => MealInterpreterFailure.rejected,
-        402 => MealInterpreterFailure.billing,
-        404 => MealInterpreterFailure.unsupported,
-        _ => MealInterpreterFailure.transient,
-      };
+  static String? _errorMessage(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['error'] is Map) {
+        final message = (decoded['error'] as Map)['message'];
+        if (message is String && message.trim().isNotEmpty) return message;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static MealInterpreterFailure _failureFor(int statusCode, String? detail) {
+    final message = (detail ?? '').toLowerCase();
+    if (message.contains('reasoning') && message.contains('tool')) {
+      return MealInterpreterFailure.unsupported;
+    }
+    return switch (statusCode) {
+      401 || 403 => MealInterpreterFailure.auth,
+      400 || 422 => MealInterpreterFailure.rejected,
+      402 => MealInterpreterFailure.billing,
+      404 => MealInterpreterFailure.unsupported,
+      _ => MealInterpreterFailure.transient,
+    };
+  }
 
   /// GPT-5 and o-series on Chat Completions want `max_completion_tokens`.
   static bool _usesMaxCompletionTokens(String model) {
@@ -210,6 +242,11 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
         id.contains('/o1') ||
         id.contains('/o3') ||
         id.contains('/o4');
+  }
+
+  static bool _needsReasoningNoneForTools(String model) {
+    final id = model.toLowerCase();
+    return id.contains('gpt-5');
   }
 
   List<Map<String, dynamic>> _toChatMessages(List<AgentMessage> messages) {

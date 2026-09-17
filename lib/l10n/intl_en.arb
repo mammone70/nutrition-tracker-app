@@ -1699,11 +1699,17 @@
   "fittyAgentEmptyHint": "Ask Fitty Agent to set macros, plan meals, check today’s diary, or sync with Calorie Tracker.",
   "fittyAgentInputHint": "Message Fitty Agent…",
   "fittyAgentClearChat": "Clear chat",
-  "fittyAgentSetupBody": "Fitty Agent uses the same LLM as AI meal assistance, and may send diary, meal-plan, and profile summaries to that provider so it can answer and make changes.",
+  "fittyAgentChooseModel": "Chat model",
+  "fittyAgentModelTitle": "Fitty Chat model",
+  "fittyAgentModelBody": "Fitty Chat can use a cheaper model than meal photo analysis. This choice does not change AI Assist.",
+  "fittyAgentModelRecommendedLabel": "Recommended for chat",
+  "fittyAgentModelNeedsAiAssist": "Configure AI Assist first so Fitty Chat knows which provider to use.",
+  "fittyAgentModelUsesAssist": "Your server has no curated chat list, so Fitty Chat uses the model configured in AI Assist.",
+  "fittyAgentSetupBody": "Fitty Agent uses the same AI provider as meal assistance, but you can pick a cheaper chat model. It may send diary, meal-plan, and profile summaries to that provider so it can answer and make changes.",
   "fittyAgentConfigureAi": "Configure AI Assist",
   "fittyAgentReviewConsent": "Review and agree",
   "fittyAgentConsentTitle": "Fitty Agent agreement",
-  "fittyAgentConsentBody": "Fitty Agent will use your configured {provider} model. Unlike AI meal assistance, it may send summaries of your diary, meal plans, macros, weight log, and profile goals so the model can answer and update them. Changes are saved on this device first and synced through Calorie Tracker when sync is on. Fitty Kitties never sees your API key.",
+  "fittyAgentConsentBody": "Fitty Agent will use your {provider} credentials. You can choose a separate, often cheaper model for chat without changing meal photo analysis. Unlike AI meal assistance, it may send summaries of your diary, meal plans, macros, weight log, and profile goals so the model can answer and update them. Changes are saved on this device first and synced through Calorie Tracker when sync is on. Fitty Kitties never sees your API key.",
   "@fittyAgentConsentBody": {
     "placeholders": {
       "provider": {

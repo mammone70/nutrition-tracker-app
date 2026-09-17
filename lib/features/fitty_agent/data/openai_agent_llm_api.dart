@@ -8,29 +8,59 @@ import 'package:opennutritracker/features/fitty_agent/domain/agent_llm_api.dart'
 import 'package:opennutritracker/features/fitty_agent/domain/agent_message.dart';
 import 'package:opennutritracker/features/fitty_agent/domain/agent_tool.dart';
 
-/// OpenAI Responses API multi-turn tool loop for Fitty Agent.
+/// Responses API multi-turn tool loop for Fitty Agent (OpenAI direct or
+/// OpenRouter's OpenAI-compatible `/api/v1/responses`).
 ///
 /// Meal assist uses Responses rather than Chat Completions because from
 /// GPT-5.4 tool calling is unsupported on Chat Completions with
-/// `reasoning: none` (#681). The agent must use the same wire format or
-/// OpenAI-configured installs fail every turn.
+/// `reasoning: none` (#681). GPT-5.6 tightened the other direction: tools
+/// with a non-`none` reasoning effort also 400 on Chat Completions. The agent
+/// must use Responses for OpenAI-served models — including OpenRouter's
+/// `openai/*` rows — or those installs fail every tool turn.
 class OpenAiAgentLlmApi implements AgentLlmApi {
   static final _log = Logger('OpenAiAgentLlmApi');
-  static const _endpoint = 'https://api.openai.com/v1/responses';
+  static final openAiEndpoint = Uri.parse(
+    'https://api.openai.com/v1/responses',
+  );
+  static final openRouterEndpoint = Uri.parse(
+    'https://openrouter.ai/api/v1/responses',
+  );
   static const _maxOutputTokens = 4096;
   static const defaultTimeout = Duration(seconds: 120);
 
   final http.Client _client;
   final String Function() _apiKey;
+  final Uri endpoint;
   final String model;
   final Duration timeout;
+  final List<String>? openRouterProviders;
+  final bool openRouter;
 
   OpenAiAgentLlmApi(
     this._client,
     this._apiKey, {
     required this.model,
+    Uri? endpoint,
     this.timeout = defaultTimeout,
-  });
+    this.openRouterProviders,
+    this.openRouter = false,
+  }) : endpoint = endpoint ?? openAiEndpoint;
+
+  factory OpenAiAgentLlmApi.openRouter(
+    http.Client client,
+    String Function() apiKey, {
+    required String model,
+    List<String>? providers,
+    Duration timeout = defaultTimeout,
+  }) => OpenAiAgentLlmApi(
+    client,
+    apiKey,
+    model: model,
+    endpoint: openRouterEndpoint,
+    timeout: timeout,
+    openRouter: true,
+    openRouterProviders: providers,
+  );
 
   @override
   Future<AgentTurnResult> runTurn({
@@ -92,7 +122,7 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
 
     throw const MealInterpreterException(
       'agent tool loop exceeded max rounds',
-      failure: MealInterpreterFailure.rejected,
+      failure: MealInterpreterFailure.transient,
     );
   }
 
@@ -162,16 +192,26 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
       if (previousResponseId != null)
         'previous_response_id': previousResponseId,
       if (input != null) 'input': input,
+      if (openRouter)
+        'provider': {
+          'require_parameters': true,
+          'data_collection': 'deny',
+          if (openRouterProviders != null) ...{
+            'only': openRouterProviders,
+            'allow_fallbacks': false,
+          },
+        },
     };
 
     final http.Response response;
     try {
       response = await _client
           .post(
-            Uri.parse(_endpoint),
+            endpoint,
             headers: {
               'content-type': 'application/json',
               'authorization': 'Bearer ${_apiKey()}',
+              if (openRouter) 'x-openrouter-metadata': 'enabled',
             },
             body: jsonEncode(payload),
           )
@@ -186,10 +226,14 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
     }
 
     if (response.statusCode != 200) {
-      _log.warning('Agent call failed with ${response.statusCode}');
+      final fields = _errorFields(response.body);
+      _log.warning(
+        'Agent call failed with ${response.statusCode}'
+        '${fields.message == null ? '' : ': ${fields.message}'}',
+      );
       throw MealInterpreterException(
-        'provider returned ${response.statusCode}',
-        failure: _failureFor(response.statusCode, _errorFields(response.body)),
+        fields.message ?? 'provider returned ${response.statusCode}',
+        failure: _failureFor(response.statusCode, fields),
         statusCode: response.statusCode,
       );
     }
@@ -252,7 +296,9 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
     );
   }
 
-  static ({String? code, String? type}) _errorFields(String body) {
+  static ({String? code, String? type, String? message}) _errorFields(
+    String body,
+  ) {
     try {
       final decoded = jsonDecode(body);
       if (decoded is Map && decoded['error'] is Map) {
@@ -260,26 +306,35 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
         return (
           code: error['code'] is String ? error['code'] as String : null,
           type: error['type'] is String ? error['type'] as String : null,
+          message: error['message'] is String
+              ? error['message'] as String
+              : null,
         );
       }
     } catch (_) {}
-    return (code: null, type: null);
+    return (code: null, type: null, message: null);
   }
 
   static const _quotaCode = 'insufficient_quota';
 
   static MealInterpreterFailure _failureFor(
     int statusCode,
-    ({String? code, String? type}) error,
-  ) => switch (statusCode) {
-    401 || 403 => MealInterpreterFailure.auth,
-    400 when error.code == 'model_not_found' =>
-      MealInterpreterFailure.unsupported,
-    400 || 422 => MealInterpreterFailure.rejected,
-    402 => MealInterpreterFailure.billing,
-    429 when error.code == _quotaCode || error.type == _quotaCode =>
-      MealInterpreterFailure.billing,
-    404 => MealInterpreterFailure.unsupported,
-    _ => MealInterpreterFailure.transient,
-  };
+    ({String? code, String? type, String? message}) error,
+  ) {
+    final message = (error.message ?? '').toLowerCase();
+    if (message.contains('reasoning') && message.contains('tool')) {
+      return MealInterpreterFailure.unsupported;
+    }
+    return switch (statusCode) {
+      401 || 403 => MealInterpreterFailure.auth,
+      400 when error.code == 'model_not_found' =>
+        MealInterpreterFailure.unsupported,
+      400 || 422 => MealInterpreterFailure.rejected,
+      402 => MealInterpreterFailure.billing,
+      429 when error.code == _quotaCode || error.type == _quotaCode =>
+        MealInterpreterFailure.billing,
+      404 => MealInterpreterFailure.unsupported,
+      _ => MealInterpreterFailure.transient,
+    };
+  }
 }

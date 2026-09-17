@@ -74,7 +74,7 @@ class AnthropicAgentLlmApi implements AgentLlmApi {
 
     throw const MealInterpreterException(
       'agent tool loop exceeded max rounds',
-      failure: MealInterpreterFailure.rejected,
+      failure: MealInterpreterFailure.transient,
     );
   }
 
