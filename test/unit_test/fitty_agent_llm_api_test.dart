@@ -185,6 +185,13 @@ void main() {
               'id': 'resp_1',
               'output': [
                 {
+                  'type': 'reasoning',
+                  'id': 'rs_1',
+                  'summary': [
+                    {'type': 'summary_text', 'text': 'checking sync'},
+                  ],
+                },
+                {
                   'type': 'function_call',
                   'call_id': 'call_1',
                   'name': 'get_sync_status',
@@ -195,7 +202,28 @@ void main() {
             200,
           );
         }
-        expect(body['previous_response_id'], 'resp_1');
+        // store:false — no previous_response_id; full transcript is resent.
+        expect(body.containsKey('previous_response_id'), isFalse);
+        final input = body['input'] as List;
+        expect(input.any((e) => e is Map && e['type'] == 'reasoning'), isTrue);
+        expect(
+          input.any(
+            (e) =>
+                e is Map &&
+                e['type'] == 'function_call' &&
+                e['call_id'] == 'call_1',
+          ),
+          isTrue,
+        );
+        expect(
+          input.any(
+            (e) =>
+                e is Map &&
+                e['type'] == 'function_call_output' &&
+                e['call_id'] == 'call_1',
+          ),
+          isTrue,
+        );
         return http.Response(
           jsonEncode({
             'id': 'resp_2',
