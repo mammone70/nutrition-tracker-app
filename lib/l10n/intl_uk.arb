@@ -1363,7 +1363,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Планування їжі",
+  "homePlannedMealsTitle": "Заплановані страви на сьогодні",
+  "homeScheduledMacrosLabel": "Заплановані макроси",
+  "homeConfirmMealLabel": "Підтвердити страву",
+  "homeConfirmFoodLabel": "Підтвердити продукт",
+  "homeConfirmAllPlannedLabel": "Підтвердити все",
+  "homePlannedEmptyHint": "На сьогодні ще немає запланованих продуктів. Відкрийте денний план або налаштуйте тижневі страви.",
+  "homeConfirmedToDiarySnack": "Додано {count} запланованих продуктів до щоденника",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",
@@ -1376,17 +1390,19 @@
   "fittyAgentEmptyHint": "Попросіть Fitty Agent встановити макроси, спланувати страви, перевірити сьогоднішній щоденник або синхронізувати з Calorie Tracker.",
   "fittyAgentInputHint": "Повідомлення Fitty Agent…",
   "fittyAgentClearChat": "Очистити чат",
+  "fittyAgentAttachPhoto": "Додати фото страви",
+  "fittyAgentPhotoAttachFailed": "Не вдалося додати фото. Спробуйте інше зображення.",
   "fittyAgentChooseModel": "Модель чату",
   "fittyAgentModelTitle": "Модель Fitty Chat",
   "fittyAgentModelBody": "Fitty Chat може використовувати дешевшу модель, ніж аналіз фото їжі. Цей вибір не змінює AI Assist.",
   "fittyAgentModelRecommendedLabel": "Рекомендовано для чату",
   "fittyAgentModelNeedsAiAssist": "Спочатку налаштуйте AI Assist, щоб Fitty Chat знав, якого провайдера використовувати.",
   "fittyAgentModelUsesAssist": "Ваш сервер не має кураторського списку для чату, тому Fitty Chat використовує модель, налаштовану в AI Assist.",
-  "fittyAgentSetupBody": "Fitty Agent використовує того самого AI-провайдера, що й допомога з їжею, але ви можете обрати дешевшу модель чату. Він може надсилати підсумки щоденника, планів і профілю цьому провайдеру, щоб відповідати й вносити зміни.",
+  "fittyAgentSetupBody": "Fitty Agent використовує того самого AI-провайдера, що й допомога з їжею, але ви можете обрати дешевшу модель чату. Він може надсилати підсумки щоденника, планів і профілю — а також фото страв, які ви додаєте — цьому провайдеру, щоб відповідати й вносити зміни.",
   "fittyAgentConfigureAi": "Налаштувати AI Assist",
   "fittyAgentReviewConsent": "Переглянути й погодитися",
   "fittyAgentConsentTitle": "Угода Fitty Agent",
-  "fittyAgentConsentBody": "Fitty Agent використовуватиме ваші облікові дані {provider}. Для чату можна обрати окрему, часто дешевшу модель, не змінюючи аналіз фото їжі. На відміну від AI-допомоги з їжею, він може надсилати підсумки щоденника, планів, макросів, ваги й цілей профілю, щоб модель могла відповідати й оновлювати їх. Зміни спочатку зберігаються на цьому пристрої й синхронізуються через Calorie Tracker, коли sync увімкнено. Fitty Kitties ніколи не бачить ваш API-ключ.",
+  "fittyAgentConsentBody": "Fitty Agent використовуватиме ваші облікові дані {provider}. Для чату можна обрати окрему, часто дешевшу модель, не змінюючи аналіз фото їжі. На відміну від AI-допомоги з їжею, він може надсилати підсумки щоденника, планів, макросів, ваги й цілей профілю, щоб модель могла відповідати й оновлювати їх. Фото страв, додані в чаті, також надсилаються цьому провайдеру. Зміни спочатку зберігаються на цьому пристрої й синхронізуються через Calorie Tracker, коли sync увімкнено. Fitty Kitties ніколи не бачить ваш API-ключ.",
   "fittyAgentConsentAgree": "Погоджуюся",
   "fittyAgentConsentDecline": "Не зараз"
 }

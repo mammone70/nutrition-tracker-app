@@ -1394,7 +1394,21 @@
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",
-  "mealPlanningLabel": "Meal planning",
+  "mealPlanningLabel": "Öğün planlama",
+  "homePlannedMealsTitle": "Bugünün planlanan öğünleri",
+  "homeScheduledMacrosLabel": "Planlanan makrolar",
+  "homeConfirmMealLabel": "Öğünü onayla",
+  "homeConfirmFoodLabel": "Yiyeceği onayla",
+  "homeConfirmAllPlannedLabel": "Tümünü onayla",
+  "homePlannedEmptyHint": "Bugün için henüz planlanmış yiyecek yok. Günün planını açın veya haftalık öğünleri ayarlayın.",
+  "homeConfirmedToDiarySnack": "Günlüğe {count} planlanmış yiyecek eklendi",
+  "@homeConfirmedToDiarySnack": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMonday": "Monday",
   "weekdayTuesday": "Tuesday",
   "weekdayWednesday": "Wednesday",
@@ -1407,17 +1421,19 @@
   "fittyAgentEmptyHint": "Fitty Agent’tan makro ayarlamasını, yemek planlamasını, bugünkü günlüğü kontrol etmesini veya Calorie Tracker ile senkronize etmesini isteyin.",
   "fittyAgentInputHint": "Fitty Agent’a mesaj…",
   "fittyAgentClearChat": "Sohbeti temizle",
+  "fittyAgentAttachPhoto": "Yemek fotoğrafı ekle",
+  "fittyAgentPhotoAttachFailed": "Fotoğraf eklenemedi. Başka bir görsel deneyin.",
   "fittyAgentChooseModel": "Sohbet modeli",
   "fittyAgentModelTitle": "Fitty Chat modeli",
   "fittyAgentModelBody": "Fitty Chat, yemek fotoğrafı analizinden daha ucuz bir model kullanabilir. Bu seçim AI Assist’i değiştirmez.",
   "fittyAgentModelRecommendedLabel": "Sohbet için önerilen",
   "fittyAgentModelNeedsAiAssist": "Fitty Chat’in hangi sağlayıcıyı kullanacağını bilmesi için önce AI Assist’i yapılandırın.",
   "fittyAgentModelUsesAssist": "Sunucunuzun küratörlü bir sohbet listesi yok, bu yüzden Fitty Chat AI Assist’te yapılandırılan modeli kullanır.",
-  "fittyAgentSetupBody": "Fitty Agent, yemek yardımındaki aynı AI sağlayıcısını kullanır; ancak daha ucuz bir sohbet modeli seçebilirsiniz. Yanıt vermek ve değişiklik yapmak için günlük, yemek planı ve profil özetlerini o sağlayıcıya gönderebilir.",
+  "fittyAgentSetupBody": "Fitty Agent, yemek yardımındaki aynı AI sağlayıcısını kullanır; ancak daha ucuz bir sohbet modeli seçebilirsiniz. Yanıt vermek ve değişiklik yapmak için günlük, yemek planı ve profil özetlerini — ve eklediğiniz yemek fotoğraflarını — o sağlayıcıya gönderebilir.",
   "fittyAgentConfigureAi": "AI Assist’i yapılandır",
   "fittyAgentReviewConsent": "İncele ve kabul et",
   "fittyAgentConsentTitle": "Fitty Agent onayı",
-  "fittyAgentConsentBody": "Fitty Agent, {provider} kimlik bilgilerinizi kullanacak. Yemek fotoğrafı analizini değiştirmeden sohbet için ayrı, genellikle daha ucuz bir model seçebilirsiniz. AI yemek yardımından farklı olarak günlük, yemek planı, makro, kilo ve profil hedeflerinin özetlerini göndererek modelin yanıt vermesini ve güncellemesini sağlayabilir. Değişiklikler önce bu cihazda kaydedilir; sync açıksa Calorie Tracker üzerinden senkronize edilir. Fitty Kitties API anahtarınızı asla görmez.",
+  "fittyAgentConsentBody": "Fitty Agent, {provider} kimlik bilgilerinizi kullanacak. Yemek fotoğrafı analizini değiştirmeden sohbet için ayrı, genellikle daha ucuz bir model seçebilirsiniz. AI yemek yardımından farklı olarak günlük, yemek planı, makro, kilo ve profil hedeflerinin özetlerini göndererek modelin yanıt vermesini ve güncellemesini sağlayabilir. Sohbette eklediğiniz yemek fotoğrafları da o sağlayıcıya gönderilir. Değişiklikler önce bu cihazda kaydedilir; sync açıksa Calorie Tracker üzerinden senkronize edilir. Fitty Kitties API anahtarınızı asla görmez.",
   "fittyAgentConsentAgree": "Kabul ediyorum",
   "fittyAgentConsentDecline": "Şimdi değil"
 }

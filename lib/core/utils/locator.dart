@@ -77,6 +77,7 @@ import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/weekly_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/daily_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/weekly_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/confirm_meal_plan_to_diary_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/day_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_effective_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_effective_meal_plan_usecase.dart';
@@ -265,6 +266,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator<GetEffectiveMealPlanUsecase>(),
+      locator<GetEffectiveMacroTargetUsecase>(),
+      locator<ConfirmMealPlanToDiaryUsecase>(),
+      locator<SaveDayMealsUsecase>(),
+      locator<MaterializeWeeklyToDayUsecase>(),
+      locator<GetDayMealsUsecase>(),
     ),
   );
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
@@ -547,6 +554,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<ResetDayToWeeklyUsecase>(
     () => ResetDayToWeeklyUsecase(locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<ConfirmMealPlanToDiaryUsecase>(
+    () => ConfirmMealPlanToDiaryUsecase(locator(), locator()),
   );
 
   locator.registerLazySingleton<AddWaterIntakeUsecase>(

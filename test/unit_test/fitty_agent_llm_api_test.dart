@@ -68,6 +68,54 @@ void main() {
       expect(result.reply, 'Sync is configured.');
       expect(calls, 2);
     });
+
+    test('serializes user message image as base64 content block before text', () async {
+      http.Request? seen;
+      final client = MockClient((request) async {
+        seen = request;
+        return http.Response(
+          jsonEncode({
+            'content': [
+              {'type': 'text', 'text': 'Plan updated.'},
+            ],
+          }),
+          200,
+        );
+      });
+
+      final api = AnthropicAgentLlmApi(
+        client,
+        () => 'sk-test',
+        model: 'claude-haiku-4-5',
+      );
+      const bytes = [9, 8, 7];
+      await api.runTurn(
+        system: 'sys',
+        history: [
+          AgentUserMessage(
+            'Update dinner',
+            imageBytes: bytes,
+            imageMediaType: 'image/webp',
+          ),
+        ],
+        tools: tools,
+        executeTool: (_) async => '{}',
+      );
+
+      final body = jsonDecode(seen!.body) as Map<String, dynamic>;
+      final messages = body['messages'] as List;
+      final content = (messages.first as Map)['content'] as List;
+      expect(content, hasLength(2));
+      expect(content[0], {
+        'type': 'image',
+        'source': {
+          'type': 'base64',
+          'media_type': 'image/webp',
+          'data': base64Encode(bytes),
+        },
+      });
+      expect(content[1], {'type': 'text', 'text': 'Update dinner'});
+    });
   });
 
   group('OpenAiCompatibleAgentLlmApi', () {
@@ -254,6 +302,60 @@ void main() {
 
       expect(result.reply, 'Sync is configured.');
       expect(calls, 2);
+    });
+
+    test('serializes user message image as input_image data URL', () async {
+      http.Request? seen;
+      final client = MockClient((request) async {
+        seen = request;
+        return http.Response(
+          jsonEncode({
+            'id': 'resp_1',
+            'output': [
+              {
+                'type': 'message',
+                'content': [
+                  {'type': 'output_text', 'text': 'Updated breakfast.'},
+                ],
+              },
+            ],
+          }),
+          200,
+        );
+      });
+
+      final api = OpenAiAgentLlmApi(
+        client,
+        () => 'sk-test',
+        model: 'gpt-5.6-terra',
+      );
+      const bytes = [1, 2, 3, 4];
+      await api.runTurn(
+        system: 'sys',
+        history: [
+          AgentUserMessage(
+            'Add this to my meal plan',
+            imageBytes: bytes,
+            imageMediaType: 'image/webp',
+          ),
+        ],
+        tools: tools,
+        executeTool: (_) async => '{}',
+      );
+
+      final body = jsonDecode(seen!.body) as Map<String, dynamic>;
+      final input = body['input'] as List;
+      expect(input, hasLength(1));
+      final content = (input.first as Map)['content'] as List;
+      expect(content, hasLength(2));
+      expect(content[0], {
+        'type': 'input_image',
+        'image_url': 'data:image/webp;base64,${base64Encode(bytes)}',
+      });
+      expect(content[1], {
+        'type': 'input_text',
+        'text': 'Add this to my meal plan',
+      });
     });
 
     test(

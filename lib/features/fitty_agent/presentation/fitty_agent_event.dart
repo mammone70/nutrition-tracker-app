@@ -17,11 +17,17 @@ class FittyAgentConsentAccepted extends FittyAgentEvent {
 
 class FittyAgentMessageSubmitted extends FittyAgentEvent {
   final String text;
+  final List<int>? imageBytes;
+  final String? imageMediaType;
 
-  const FittyAgentMessageSubmitted(this.text);
+  const FittyAgentMessageSubmitted(
+    this.text, {
+    this.imageBytes,
+    this.imageMediaType,
+  });
 
   @override
-  List<Object?> get props => [text];
+  List<Object?> get props => [text, imageBytes, imageMediaType];
 }
 
 class FittyAgentCleared extends FittyAgentEvent {

@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/low_kcal_warning_card.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -26,10 +24,10 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/home_planned_meals_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
-import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -67,8 +65,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
+    return BlocConsumer<HomeBloc, HomeState>(
       bloc: _homeBloc,
+      listenWhen: (previous, current) =>
+          previous is HomeLoadingState &&
+          current is HomeLoadedState &&
+          current.confirmedToDiaryCount != null,
+      listener: (context, state) {
+        if (state is! HomeLoadedState) return;
+        final count = state.confirmedToDiaryCount;
+        if (count == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).homeConfirmedToDiarySnack(count)),
+          ),
+        );
+      },
       builder: (context, state) {
         if (state is HomeInitial) {
           _homeBloc.add(const LoadItemsEvent());
@@ -76,42 +88,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         } else if (state is HomeLoadingState) {
           return _getLoadingContent();
         } else if (state is HomeLoadedState) {
-          return _getLoadedContent(
-            context,
-            state.showDisclaimerDialog,
-            state.totalKcalDaily,
-            state.userGender,
-            state.userCaloriesProfile,
-            state.totalKcalLeft,
-            state.totalKcalSupplied,
-            state.totalKcalBurned,
-            state.totalCarbsIntake,
-            state.totalFatsIntake,
-            state.totalProteinsIntake,
-            state.totalCarbsGoal,
-            state.totalFatsGoal,
-            state.totalProteinsGoal,
-            state.breakfastIntakeList,
-            state.lunchIntakeList,
-            state.dinnerIntakeList,
-            state.snackIntakeList,
-            state.userActivityList,
-            state.usesImperialUnits,
-            state.bodyWeightUnit,
-            state.showActivityTracking,
-            state.showMealMacros,
-            state.userWeightKg,
-            state.breakfastKcalTarget,
-            state.lunchKcalTarget,
-            state.dinnerKcalTarget,
-            state.snackKcalTarget,
-            state.breakfastSharePct,
-            state.lunchSharePct,
-            state.dinnerSharePct,
-            state.snackSharePct,
-            state.waterMlToday,
-            state.waterGoalMl,
-          );
+          return _getLoadedContent(context, state);
         } else {
           return _getLoadingContent();
         }
@@ -133,42 +110,41 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return const Center(child: CircularProgressIndicator());
   }
 
-  Widget _getLoadedContent(
-    BuildContext context,
-    bool showDisclaimerDialog,
-    double totalKcalDaily,
-    UserGenderEntity userGender,
-    CaloriesProfileEntity? userCaloriesProfile,
-    double totalKcalLeft,
-    double totalKcalSupplied,
-    double totalKcalBurned,
-    double totalCarbsIntake,
-    double totalFatsIntake,
-    double totalProteinsIntake,
-    double totalCarbsGoal,
-    double totalFatsGoal,
-    double totalProteinsGoal,
-    List<IntakeEntity> breakfastIntakeList,
-    List<IntakeEntity> lunchIntakeList,
-    List<IntakeEntity> dinnerIntakeList,
-    List<IntakeEntity> snackIntakeList,
-    List<UserActivityEntity> userActivities,
-    bool usesImperialUnits,
-    BodyWeightUnit bodyWeightUnit,
-    bool showActivityTracking,
-    bool showMealMacros,
-    double userWeightKg,
-    double breakfastKcalTarget,
-    double lunchKcalTarget,
-    double dinnerKcalTarget,
-    double snackKcalTarget,
-    int breakfastSharePct,
-    int lunchSharePct,
-    int dinnerSharePct,
-    int snackSharePct,
-    int waterMlToday,
-    int waterGoalMl,
-  ) {
+  Widget _getLoadedContent(BuildContext context, HomeLoadedState state) {
+    final showDisclaimerDialog = state.showDisclaimerDialog;
+    final totalKcalDaily = state.totalKcalDaily;
+    final userGender = state.userGender;
+    final userCaloriesProfile = state.userCaloriesProfile;
+    final totalKcalLeft = state.totalKcalLeft;
+    final totalKcalSupplied = state.totalKcalSupplied;
+    final totalKcalBurned = state.totalKcalBurned;
+    final totalCarbsIntake = state.totalCarbsIntake;
+    final totalFatsIntake = state.totalFatsIntake;
+    final totalProteinsIntake = state.totalProteinsIntake;
+    final totalCarbsGoal = state.totalCarbsGoal;
+    final totalFatsGoal = state.totalFatsGoal;
+    final totalProteinsGoal = state.totalProteinsGoal;
+    final breakfastIntakeList = state.breakfastIntakeList;
+    final lunchIntakeList = state.lunchIntakeList;
+    final dinnerIntakeList = state.dinnerIntakeList;
+    final snackIntakeList = state.snackIntakeList;
+    final userActivities = state.userActivityList;
+    final usesImperialUnits = state.usesImperialUnits;
+    final bodyWeightUnit = state.bodyWeightUnit;
+    final showActivityTracking = state.showActivityTracking;
+    final showMealMacros = state.showMealMacros;
+    final userWeightKg = state.userWeightKg;
+    final breakfastKcalTarget = state.breakfastKcalTarget;
+    final lunchKcalTarget = state.lunchKcalTarget;
+    final dinnerKcalTarget = state.dinnerKcalTarget;
+    final snackKcalTarget = state.snackKcalTarget;
+    final breakfastSharePct = state.breakfastSharePct;
+    final lunchSharePct = state.lunchSharePct;
+    final dinnerSharePct = state.dinnerSharePct;
+    final snackSharePct = state.snackSharePct;
+    final waterMlToday = state.waterMlToday;
+    final waterGoalMl = state.waterGoalMl;
+
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
@@ -228,56 +204,53 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
             ),
+            HomePlannedMealsWidget(
+              homeBloc: _homeBloc,
+              mealPlan: state.mealPlan,
+              scheduledMacros: state.scheduledMacros,
+              plannedKcal: state.plannedKcal,
+              plannedProtein: state.plannedProtein,
+              plannedFat: state.plannedFat,
+              plannedCarbs: state.plannedCarbs,
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 Dimens.spacing16,
-                Dimens.spacing12,
+                Dimens.spacing4,
                 Dimens.spacing16,
                 Dimens.spacing4,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Wrap(
+                spacing: Dimens.spacing8,
+                runSpacing: Dimens.spacing8,
                 children: [
-                  Text(
-                    S.of(context).mealPlanningLabel,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.calendar_view_week_rounded,
+                      size: 18,
                     ),
+                    label: Text(S.of(context).settingsWeeklyTargetsLabel),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed(NavigationOptions.weeklyMacroTargetsRoute),
                   ),
-                  const SizedBox(height: Dimens.spacing8),
-                  Wrap(
-                    spacing: Dimens.spacing8,
-                    runSpacing: Dimens.spacing8,
-                    children: [
-                      ActionChip(
-                        avatar: const Icon(
-                          Icons.calendar_view_week_rounded,
-                          size: 18,
-                        ),
-                        label: Text(S.of(context).settingsWeeklyTargetsLabel),
-                        onPressed: () => Navigator.of(
-                          context,
-                        ).pushNamed(NavigationOptions.weeklyMacroTargetsRoute),
-                      ),
-                      ActionChip(
-                        avatar: const Icon(Icons.restaurant_rounded, size: 18),
-                        label: Text(S.of(context).settingsWeeklyMealPlansLabel),
-                        onPressed: () => Navigator.of(
-                          context,
-                        ).pushNamed(NavigationOptions.weeklyMealPlansRoute),
-                      ),
-                      ActionChip(
-                        avatar: const Icon(
-                          Icons.restaurant_menu_outlined,
-                          size: 18,
-                        ),
-                        label: Text(S.of(context).dayMealPlanTitle),
-                        onPressed: () => Navigator.of(context).pushNamed(
-                          NavigationOptions.dayMealPlanRoute,
-                          arguments: DateTime.now(),
-                        ),
-                      ),
-                    ],
+                  ActionChip(
+                    avatar: const Icon(Icons.restaurant_rounded, size: 18),
+                    label: Text(S.of(context).settingsWeeklyMealPlansLabel),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed(NavigationOptions.weeklyMealPlansRoute),
+                  ),
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.restaurant_menu_outlined,
+                      size: 18,
+                    ),
+                    label: Text(S.of(context).dayMealPlanTitle),
+                    onPressed: () => Navigator.of(context).pushNamed(
+                      NavigationOptions.dayMealPlanRoute,
+                      arguments: _homeBloc.currentDay,
+                    ),
                   ),
                 ],
               ),

@@ -55,12 +55,16 @@ class AgentChatBubble extends Equatable {
   final String text;
   final bool isToolActivity;
 
+  /// Optional thumbnail for a user message that included a meal photo.
+  final List<int>? imageBytes;
+
   const AgentChatBubble({
     required this.fromUser,
     required this.text,
     this.isToolActivity = false,
+    this.imageBytes,
   });
 
   @override
-  List<Object?> get props => [fromUser, text, isToolActivity];
+  List<Object?> get props => [fromUser, text, isToolActivity, imageBytes];
 }

@@ -4,37 +4,50 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
+import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_water_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/confirm_meal_plan_to_diary_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/day_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_effective_macro_target_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_effective_meal_plan_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/materialize_meal_plan_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/meal_plan_utils.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 part 'home_event.dart';
 
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  static const _uuid = Uuid();
+
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
   final GetIntakeUsecase _getIntakeUsecase;
@@ -50,6 +63,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
   final AddWaterIntakeUsecase _addWaterIntakeUsecase;
   final DeleteWaterIntakeUsecase _deleteWaterIntakeUsecase;
+  final GetEffectiveMealPlanUsecase _getEffectiveMealPlanUsecase;
+  final GetEffectiveMacroTargetUsecase _getEffectiveMacroTargetUsecase;
+  final ConfirmMealPlanToDiaryUsecase _confirmMealPlanToDiaryUsecase;
+  final SaveDayMealsUsecase _saveDayMealsUsecase;
+  final MaterializeWeeklyToDayUsecase _materializeWeeklyToDayUsecase;
+  final GetDayMealsUsecase _getDayMealsUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -69,6 +88,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._getWaterIntakeUsecase,
     this._addWaterIntakeUsecase,
     this._deleteWaterIntakeUsecase,
+    this._getEffectiveMealPlanUsecase,
+    this._getEffectiveMacroTargetUsecase,
+    this._confirmMealPlanToDiaryUsecase,
+    this._saveDayMealsUsecase,
+    this._materializeWeeklyToDayUsecase,
+    this._getDayMealsUsecase,
   ) : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -164,17 +189,53 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           .fold<int>(0, (sum, ml) => sum + ml);
 
       final user = await _getUserUsecase.getUserData();
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-        userEntity: user,
+      final planDate = currentDay.toParsedDay();
+      final mealPlan = await _getEffectiveMealPlanUsecase.execute(planDate);
+      final scheduledMacros = await _getEffectiveMacroTargetUsecase.execute(
+        planDate,
       );
-      final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
-        totalKcalGoal,
+
+      double totalKcalGoal;
+      double totalCarbsGoal;
+      double totalFatsGoal;
+      double totalProteinsGoal;
+      if (scheduledMacros.calories > 0) {
+        totalKcalGoal = scheduledMacros.calories.toDouble();
+        totalCarbsGoal = scheduledMacros.carbsG;
+        totalFatsGoal = scheduledMacros.fatG;
+        totalProteinsGoal = scheduledMacros.proteinG;
+      } else {
+        totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+          userEntity: user,
+        );
+        totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+          totalKcalGoal,
+        );
+        totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+        totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
+          totalKcalGoal,
+        );
+      }
+
+      final plannedKcal = mealPlan.meals.fold<double>(
+        0,
+        (sum, meal) =>
+            sum + meal.entries.fold<double>(0, (s, e) => s + e.calories),
       );
-      final totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(
-        totalKcalGoal,
+      final plannedProtein = mealPlan.meals.fold<double>(
+        0,
+        (sum, meal) =>
+            sum + meal.entries.fold<double>(0, (s, e) => s + e.proteinG),
       );
-      final totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
-        totalKcalGoal,
+      final plannedFat = mealPlan.meals.fold<double>(
+        0,
+        (sum, meal) =>
+            sum + meal.entries.fold<double>(0, (s, e) => s + e.fatG),
+      );
+      final plannedCarbs = mealPlan.meals.fold<double>(
+        0,
+        (sum, meal) =>
+            sum + meal.entries.fold<double>(0, (s, e) => s + e.carbsG),
       );
 
       final totalKcalLeft = CalorieGoalCalc.getDailyKcalLeft(
@@ -243,7 +304,147 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             caloriesProfile: user.caloriesProfile,
           ),
           waterIntakes: waterIntakes,
+          mealPlan: mealPlan,
+          scheduledMacros: scheduledMacros,
+          plannedKcal: plannedKcal,
+          plannedProtein: plannedProtein,
+          plannedFat: plannedFat,
+          plannedCarbs: plannedCarbs,
+          confirmedToDiaryCount: event.confirmedToDiaryCount,
         ),
+      );
+    });
+
+    on<ConfirmMealPlanFoodEvent>((event, emit) async {
+      final goals = await _confirmGoals();
+      final count = await _confirmMealPlanToDiaryUsecase.confirmFood(
+        food: event.food,
+        meal: event.meal,
+        day: currentDay,
+        calorieGoal: goals.calorieGoal,
+        carbsGoal: goals.carbsGoal,
+        fatGoal: goals.fatGoal,
+        proteinGoal: goals.proteinGoal,
+      );
+      await _updateDiaryPage(currentDay);
+      add(LoadItemsEvent(confirmedToDiaryCount: count));
+    });
+
+    on<ConfirmMealPlanMealEvent>((event, emit) async {
+      final goals = await _confirmGoals();
+      final count = await _confirmMealPlanToDiaryUsecase.confirmMeal(
+        meal: event.meal,
+        day: currentDay,
+        calorieGoal: goals.calorieGoal,
+        carbsGoal: goals.carbsGoal,
+        fatGoal: goals.fatGoal,
+        proteinGoal: goals.proteinGoal,
+      );
+      await _updateDiaryPage(currentDay);
+      add(LoadItemsEvent(confirmedToDiaryCount: count));
+    });
+
+    on<ConfirmMealPlanDayEvent>((event, emit) async {
+      final planDate = currentDay.toParsedDay();
+      final plan = await _getEffectiveMealPlanUsecase.execute(planDate);
+      final goals = await _confirmGoals();
+      final count = await _confirmMealPlanToDiaryUsecase.confirmPlan(
+        plan: plan,
+        day: currentDay,
+        calorieGoal: goals.calorieGoal,
+        carbsGoal: goals.carbsGoal,
+        fatGoal: goals.fatGoal,
+        proteinGoal: goals.proteinGoal,
+      );
+      await _updateDiaryPage(currentDay);
+      add(LoadItemsEvent(confirmedToDiaryCount: count));
+    });
+
+    on<UpdateMealPlanFoodQuantityEvent>((event, emit) async {
+      await _mutateDayMealPlan((meals, entries) {
+        final index = _findEntryIndex(
+          meals: meals,
+          entries: entries,
+          mealIndex: event.mealIndex,
+          entryId: event.entryId,
+          foodId: event.foodId,
+        );
+        if (index < 0) return;
+        final old = entries[index];
+        entries[index] = MealPlanEntryEntity(
+          id: old.id,
+          planDate: old.planDate,
+          dayMealId: old.dayMealId,
+          foodId: old.foodId,
+          foodName: old.foodName,
+          brand: old.brand,
+          caloriesPer100: old.caloriesPer100,
+          proteinPer100: old.proteinPer100,
+          fatPer100: old.fatPer100,
+          carbsPer100: old.carbsPer100,
+          quantity: event.quantity,
+          unit: old.unit,
+          updatedAt: DateTime.now().toUtc(),
+        );
+      });
+    });
+
+    on<DeleteMealPlanFoodEvent>((event, emit) async {
+      await _mutateDayMealPlan((meals, entries) {
+        final index = _findEntryIndex(
+          meals: meals,
+          entries: entries,
+          mealIndex: event.mealIndex,
+          entryId: event.entryId,
+          foodId: event.foodId,
+        );
+        if (index < 0) return;
+        entries.removeAt(index);
+      });
+    });
+
+    on<AddMealPlanFoodEvent>((event, emit) async {
+      await _mutateDayMealPlan(
+        (meals, entries) {
+          var meal = meals.firstWhereOrNull(
+            (m) => m.mealIndex == event.mealIndex,
+          );
+          if (meal == null) {
+            meal = DayMealEntity(
+              id: event.mealId.isNotEmpty ? event.mealId : _uuid.v4(),
+              planDate: currentDay.toParsedDay(),
+              mealIndex: event.mealIndex,
+              name: event.mealName.trim().isEmpty
+                  ? defaultMealName(event.mealIndex)
+                  : event.mealName.trim(),
+              mealTime: event.mealTime,
+              updatedAt: DateTime.now().toUtc(),
+            );
+            meals.add(meal);
+          }
+          entries.add(
+            MealPlanEntryEntity(
+              id: event.food.id.isNotEmpty ? event.food.id : _uuid.v4(),
+              planDate: currentDay.toParsedDay(),
+              dayMealId: meal.id,
+              foodId: event.food.foodId,
+              foodName: event.food.foodName,
+              brand: event.food.brand,
+              caloriesPer100: event.food.caloriesPer100,
+              proteinPer100: event.food.proteinPer100,
+              fatPer100: event.food.fatPer100,
+              carbsPer100: event.food.carbsPer100,
+              quantity: event.food.quantity,
+              unit: event.food.unit,
+              updatedAt: DateTime.now().toUtc(),
+            ),
+          );
+        },
+        ensureMealSlots: true,
+        seedMealIndex: event.mealIndex,
+        seedMealName: event.mealName,
+        seedMealTime: event.mealTime,
+        seedMealId: event.mealId,
       );
     });
   }
@@ -431,6 +632,137 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final config = await _getConfigUsecase.getConfig();
     return DayBoundaryCalc.currentLogicalDayMinutes(
       config.dayStartOffsetTotalMinutes,
+    );
+  }
+
+  Future<({double calorieGoal, double carbsGoal, double fatGoal, double proteinGoal})>
+  _confirmGoals() async {
+    final planDate = currentDay.toParsedDay();
+    final macros = await _getEffectiveMacroTargetUsecase.execute(planDate);
+    if (macros.calories > 0) {
+      return (
+        calorieGoal: macros.calories.toDouble(),
+        carbsGoal: macros.carbsG,
+        fatGoal: macros.fatG,
+        proteinGoal: macros.proteinG,
+      );
+    }
+    final user = await _getUserUsecase.getUserData();
+    final calorieGoal = await _getKcalGoalUsecase.getKcalGoal(userEntity: user);
+    return (
+      calorieGoal: calorieGoal,
+      carbsGoal: await _getMacroGoalUsecase.getCarbsGoal(calorieGoal),
+      fatGoal: await _getMacroGoalUsecase.getFatsGoal(calorieGoal),
+      proteinGoal: await _getMacroGoalUsecase.getProteinsGoal(calorieGoal),
+    );
+  }
+
+  /// Materializes a weekly template into a day override when needed, then
+  /// applies [mutate] and persists via [SaveDayMealsUsecase] (same shape as
+  /// DayMealPlanScreen._save).
+  Future<void> _mutateDayMealPlan(
+    void Function(List<DayMealEntity> meals, List<MealPlanEntryEntity> entries)
+    mutate, {
+    bool ensureMealSlots = false,
+    int? seedMealIndex,
+    String? seedMealName,
+    String? seedMealTime,
+    String? seedMealId,
+  }) async {
+    final planDate = currentDay.toParsedDay();
+    final effective = await _getEffectiveMealPlanUsecase.execute(planDate);
+    if (effective.source == MealPlanSource.weekly) {
+      await _materializeWeeklyToDayUsecase.execute(planDate);
+    }
+
+    var meals = List<DayMealEntity>.from(
+      await _getDayMealsUsecase.getMeals(planDate),
+    );
+    var entries = List<MealPlanEntryEntity>.from(
+      await _getDayMealsUsecase.getEntries(planDate),
+    );
+
+    // Weekly with no rows, or an empty plan: seed day meals so edits stick.
+    if (meals.isEmpty &&
+        (ensureMealSlots || effective.meals.isNotEmpty)) {
+      final now = DateTime.now().toUtc();
+      if (effective.meals.isNotEmpty && effective.source != MealPlanSource.override) {
+        // Copy effective (weekly) blocks into day entities — IDs refreshed.
+        for (final block in effective.meals) {
+          final mealId = _uuid.v4();
+          meals.add(
+            DayMealEntity(
+              id: mealId,
+              planDate: planDate,
+              mealIndex: block.mealIndex,
+              name: block.name,
+              mealTime: block.mealTime,
+              updatedAt: now,
+            ),
+          );
+          for (final food in block.entries) {
+            entries.add(
+              MealPlanEntryEntity(
+                id: _uuid.v4(),
+                planDate: planDate,
+                dayMealId: mealId,
+                foodId: food.foodId,
+                foodName: food.foodName,
+                brand: food.brand,
+                caloriesPer100: food.caloriesPer100,
+                proteinPer100: food.proteinPer100,
+                fatPer100: food.fatPer100,
+                carbsPer100: food.carbsPer100,
+                quantity: food.quantity,
+                unit: food.unit,
+                updatedAt: now,
+              ),
+            );
+          }
+        }
+      } else if (ensureMealSlots && seedMealIndex != null) {
+        meals.add(
+          DayMealEntity(
+            id: (seedMealId != null && seedMealId.isNotEmpty)
+                ? seedMealId
+                : _uuid.v4(),
+            planDate: planDate,
+            mealIndex: seedMealIndex,
+            name: (seedMealName == null || seedMealName.trim().isEmpty)
+                ? defaultMealName(seedMealIndex)
+                : seedMealName.trim(),
+            mealTime: seedMealTime,
+            updatedAt: now,
+          ),
+        );
+      }
+    }
+
+    mutate(meals, entries);
+
+    await _saveDayMealsUsecase.saveDay(
+      planDate: planDate,
+      meals: meals,
+      entries: entries,
+    );
+    await _updateDiaryPage(currentDay);
+    add(const LoadItemsEvent());
+  }
+
+  int _findEntryIndex({
+    required List<DayMealEntity> meals,
+    required List<MealPlanEntryEntity> entries,
+    required int mealIndex,
+    required String entryId,
+    required String foodId,
+  }) {
+    final byId = entries.indexWhere((e) => e.id == entryId);
+    if (byId >= 0) return byId;
+
+    final meal = meals.firstWhereOrNull((m) => m.mealIndex == mealIndex);
+    if (meal == null) return -1;
+    return entries.indexWhere(
+      (e) => e.dayMealId == meal.id && e.foodId == foodId,
     );
   }
 }
