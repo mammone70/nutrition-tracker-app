@@ -129,7 +129,6 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
   }) async {
     final payload = <String, dynamic>{
       'model': model,
-      'max_tokens': _maxTokens,
       'messages': [
         {'role': 'system', 'content': system},
         ..._toChatMessages(messages),
@@ -147,6 +146,12 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
           )
           .toList(),
     };
+    // GPT-5 / o-series reject deprecated `max_tokens` on Chat Completions.
+    if (_usesMaxCompletionTokens(model)) {
+      payload['max_completion_tokens'] = _maxTokens;
+    } else {
+      payload['max_tokens'] = _maxTokens;
+    }
     if (openRouter) {
       payload['provider'] = {
         if (openRouterProviders != null) 'order': openRouterProviders,
@@ -194,6 +199,18 @@ class OpenAiCompatibleAgentLlmApi implements AgentLlmApi {
         404 => MealInterpreterFailure.unsupported,
         _ => MealInterpreterFailure.transient,
       };
+
+  /// GPT-5 and o-series on Chat Completions want `max_completion_tokens`.
+  static bool _usesMaxCompletionTokens(String model) {
+    final id = model.toLowerCase();
+    return id.contains('gpt-5') ||
+        id.startsWith('o1') ||
+        id.startsWith('o3') ||
+        id.startsWith('o4') ||
+        id.contains('/o1') ||
+        id.contains('/o3') ||
+        id.contains('/o4');
+  }
 
   List<Map<String, dynamic>> _toChatMessages(List<AgentMessage> messages) {
     final out = <Map<String, dynamic>>[];
