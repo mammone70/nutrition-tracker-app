@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_bloc.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_consent_screen.dart';
 import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_event.dart';
@@ -32,8 +37,14 @@ class _FittyAgentView extends StatefulWidget {
 }
 
 class _FittyAgentViewState extends State<_FittyAgentView> {
+  static final _log = Logger('FittyAgentScreen');
+
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+
+  List<int>? _attachedImageBytes;
+  String? _attachedImageMediaType;
+  bool _attaching = false;
 
   @override
   void dispose() {
@@ -144,12 +155,43 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
                     ),
                   ),
                 ),
+              if (_attachedImageBytes != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _AttachedPhotoChip(
+                      bytes: _attachedImageBytes!,
+                      onClear: state.sending || _attaching
+                          ? null
+                          : () => setState(() {
+                              _attachedImageBytes = null;
+                              _attachedImageMediaType = null;
+                            }),
+                    ),
+                  ),
+                ),
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
                   child: Row(
                     children: [
+                      IconButton(
+                        tooltip: s.fittyAgentAttachPhoto,
+                        onPressed: state.sending || _attaching
+                            ? null
+                            : () => _attachPhoto(context),
+                        icon: _attaching
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.add_photo_alternate_outlined),
+                      ),
                       Expanded(
                         child: TextField(
                           controller: _controller,
@@ -164,9 +206,9 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       IconButton.filled(
-                        onPressed: state.sending
+                        onPressed: state.sending || _attaching
                             ? null
                             : () => _submit(context),
                         icon: state.sending
@@ -190,10 +232,120 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
     );
   }
 
+  Future<void> _attachPhoto(BuildContext context) async {
+    final s = S.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_rounded),
+              title: Text(s.mealImageTakePhoto),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: Text(s.mealImagePickFromGallery),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    setState(() => _attaching = true);
+    try {
+      final picked = await ImagePicker().pickImage(source: source);
+      if (picked == null || !mounted) return;
+
+      final selection = await locator<AiCredentialStorage>().readSelection();
+      final provider = selection?.provider ?? AiProvider.anthropic;
+      final photo = await MealPhotoEncoder.encodeAndDiscardSource(
+        picked.path,
+        format: MealPhotoFormat.forProvider(provider),
+      );
+      if (!mounted) return;
+      if (photo == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(s.fittyAgentPhotoAttachFailed)),
+        );
+        return;
+      }
+      setState(() {
+        _attachedImageBytes = photo.bytes;
+        _attachedImageMediaType = photo.mediaType;
+      });
+    } catch (e, st) {
+      _log.warning('Attaching Fitty Agent photo failed', e, st);
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(s.fittyAgentPhotoAttachFailed)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _attaching = false);
+    }
+  }
+
   void _submit(BuildContext context) {
     final text = _controller.text;
+    final imageBytes = _attachedImageBytes;
+    final imageMediaType = _attachedImageMediaType;
+    if (text.trim().isEmpty && imageBytes == null) return;
     _controller.clear();
-    context.read<FittyAgentBloc>().add(FittyAgentMessageSubmitted(text));
+    setState(() {
+      _attachedImageBytes = null;
+      _attachedImageMediaType = null;
+    });
+    context.read<FittyAgentBloc>().add(
+      FittyAgentMessageSubmitted(
+        text,
+        imageBytes: imageBytes,
+        imageMediaType: imageMediaType,
+      ),
+    );
+  }
+}
+
+class _AttachedPhotoChip extends StatelessWidget {
+  const _AttachedPhotoChip({required this.bytes, required this.onClear});
+
+  final List<int> bytes;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(6, 4, 2, 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.memory(
+                Uint8List.fromList(bytes),
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+              onPressed: onClear,
+              icon: const Icon(Icons.close_rounded, size: 18),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -274,12 +426,29 @@ class _Bubble extends StatelessWidget {
             color: bg,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: SelectableText(
-            bubble.text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: fg,
-              fontStyle: bubble.isToolActivity ? FontStyle.italic : null,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (bubble.imageBytes != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    Uint8List.fromList(bubble.imageBytes!),
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              SelectableText(
+                bubble.text,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: fg,
+                  fontStyle: bubble.isToolActivity ? FontStyle.italic : null,
+                ),
+              ),
+            ],
           ),
         ),
       ),

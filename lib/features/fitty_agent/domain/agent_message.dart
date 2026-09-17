@@ -6,7 +6,24 @@ sealed class AgentMessage {
 final class AgentUserMessage extends AgentMessage {
   final String text;
 
-  const AgentUserMessage(this.text);
+  /// Encoded meal photo bytes for this turn (e.g. from [MealPhotoEncoder]).
+  /// When set, [imageMediaType] should also be set (e.g. `image/webp`).
+  final List<int>? imageBytes;
+
+  /// MIME type for [imageBytes], e.g. `image/webp` or `image/jpeg`.
+  final String? imageMediaType;
+
+  const AgentUserMessage(
+    this.text, {
+    this.imageBytes,
+    this.imageMediaType,
+  });
+
+  bool get hasImage =>
+      imageBytes != null &&
+      imageBytes!.isNotEmpty &&
+      imageMediaType != null &&
+      imageMediaType!.isNotEmpty;
 }
 
 final class AgentAssistantMessage extends AgentMessage {

@@ -81,6 +81,8 @@ class RunFittyAgentUseCase {
   Future<AgentTurnResult> send({
     required String userText,
     required List<AgentMessage> history,
+    List<int>? imageBytes,
+    String? imageMediaType,
   }) async {
     if (!await _agentSettings.hasConsent()) {
       throw const FittyAgentConsentRequiredException();
@@ -95,7 +97,12 @@ class RunFittyAgentUseCase {
     final today = DateTime.now().toParsedDay();
     final system = '$fittyAgentSystemPrompt\nToday\'s date is $today.';
 
-    final withUser = [...history, AgentUserMessage(userText)];
+    final userMessage = AgentUserMessage(
+      userText,
+      imageBytes: imageBytes,
+      imageMediaType: imageMediaType,
+    );
+    final withUser = [...history, userMessage];
     final result = await api.runTurn(
       system: system,
       history: withUser,
@@ -105,7 +112,7 @@ class RunFittyAgentUseCase {
 
     return AgentTurnResult(
       reply: result.reply,
-      newMessages: [AgentUserMessage(userText), ...result.newMessages],
+      newMessages: [userMessage, ...result.newMessages],
     );
   }
 

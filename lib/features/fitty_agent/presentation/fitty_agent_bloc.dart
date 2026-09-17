@@ -61,20 +61,37 @@ class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
     FittyAgentMessageSubmitted event,
     Emitter<FittyAgentState> emit,
   ) async {
-    final text = event.text.trim();
-    if (text.isEmpty) return;
+    final hasImage =
+        event.imageBytes != null &&
+        event.imageBytes!.isNotEmpty &&
+        event.imageMediaType != null &&
+        event.imageMediaType!.isNotEmpty;
+    var text = event.text.trim();
+    if (text.isEmpty && !hasImage) return;
+    if (text.isEmpty && hasImage) {
+      text = 'Please update my meal plan based on this photo.';
+    }
 
     final current = state;
     if (current is! FittyAgentReady || current.sending) return;
 
     final bubbles = [
       ...current.bubbles,
-      AgentChatBubble(fromUser: true, text: text),
+      AgentChatBubble(
+        fromUser: true,
+        text: text,
+        imageBytes: hasImage ? event.imageBytes : null,
+      ),
     ];
     emit(current.copyWith(bubbles: bubbles, sending: true, clearError: true));
 
     try {
-      final result = await _runAgent.send(userText: text, history: _history);
+      final result = await _runAgent.send(
+        userText: text,
+        history: _history,
+        imageBytes: hasImage ? event.imageBytes : null,
+        imageMediaType: hasImage ? event.imageMediaType : null,
+      );
       _history.addAll(result.newMessages);
 
       final nextBubbles = [...bubbles];

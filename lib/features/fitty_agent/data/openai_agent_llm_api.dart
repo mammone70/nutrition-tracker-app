@@ -142,13 +142,28 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
     final input = <Map<String, dynamic>>[];
     for (final message in history) {
       switch (message) {
-        case AgentUserMessage(:final text):
-          input.add({
-            'role': 'user',
-            'content': [
-              {'type': 'input_text', 'text': text},
-            ],
-          });
+        case AgentUserMessage(:final text, :final imageBytes, :final imageMediaType):
+          if (message.hasImage) {
+            // Image before text — same order as OpenAiMealItemsApi.
+            input.add({
+              'role': 'user',
+              'content': [
+                {
+                  'type': 'input_image',
+                  'image_url':
+                      'data:$imageMediaType;base64,${base64Encode(imageBytes!)}',
+                },
+                {'type': 'input_text', 'text': text},
+              ],
+            });
+          } else {
+            input.add({
+              'role': 'user',
+              'content': [
+                {'type': 'input_text', 'text': text},
+              ],
+            });
+          }
         case AgentAssistantMessage(:final text, :final toolCalls):
           if (text != null && text.isNotEmpty) {
             input.add({
