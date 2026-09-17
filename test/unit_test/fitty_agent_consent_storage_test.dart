@@ -74,7 +74,10 @@ void main() {
       await storage.readModel(provider: AiProvider.openrouter),
       'openai/gpt-5.6-luna',
     );
-    expect(await storage.readModel(provider: AiProvider.openai), 'gpt-5.6-terra');
+    expect(
+      await storage.readModel(provider: AiProvider.openai),
+      'gpt-5.6-terra',
+    );
     expect(await storage.readModel(provider: AiProvider.anthropic), isNull);
   });
 

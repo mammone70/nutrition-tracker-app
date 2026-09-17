@@ -40,7 +40,10 @@ class FittyAgentConsentStorage {
     return value;
   }
 
-  Future<void> writeModel(String modelId, {required AiProvider provider}) async {
+  Future<void> writeModel(
+    String modelId, {
+    required AiProvider provider,
+  }) async {
     final trimmed = modelId.trim();
     if (trimmed.isEmpty) {
       await _storage.delete(key: _modelSlotTag(provider));

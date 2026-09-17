@@ -102,40 +102,44 @@ void main() {
     );
   });
 
-  test('unset agent model defaults to the cheaper chat pick, not meal assist',
-      () async {
-    // Meal assist still resolves OpenRouter to sonnet; chat prefers luna.
-    expect(
-      AiModelCatalogue.resolve(AiProvider.openrouter, null)!.id,
-      'anthropic/claude-sonnet-5',
-    );
-    expect(
-      AiModelCatalogue.defaultForAgent(AiProvider.openrouter)!.id,
-      'openai/gpt-5.6-luna',
-    );
+  test(
+    'unset agent model defaults to the cheaper chat pick, not meal assist',
+    () async {
+      // Meal assist still resolves OpenRouter to sonnet; chat prefers luna.
+      expect(
+        AiModelCatalogue.resolve(AiProvider.openrouter, null)!.id,
+        'anthropic/claude-sonnet-5',
+      );
+      expect(
+        AiModelCatalogue.defaultForAgent(AiProvider.openrouter)!.id,
+        'openai/gpt-5.6-luna',
+      );
 
-    final selection = await useCase.selectionForAgent();
-    expect(selection!.modelId, 'openai/gpt-5.6-luna');
-    expect(selection.provider, AiProvider.openrouter);
-  });
+      final selection = await useCase.selectionForAgent();
+      expect(selection!.modelId, 'openai/gpt-5.6-luna');
+      expect(selection.provider, AiProvider.openrouter);
+    },
+  );
 
-  test('stored agent model is used without rewriting meal-assist model',
-      () async {
-    await credentials.writeModel(
-      'anthropic/claude-sonnet-5',
-      provider: AiProvider.openrouter,
-    );
-    await agentSettings.writeModel(
-      'anthropic/claude-haiku-4.5',
-      provider: AiProvider.openrouter,
-    );
+  test(
+    'stored agent model is used without rewriting meal-assist model',
+    () async {
+      await credentials.writeModel(
+        'anthropic/claude-sonnet-5',
+        provider: AiProvider.openrouter,
+      );
+      await agentSettings.writeModel(
+        'anthropic/claude-haiku-4.5',
+        provider: AiProvider.openrouter,
+      );
 
-    final selection = await useCase.selectionForAgent();
-    expect(selection!.modelId, 'anthropic/claude-haiku-4.5');
+      final selection = await useCase.selectionForAgent();
+      expect(selection!.modelId, 'anthropic/claude-haiku-4.5');
 
-    final assist = await credentials.readSelection();
-    expect(assist!.modelId, 'anthropic/claude-sonnet-5');
-  });
+      final assist = await credentials.readSelection();
+      expect(assist!.modelId, 'anthropic/claude-sonnet-5');
+    },
+  );
 
   test('send overlays the agent model onto the live request', () async {
     await agentSettings.writeModel(
