@@ -71,22 +71,14 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
     int maxRounds = 24,
   }) async {
     final added = <AgentMessage>[];
-    // Responses continues a turn with previous_response_id + function outputs
-    // rather than resending the whole transcript each time.
-    String? previousResponseId;
-    List<Map<String, dynamic>>? nextInput = _initialInput(history);
+    // `store: false` means `previous_response_id` cannot find the prior turn
+    // ("Previous response with id … not found"). Replay the full input each
+    // round — including reasoning + function_call items from the model —
+    // the same way Chat Completions resends the transcript.
+    final input = _initialInput(history);
 
     for (var round = 0; round < maxRounds; round++) {
-      final decoded = await _post(
-        system: system,
-        tools: tools,
-        input: nextInput,
-        previousResponseId: previousResponseId,
-      );
-      previousResponseId = decoded['id'] is String
-          ? decoded['id'] as String
-          : null;
-
+      final decoded = await _post(system: system, tools: tools, input: input);
       final parsed = _parseOutput(decoded);
       added.add(parsed.message);
 
@@ -101,7 +93,7 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
         return AgentTurnResult(reply: text, newMessages: added);
       }
 
-      final outputs = <Map<String, dynamic>>[];
+      input.addAll(_continuationItems(decoded));
       for (final call in parsed.message.toolCalls) {
         final content = await executeTool(call);
         added.add(
@@ -111,19 +103,39 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
             content: content,
           ),
         );
-        outputs.add({
+        input.add({
           'type': 'function_call_output',
           'call_id': call.id,
           'output': content,
         });
       }
-      nextInput = outputs;
     }
 
     throw const MealInterpreterException(
       'agent tool loop exceeded max rounds',
       failure: MealInterpreterFailure.transient,
     );
+  }
+
+  /// Output items the next request must echo when [store] is false.
+  ///
+  /// Reasoning items keep the model's chain of thought across tool rounds;
+  /// function_call items are the calls those outputs answer. Message text is
+  /// not required for the tool loop and is omitted.
+  static List<Map<String, dynamic>> _continuationItems(
+    Map<String, dynamic> decoded,
+  ) {
+    final output = decoded['output'];
+    if (output is! List) return const [];
+    final items = <Map<String, dynamic>>[];
+    for (final entry in output) {
+      if (entry is! Map) continue;
+      final type = entry['type'];
+      if (type == 'reasoning' || type == 'function_call') {
+        items.add(Map<String, dynamic>.from(entry));
+      }
+    }
+    return items;
   }
 
   List<Map<String, dynamic>> _initialInput(List<AgentMessage> history) {
@@ -168,8 +180,7 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
   Future<Map<String, dynamic>> _post({
     required String system,
     required List<AgentToolDefinition> tools,
-    required List<Map<String, dynamic>>? input,
-    required String? previousResponseId,
+    required List<Map<String, dynamic>> input,
   }) async {
     final payload = <String, dynamic>{
       'model': model,
@@ -187,11 +198,11 @@ class OpenAiAgentLlmApi implements AgentLlmApi {
             },
           )
           .toList(),
+      // Never leave content on the provider when we can avoid it. That also
+      // means we must not use previous_response_id — see [runTurn].
       'store': false,
       'max_output_tokens': _maxOutputTokens,
-      if (previousResponseId != null)
-        'previous_response_id': previousResponseId,
-      if (input != null) 'input': input,
+      'input': input,
       if (openRouter)
         'provider': {
           'require_parameters': true,
