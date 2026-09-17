@@ -1366,6 +1366,8 @@
   "mealPlanningLabel": "Pianificazione pasti",
   "homePlannedMealsTitle": "Pasti pianificati di oggi",
   "homeScheduledMacrosLabel": "Macro programmati",
+  "homePlannedTotalsLabel": "Pianificato",
+  "mealTimeShortLabel": "Ora",
   "homeConfirmMealLabel": "Conferma pasto",
   "homeConfirmFoodLabel": "Conferma alimento",
   "homeConfirmAllPlannedLabel": "Conferma tutto",

@@ -1397,6 +1397,8 @@
   "mealPlanningLabel": "Öğün planlama",
   "homePlannedMealsTitle": "Bugünün planlanan öğünleri",
   "homeScheduledMacrosLabel": "Planlanan makrolar",
+  "homePlannedTotalsLabel": "Planlanan",
+  "mealTimeShortLabel": "Saat",
   "homeConfirmMealLabel": "Öğünü onayla",
   "homeConfirmFoodLabel": "Yiyeceği onayla",
   "homeConfirmAllPlannedLabel": "Tümünü onayla",

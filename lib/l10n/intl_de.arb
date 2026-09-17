@@ -1397,6 +1397,8 @@
   "mealPlanningLabel": "Essensplanung",
   "homePlannedMealsTitle": "Geplante Mahlzeiten heute",
   "homeScheduledMacrosLabel": "Geplante Makros",
+  "homePlannedTotalsLabel": "Geplant",
+  "mealTimeShortLabel": "Zeit",
   "homeConfirmMealLabel": "Mahlzeit bestätigen",
   "homeConfirmFoodLabel": "Lebensmittel bestätigen",
   "homeConfirmAllPlannedLabel": "Alles bestätigen",

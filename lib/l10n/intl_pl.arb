@@ -1366,6 +1366,8 @@
   "mealPlanningLabel": "Planowanie posiłków",
   "homePlannedMealsTitle": "Zaplanowane posiłki na dziś",
   "homeScheduledMacrosLabel": "Zaplanowane makroskładniki",
+  "homePlannedTotalsLabel": "Zaplanowane",
+  "mealTimeShortLabel": "Godzina",
   "homeConfirmMealLabel": "Potwierdź posiłek",
   "homeConfirmFoodLabel": "Potwierdź produkt",
   "homeConfirmAllPlannedLabel": "Potwierdź wszystko",

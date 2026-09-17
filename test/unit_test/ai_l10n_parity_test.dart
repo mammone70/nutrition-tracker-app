@@ -70,6 +70,8 @@ void main() {
     'fittyAgentPhotoAttachFailed',
     'fittyAgentPhotoLimitReached',
     'fittyAgentPhotoTotalSizeLimit',
+    'homePlannedTotalsLabel',
+    'mealTimeShortLabel',
   ];
 
   final arb = {

@@ -1689,6 +1689,8 @@
   "mealPlanningLabel": "Meal planning",
   "homePlannedMealsTitle": "Today's planned meals",
   "homeScheduledMacrosLabel": "Scheduled macros",
+  "homePlannedTotalsLabel": "Planned",
+  "mealTimeShortLabel": "Time",
   "homeConfirmMealLabel": "Confirm meal",
   "homeConfirmFoodLabel": "Confirm food",
   "homeConfirmAllPlannedLabel": "Confirm all",

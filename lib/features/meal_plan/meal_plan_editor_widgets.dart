@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_plan_utils.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/meal_plan/meal_plan_macro_summary.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:uuid/uuid.dart';
 
@@ -324,12 +325,16 @@ Widget buildMealBlocksEditor({
       if (targetCalories != null)
         Padding(
           padding: const EdgeInsets.only(bottom: Dimens.spacing12),
-          child: Text(
-            'Planned ${plannedCal.round()} / $targetCalories kcal · '
-            'P ${plannedP.round()}/${targetProtein?.round() ?? 0} · '
-            'F ${plannedF.round()}/${targetFat?.round() ?? 0} · '
-            'C ${plannedC.round()}/${targetCarbs?.round() ?? 0}',
-            style: Theme.of(context).textTheme.bodyMedium,
+          child: MealPlanMacroSummary(
+            label: S.of(context).homePlannedTotalsLabel,
+            calories: plannedCal,
+            proteinG: plannedP,
+            fatG: plannedF,
+            carbsG: plannedC,
+            targetCalories: targetCalories,
+            targetProteinG: targetProtein,
+            targetFatG: targetFat,
+            targetCarbsG: targetCarbs,
           ),
         ),
       Row(
@@ -384,41 +389,57 @@ Widget buildMealBlocksEditor({
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  initialValue: meal.name,
-                  decoration: const InputDecoration(
-                    labelText: 'Meal name',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (v) {
-                    meal.name = v;
-                    onChanged();
-                  },
-                ),
-                const SizedBox(height: Dimens.spacing8),
-                TextFormField(
-                  initialValue: meal.mealTime ?? '',
-                  decoration: const InputDecoration(
-                    labelText: 'Time (HH:MM, optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (v) {
-                    meal.mealTime = v.trim().isEmpty ? null : v.trim();
-                    onChanged();
-                  },
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextFormField(
+                        initialValue: meal.name,
+                        decoration: InputDecoration(
+                          labelText: S.of(context).mealNameLabel,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(Dimens.radiusS),
+                          ),
+                        ),
+                        onChanged: (v) {
+                          meal.name = v;
+                          onChanged();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: Dimens.spacing8),
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        initialValue: meal.mealTime ?? '',
+                        decoration: InputDecoration(
+                          labelText: S.of(context).mealTimeShortLabel,
+                          hintText: 'HH:MM',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(Dimens.radiusS),
+                          ),
+                        ),
+                        onChanged: (v) {
+                          meal.mealTime = v.trim().isEmpty ? null : v.trim();
+                          onChanged();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: Dimens.spacing8),
                 ...meal.entries.map((entry) {
-                  final s = S.of(context);
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(entry.foodName),
-                    subtitle: Text(
-                      '${entry.quantity.toStringAsFixed(0)} ${entry.unit} · '
-                      '${entry.calories.round()} kcal · '
-                      '${s.proteinLabelShort.toUpperCase()} ${entry.proteinG.round()} · '
-                      '${s.fatLabelShort.toUpperCase()} ${entry.fatG.round()} · '
-                      '${s.carbsLabelShort.toUpperCase()} ${entry.carbsG.round()}',
+                    subtitle: MealPlanFoodMacrosSubtitle(
+                      quantityLabel:
+                          '${entry.quantity.toStringAsFixed(0)} ${entry.unit}',
+                      calories: entry.calories,
+                      proteinG: entry.proteinG,
+                      fatG: entry.fatG,
+                      carbsG: entry.carbsG,
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),

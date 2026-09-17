@@ -1397,6 +1397,8 @@
   "mealPlanningLabel": "Plánovanie jedál",
   "homePlannedMealsTitle": "Dnešné plánované jedlá",
   "homeScheduledMacrosLabel": "Naplánované makrá",
+  "homePlannedTotalsLabel": "Naplánované",
+  "mealTimeShortLabel": "Čas",
   "homeConfirmMealLabel": "Potvrdiť jedlo",
   "homeConfirmFoodLabel": "Potvrdiť potravinu",
   "homeConfirmAllPlannedLabel": "Potvrdiť všetko",
