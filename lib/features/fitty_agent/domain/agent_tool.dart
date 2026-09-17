@@ -59,7 +59,9 @@ const List<AgentToolDefinition> fittyAgentTools = [
         'List weekly macro templates (day_of_week 0=Monday … 6=Sunday).',
     parameters: {
       'type': 'object',
-      'properties': <String, dynamic>{},
+      'properties': {
+        'unused': {'type': 'string', 'description': 'Unused. Omit.'},
+      },
       'additionalProperties': false,
     },
   ),
@@ -271,7 +273,9 @@ const List<AgentToolDefinition> fittyAgentTools = [
         'height, weight, goal, activity level, target weight.',
     parameters: {
       'type': 'object',
-      'properties': <String, dynamic>{},
+      'properties': {
+        'unused': {'type': 'string', 'description': 'Unused. Omit.'},
+      },
       'additionalProperties': false,
     },
   ),
@@ -308,7 +312,9 @@ const List<AgentToolDefinition> fittyAgentTools = [
         'last sync time, and last error.',
     parameters: {
       'type': 'object',
-      'properties': <String, dynamic>{},
+      'properties': {
+        'unused': {'type': 'string', 'description': 'Unused. Omit.'},
+      },
       'additionalProperties': false,
     },
   ),
@@ -319,7 +325,9 @@ const List<AgentToolDefinition> fittyAgentTools = [
         'remote updates. No-op when sync is not configured.',
     parameters: {
       'type': 'object',
-      'properties': <String, dynamic>{},
+      'properties': {
+        'unused': {'type': 'string', 'description': 'Unused. Omit.'},
+      },
       'additionalProperties': false,
     },
   ),

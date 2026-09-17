@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
 import 'package:opennutritracker/features/fitty_agent/data/anthropic_agent_llm_api.dart';
+import 'package:opennutritracker/features/fitty_agent/data/openai_agent_llm_api.dart';
 import 'package:opennutritracker/features/fitty_agent/data/openai_compatible_agent_llm_api.dart';
 import 'package:opennutritracker/features/fitty_agent/domain/agent_llm_api.dart';
 
@@ -27,11 +28,12 @@ AgentLlmApi agentLlmApiFor(
       model: modelId,
       timeout: timeout ?? AnthropicAgentLlmApi.defaultTimeout,
     ),
-    AiProvider.openai => OpenAiCompatibleAgentLlmApi.openAi(
+    // Responses, not Chat Completions — same reason as meal assist (#681).
+    AiProvider.openai => OpenAiAgentLlmApi(
       client,
       key,
       model: modelId,
-      timeout: timeout ?? OpenAiCompatibleAgentLlmApi.defaultTimeout,
+      timeout: timeout ?? OpenAiAgentLlmApi.defaultTimeout,
     ),
     AiProvider.openrouter => OpenAiCompatibleAgentLlmApi.openRouter(
       client,
