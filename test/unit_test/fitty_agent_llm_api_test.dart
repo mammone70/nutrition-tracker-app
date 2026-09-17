@@ -159,6 +159,11 @@ void main() {
       final body = jsonDecode(seen!.body) as Map<String, dynamic>;
       expect(body.containsKey('max_completion_tokens'), isTrue);
       expect(body.containsKey('max_tokens'), isFalse);
+      expect(body['reasoning'], {'effort': 'none'});
+      expect(body['provider'], {
+        'require_parameters': true,
+        'data_collection': 'deny',
+      });
     });
   });
 
@@ -222,5 +227,52 @@ void main() {
       expect(result.reply, 'Sync is configured.');
       expect(calls, 2);
     });
+
+    test(
+      'OpenRouter Responses pins openai and uses the broker endpoint',
+      () async {
+        http.Request? seen;
+        final client = MockClient((request) async {
+          seen = request;
+          return http.Response(
+            jsonEncode({
+              'id': 'resp_1',
+              'output': [
+                {
+                  'type': 'message',
+                  'content': [
+                    {'type': 'output_text', 'text': 'ok'},
+                  ],
+                },
+              ],
+            }),
+            200,
+          );
+        });
+
+        final api = OpenAiAgentLlmApi.openRouter(
+          client,
+          () => 'sk-or',
+          model: 'openai/gpt-5.6-luna',
+          providers: const ['openai'],
+        );
+        await api.runTurn(
+          system: 'sys',
+          history: const [AgentUserMessage('hi')],
+          tools: tools,
+          executeTool: (_) async => '{}',
+        );
+
+        expect(seen!.url.host, 'openrouter.ai');
+        expect(seen!.url.path, '/api/v1/responses');
+        final body = jsonDecode(seen!.body) as Map<String, dynamic>;
+        expect(body['provider'], {
+          'require_parameters': true,
+          'data_collection': 'deny',
+          'only': ['openai'],
+          'allow_fallbacks': false,
+        });
+      },
+    );
   });
 }

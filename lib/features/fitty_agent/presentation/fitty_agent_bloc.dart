@@ -127,26 +127,34 @@ class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
       return 'That request needed too many steps. Try asking for fewer '
           'changes at once, or say “set my weekly macros” with high/low days.';
     }
+    final trimmed = detail?.trim();
+    final hasDetail = trimmed != null && trimmed.isNotEmpty;
     // Prefer a specific reason over the generic "connection" line whenever we
     // have one — parse failures and 5xx used to look like offline blips.
     final specific = switch (failure) {
       MealInterpreterFailure.auth => 'Authentication failed. Check AI Assist.',
       MealInterpreterFailure.billing => 'Provider billing error.',
       MealInterpreterFailure.unsupported =>
-        'This model does not support agent tools. Try another model under Fitty Agent → model.',
+        hasDetail
+            ? trimmed
+            : 'This model does not support agent tools. Try another model '
+                  'under Fitty Agent → model.',
       MealInterpreterFailure.timeout =>
         'The model took too long to answer. Try again.',
       MealInterpreterFailure.rejected =>
-        'The provider rejected the request. Check AI Assist settings.',
+        hasDetail
+            ? trimmed
+            : 'The provider rejected the request. Try another Fitty Chat '
+                  'model, or check AI Assist settings.',
       MealInterpreterFailure.insecureDestination =>
         'That server address is not allowed for plaintext requests.',
       MealInterpreterFailure.transient =>
-        detail != null && detail.isNotEmpty
-            ? 'Request failed ($detail). Try again.'
+        hasDetail
+            ? 'Request failed ($trimmed). Try again.'
             : 'Something went wrong. Check your connection and try again.',
       null =>
-        detail != null && detail.isNotEmpty
-            ? 'Something went wrong ($detail).'
+        hasDetail
+            ? 'Something went wrong ($trimmed).'
             : 'Something went wrong. Check your connection and try again.',
     };
     return specific;

@@ -14,7 +14,26 @@ AgentLlmApi agentLlmApiFor(
   AiSelection selection, {
   Duration? timeout,
 }) {
-  final model = AiModelCatalogue.resolve(selection.provider, selection.modelId);
+  // Prefer the catalogue row for the id already chosen for this turn (assist
+  // or agent overlay). Fall back carefully: meal-assist [resolve] would pull
+  // OpenRouter back to sonnet when the agent id is unknown, which is wrong
+  // for chat.
+  final curated = AiModelCatalogue.forProvider(selection.provider);
+  AiModel? model;
+  if (curated.isNotEmpty) {
+    if (selection.modelId != null) {
+      for (final candidate in curated) {
+        if (candidate.id == selection.modelId) {
+          model = candidate;
+          break;
+        }
+      }
+    }
+    model ??= AiModelCatalogue.resolveForAgent(
+      selection.provider,
+      selection.modelId,
+    );
+  }
   final modelId = model?.id ?? selection.modelId;
   if (modelId == null) {
     throw StateError('no model for ${selection.provider.name}');
@@ -35,12 +54,12 @@ AgentLlmApi agentLlmApiFor(
       model: modelId,
       timeout: timeout ?? OpenAiAgentLlmApi.defaultTimeout,
     ),
-    AiProvider.openrouter => OpenAiCompatibleAgentLlmApi.openRouter(
+    AiProvider.openrouter => _openRouterAgent(
       client,
       key,
-      model: modelId,
-      providers: model?.providers,
-      timeout: timeout ?? OpenAiCompatibleAgentLlmApi.defaultTimeout,
+      model: model,
+      modelId: modelId,
+      timeout: timeout,
     ),
     AiProvider.ownServer => () {
       final endpoint = AiCredentialStorage.resolveEndpoint(selection.endpoint!);
@@ -56,4 +75,40 @@ AgentLlmApi agentLlmApiFor(
       );
     }(),
   };
+}
+
+/// OpenAI-served OpenRouter rows need Responses; Anthropic rows stay on Chat
+/// Completions like meal assist.
+AgentLlmApi _openRouterAgent(
+  http.Client client,
+  String Function() key, {
+  required AiModel? model,
+  required String modelId,
+  Duration? timeout,
+}) {
+  if (_openRouterNeedsResponses(model, modelId)) {
+    return OpenAiAgentLlmApi.openRouter(
+      client,
+      key,
+      model: modelId,
+      providers: model?.providers,
+      timeout: timeout ?? OpenAiAgentLlmApi.defaultTimeout,
+    );
+  }
+  return OpenAiCompatibleAgentLlmApi.openRouter(
+    client,
+    key,
+    model: modelId,
+    providers: model?.providers,
+    timeout: timeout ?? OpenAiCompatibleAgentLlmApi.defaultTimeout,
+  );
+}
+
+bool _openRouterNeedsResponses(AiModel? model, String modelId) {
+  if (model != null) {
+    if (model.servedBy == 'OpenAI') return true;
+    if (model.providers.contains('openai')) return true;
+  }
+  final id = modelId.toLowerCase();
+  return id.startsWith('openai/') || id.contains('gpt-5');
 }
