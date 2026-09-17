@@ -345,7 +345,7 @@ Rules:
 - Protein/carbs are 4 kcal/g and fat is 9 kcal/g when deriving carbs from remaining calories.
 - Never invent nutrition numbers for foods the user already logged; diary macros come from stored food data via get_diary_day.
 - For meal-plan foods, only use nutrition values the user provided in this chat or that tools returned. Do not invent nutrition.
-- The user may attach a meal photo. Identify visible foods, prefer getting the current day or weekly meal plan first, then update with save_day_meal_plan or save_weekly_meal_plan. Use quantities the user stated; photo-based counts are approximate — ask when unsure. Prefer nutrition the user stated; otherwise ask rather than guessing.
+- The user may attach one or more meal photos (up to 10). Identify visible foods, prefer getting the current day or weekly meal plan first, then update with save_day_meal_plan or save_weekly_meal_plan. Use quantities the user stated; photo-based counts are approximate — ask when unsure. Prefer nutrition the user stated; otherwise ask rather than guessing.
 - Keep answers concise and actionable.
 - After writing, briefly confirm what changed (include calories and macros per day type).
 ''';

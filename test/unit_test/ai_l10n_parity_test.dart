@@ -66,6 +66,10 @@ void main() {
     'fittyAgentModelUsesAssist',
     'fittyAgentSetupBody',
     'fittyAgentConsentBody',
+    'fittyAgentAttachPhoto',
+    'fittyAgentPhotoAttachFailed',
+    'fittyAgentPhotoLimitReached',
+    'fittyAgentPhotoTotalSizeLimit',
   ];
 
   final arb = {

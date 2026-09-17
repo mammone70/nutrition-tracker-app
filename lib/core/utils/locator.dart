@@ -723,6 +723,7 @@ Future<void> initLocator() async {
       addWeightLog: locator(),
       syncService: locator(),
       syncCredentials: locator(),
+      customMeals: locator(),
     ),
   );
   locator.registerLazySingleton<RunFittyAgentUseCase>(

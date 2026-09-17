@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/agent_message.dart';
 
 abstract class FittyAgentEvent extends Equatable {
   const FittyAgentEvent();
@@ -17,17 +18,12 @@ class FittyAgentConsentAccepted extends FittyAgentEvent {
 
 class FittyAgentMessageSubmitted extends FittyAgentEvent {
   final String text;
-  final List<int>? imageBytes;
-  final String? imageMediaType;
+  final List<AgentAttachedImage> images;
 
-  const FittyAgentMessageSubmitted(
-    this.text, {
-    this.imageBytes,
-    this.imageMediaType,
-  });
+  const FittyAgentMessageSubmitted(this.text, {this.images = const []});
 
   @override
-  List<Object?> get props => [text, imageBytes, imageMediaType];
+  List<Object?> get props => [text, images];
 }
 
 class FittyAgentCleared extends FittyAgentEvent {

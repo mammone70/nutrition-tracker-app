@@ -257,7 +257,10 @@ class HomePlannedMealsWidget extends StatelessWidget {
                             child: Text(
                               '${food.quantity.toStringAsFixed(food.quantity == food.quantity.roundToDouble() ? 0 : 1)}'
                               ' ${food.unit.isEmpty ? 'g' : food.unit}'
-                              ' · ${food.calories.round()} kcal',
+                              ' · ${food.calories.round()} kcal'
+                              ' · ${s.proteinLabelShort.toUpperCase()} ${food.proteinG.round()}'
+                              ' · ${s.fatLabelShort.toUpperCase()} ${food.fatG.round()}'
+                              ' · ${s.carbsLabelShort.toUpperCase()} ${food.carbsG.round()}',
                             ),
                           ),
                           trailing: Row(

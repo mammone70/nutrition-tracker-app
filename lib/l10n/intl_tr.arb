@@ -1418,11 +1418,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Makrolar, yemek planları, ilerleme ve senkron hakkında sor",
-  "fittyAgentEmptyHint": "Fitty Agent’tan makro ayarlamasını, yemek planlamasını, bugünkü günlüğü kontrol etmesini veya Calorie Tracker ile senkronize etmesini isteyin.",
+  "fittyAgentEmptyHint": "Fitty Agent’ten makro, yemek planı, bugünün günlüğü veya Calorie Tracker senkronu iste. Bir planı güncellemek için yemek fotoğrafları da ekleyebilirsin.",
   "fittyAgentInputHint": "Fitty Agent’a mesaj…",
   "fittyAgentClearChat": "Sohbeti temizle",
-  "fittyAgentAttachPhoto": "Yemek fotoğrafı ekle",
+  "fittyAgentAttachPhoto": "Yemek fotoğrafları ekle",
   "fittyAgentPhotoAttachFailed": "Fotoğraf eklenemedi. Başka bir görsel deneyin.",
+  "fittyAgentPhotoLimitReached": "En fazla {count} fotoğraf ekleyebilirsiniz.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Bu fotoğraflar birlikte çok büyük. Birini kaldırın veya daha küçük görseller seçin.",
   "fittyAgentChooseModel": "Sohbet modeli",
   "fittyAgentModelTitle": "Fitty Chat modeli",
   "fittyAgentModelBody": "Fitty Chat, yemek fotoğrafı analizinden daha ucuz bir model kullanabilir. Bu seçim AI Assist’i değiştirmez.",

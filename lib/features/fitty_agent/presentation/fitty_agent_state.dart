@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:opennutritracker/features/fitty_agent/domain/agent_message.dart';
 
 abstract class FittyAgentState extends Equatable {
   const FittyAgentState();
@@ -55,16 +56,16 @@ class AgentChatBubble extends Equatable {
   final String text;
   final bool isToolActivity;
 
-  /// Optional thumbnail for a user message that included a meal photo.
-  final List<int>? imageBytes;
+  /// Optional thumbnails for a user message that included meal photos.
+  final List<AgentAttachedImage> images;
 
   const AgentChatBubble({
     required this.fromUser,
     required this.text,
     this.isToolActivity = false,
-    this.imageBytes,
+    this.images = const [],
   });
 
   @override
-  List<Object?> get props => [fromUser, text, isToolActivity, imageBytes];
+  List<Object?> get props => [fromUser, text, isToolActivity, images];
 }

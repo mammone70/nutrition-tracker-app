@@ -1387,11 +1387,20 @@
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
   "fittyAgentSubtitle": "Domande su macro, piani pasti, progressi e sync",
-  "fittyAgentEmptyHint": "Chiedi a Fitty Agent di impostare i macro, pianificare i pasti, controllare il diario di oggi o sincronizzare con Calorie Tracker.",
+  "fittyAgentEmptyHint": "Chiedi a Fitty Agent di impostare i macro, pianificare i pasti, controllare il diario di oggi o sincronizzare con Calorie Tracker. Puoi anche allegare foto dei pasti per aggiornare un piano.",
   "fittyAgentInputHint": "Messaggio a Fitty Agent…",
   "fittyAgentClearChat": "Cancella chat",
-  "fittyAgentAttachPhoto": "Allega foto del pasto",
+  "fittyAgentAttachPhoto": "Allega foto dei pasti",
   "fittyAgentPhotoAttachFailed": "Impossibile allegare la foto. Prova un’altra immagine.",
+  "fittyAgentPhotoLimitReached": "Puoi allegare fino a {count} foto.",
+  "@fittyAgentPhotoLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fittyAgentPhotoTotalSizeLimit": "Queste foto insieme sono troppo grandi. Rimuovine una o scegli immagini più piccole.",
   "fittyAgentChooseModel": "Modello chat",
   "fittyAgentModelTitle": "Modello Fitty Chat",
   "fittyAgentModelBody": "Fitty Chat può usare un modello più economico dell’analisi delle foto dei pasti. Questa scelta non modifica l’assistenza AI.",

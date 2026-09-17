@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
 import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
@@ -22,7 +25,9 @@ import 'package:opennutritracker/core/sync/calorie_tracker_sync_credentials.dart
 import 'package:opennutritracker/features/fitty_agent/domain/agent_message.dart';
 import 'package:opennutritracker/features/fitty_agent/domain/agent_tool_executor.dart';
 
+import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/fake_sync_service.dart';
+import '../helpers/hive_test_setup.dart';
 
 class _FakeEffectiveMacros implements GetEffectiveMacroTargetUsecase {
   @override
@@ -172,6 +177,24 @@ class _FakeSyncCredentials implements CalorieTrackerSyncCredentials {
 }
 
 void main() {
+  late Box<MealDBO> customMealBox;
+
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    Hive.init('.');
+    registerHiveAdaptersOnce();
+  });
+
+  setUp(() async {
+    customMealBox = await Hive.openBox<MealDBO>(
+      'fitty_agent_custom_meal_${DateTime.now().microsecondsSinceEpoch}',
+    );
+  });
+
+  tearDown(() async {
+    await customMealBox.deleteFromDisk();
+  });
+
   test('get_effective_macros and set_daily_macro_target', () async {
     final getDaily = _FakeGetDaily();
     final saveDaily = _FakeSaveDaily();
@@ -192,6 +215,9 @@ void main() {
       addWeightLog: _FakeWeightAdd(),
       syncService: FakeSyncService(),
       syncCredentials: _FakeSyncCredentials(),
+      customMeals: CustomMealDataSource(
+        FakeHiveDBProvider(customMealBox: customMealBox),
+      ),
     );
 
     final macros =

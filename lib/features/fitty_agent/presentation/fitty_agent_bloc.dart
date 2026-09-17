@@ -61,15 +61,14 @@ class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
     FittyAgentMessageSubmitted event,
     Emitter<FittyAgentState> emit,
   ) async {
-    final hasImage =
-        event.imageBytes != null &&
-        event.imageBytes!.isNotEmpty &&
-        event.imageMediaType != null &&
-        event.imageMediaType!.isNotEmpty;
+    final images = event.images.where((image) => image.isValid).toList();
+    final hasImages = images.isNotEmpty;
     var text = event.text.trim();
-    if (text.isEmpty && !hasImage) return;
-    if (text.isEmpty && hasImage) {
-      text = 'Please update my meal plan based on this photo.';
+    if (text.isEmpty && !hasImages) return;
+    if (text.isEmpty && hasImages) {
+      text = images.length == 1
+          ? 'Please update my meal plan based on this photo.'
+          : 'Please update my meal plan based on these photos.';
     }
 
     final current = state;
@@ -77,11 +76,7 @@ class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
 
     final bubbles = [
       ...current.bubbles,
-      AgentChatBubble(
-        fromUser: true,
-        text: text,
-        imageBytes: hasImage ? event.imageBytes : null,
-      ),
+      AgentChatBubble(fromUser: true, text: text, images: images),
     ];
     emit(current.copyWith(bubbles: bubbles, sending: true, clearError: true));
 
@@ -89,8 +84,7 @@ class FittyAgentBloc extends Bloc<FittyAgentEvent, FittyAgentState> {
       final result = await _runAgent.send(
         userText: text,
         history: _history,
-        imageBytes: hasImage ? event.imageBytes : null,
-        imageMediaType: hasImage ? event.imageMediaType : null,
+        images: images,
       );
       _history.addAll(result.newMessages);
 
