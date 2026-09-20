@@ -66,9 +66,16 @@ class HomeLoadedState extends HomeState {
   final double plannedProtein;
   final double plannedFat;
   final double plannedCarbs;
+
   /// Set after a confirm-to-diary action so the UI can show a snack; null
   /// on ordinary reloads.
   final int? confirmedToDiaryCount;
+
+  /// plan-entry id → diary intake id for foods confirmed today.
+  final Map<String, String> confirmedPlanFoodIntakeIds;
+  final double? waistInchesToday;
+  final double? weightAvg7dKg;
+  final double? waistAvg7dInches;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -110,6 +117,10 @@ class HomeLoadedState extends HomeState {
     required this.plannedFat,
     required this.plannedCarbs,
     this.confirmedToDiaryCount,
+    this.confirmedPlanFoodIntakeIds = const {},
+    this.waistInchesToday,
+    this.weightAvg7dKg,
+    this.waistAvg7dInches,
     this.showActivityTracking = true,
     this.showMealMacros = true,
   });
@@ -135,5 +146,9 @@ class HomeLoadedState extends HomeState {
     plannedFat,
     plannedCarbs,
     confirmedToDiaryCount,
+    confirmedPlanFoodIntakeIds,
+    waistInchesToday,
+    weightAvg7dKg,
+    waistAvg7dInches,
   ];
 }

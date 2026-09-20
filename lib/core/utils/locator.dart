@@ -15,6 +15,8 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/water_intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/waist_log_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/confirmed_plan_food_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weekly_macro_target_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/macro_target_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weekly_meal_data_source.dart';
@@ -33,6 +35,7 @@ import 'package:opennutritracker/core/data/repository/user_activity_repository.d
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/data/repository/waist_log_repository.dart';
 import 'package:opennutritracker/core/data/repository/weekly_macro_target_repository.dart';
 import 'package:opennutritracker/core/data/repository/macro_target_repository.dart';
 import 'package:opennutritracker/core/data/repository/weekly_meal_repository.dart';
@@ -74,6 +77,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/waist_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/weekly_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/daily_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/weekly_meals_usecase.dart';
@@ -269,9 +273,12 @@ Future<void> initLocator() async {
       locator<GetEffectiveMealPlanUsecase>(),
       locator<GetEffectiveMacroTargetUsecase>(),
       locator<ConfirmMealPlanToDiaryUsecase>(),
+      locator<UnconfirmMealPlanFoodUsecase>(),
       locator<SaveDayMealsUsecase>(),
       locator<MaterializeWeeklyToDayUsecase>(),
       locator<GetDayMealsUsecase>(),
+      locator<GetWeightLogUsecase>(),
+      locator<GetWaistLogUsecase>(),
     ),
   );
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
@@ -510,6 +517,15 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<DeleteWeightLogUsecase>(
     () => DeleteWeightLogUsecase(locator(), locator()),
   );
+  locator.registerLazySingleton<GetWaistLogUsecase>(
+    () => GetWaistLogUsecase(locator()),
+  );
+  locator.registerLazySingleton<AddWaistLogUsecase>(
+    () => AddWaistLogUsecase(locator(), locator()),
+  );
+  locator.registerLazySingleton<DeleteWaistLogUsecase>(
+    () => DeleteWaistLogUsecase(locator(), locator()),
+  );
 
   // Meal plans + macro templates (calorie-tracker local-first)
   locator.registerLazySingleton<GetWeeklyMacroTargetsUsecase>(
@@ -556,7 +572,15 @@ Future<void> initLocator() async {
     () => ResetDayToWeeklyUsecase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<ConfirmMealPlanToDiaryUsecase>(
-    () => ConfirmMealPlanToDiaryUsecase(locator(), locator()),
+    () => ConfirmMealPlanToDiaryUsecase(locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<UnconfirmMealPlanFoodUsecase>(
+    () => UnconfirmMealPlanFoodUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
   );
 
   locator.registerLazySingleton<AddWaterIntakeUsecase>(
@@ -650,6 +674,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<WeightLogRepository>(
     () => WeightLogRepository(locator()),
+  );
+  locator.registerLazySingleton<WaistLogRepository>(
+    () => WaistLogRepository(locator()),
   );
   locator.registerLazySingleton<WeeklyMacroTargetRepository>(
     () => WeeklyMacroTargetRepository(locator()),
@@ -764,6 +791,12 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
     () => WeightLogDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<WaistLogDataSource>(
+    () => WaistLogDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<ConfirmedPlanFoodDataSource>(
+    () => ConfirmedPlanFoodDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<WeeklyMacroTargetDataSource>(
     () => WeeklyMacroTargetDataSource(hiveDBProvider),

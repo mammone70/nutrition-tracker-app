@@ -1371,6 +1371,13 @@
   "homeConfirmMealLabel": "Підтвердити страву",
   "homeConfirmFoodLabel": "Підтвердити продукт",
   "homeConfirmAllPlannedLabel": "Підтвердити все",
+  "homeUnconfirmMealLabel": "Скасувати підтвердження страви",
+  "homeUnconfirmFoodLabel": "Скасувати підтвердження",
+  "homeAddMealSlotLabel": "Додати страву",
+  "homeRemoveMealSlotLabel": "Прибрати страву",
+  "waistLabel": "Талія",
+  "inchesLabel": "дюйм",
+  "sevenDayAvgLabel": "Сер. 7д",
   "homePlannedEmptyHint": "На сьогодні ще немає запланованих продуктів. Відкрийте денний план або налаштуйте тижневі страви.",
   "homeConfirmedToDiarySnack": "Додано {count} запланованих продуктів до щоденника",
   "@homeConfirmedToDiarySnack": {

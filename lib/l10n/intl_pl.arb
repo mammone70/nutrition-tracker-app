@@ -1371,6 +1371,13 @@
   "homeConfirmMealLabel": "Potwierdź posiłek",
   "homeConfirmFoodLabel": "Potwierdź produkt",
   "homeConfirmAllPlannedLabel": "Potwierdź wszystko",
+  "homeUnconfirmMealLabel": "Cofnij potwierdzenie posiłku",
+  "homeUnconfirmFoodLabel": "Cofnij potwierdzenie",
+  "homeAddMealSlotLabel": "Dodaj posiłek",
+  "homeRemoveMealSlotLabel": "Usuń posiłek",
+  "waistLabel": "Talia",
+  "inchesLabel": "cal",
+  "sevenDayAvgLabel": "Śr. 7 dni",
   "homePlannedEmptyHint": "Brak zaplanowanych produktów na dziś. Otwórz plan dnia lub skonfiguruj posiłki tygodniowe.",
   "homeConfirmedToDiarySnack": "Dodano {count} zaplanowanych produktów do dziennika",
   "@homeConfirmedToDiarySnack": {

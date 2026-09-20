@@ -196,6 +196,33 @@ class CalorieTrackerApiClient {
     _throwIfFailed(response, 'DELETE /body-weight');
   }
 
+  Future<void> upsertWaistCircumference(Map<String, dynamic> payload) async {
+    final response = await _authorized(() async {
+      final uri = await _uri('/waist-circumference');
+      return _http
+          .post(
+            uri,
+            headers: await _headers(),
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 30));
+    });
+    _throwIfFailed(response, 'POST /waist-circumference');
+  }
+
+  Future<void> deleteWaistCircumference(String id) async {
+    final response = await _authorized(() async {
+      final uri = await _uri(
+        '/waist-circumference/${Uri.encodeComponent(id)}',
+      );
+      return _http
+          .delete(uri, headers: await _headers())
+          .timeout(const Duration(seconds: 30));
+    });
+    if (response.statusCode == 404) return;
+    _throwIfFailed(response, 'DELETE /waist-circumference');
+  }
+
   void _throwIfFailed(http.Response response, String action) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
     throw CalorieTrackerApiException(

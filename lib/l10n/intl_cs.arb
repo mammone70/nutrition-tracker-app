@@ -1371,6 +1371,13 @@
   "homeConfirmMealLabel": "Potvrdit jídlo",
   "homeConfirmFoodLabel": "Potvrdit potravinu",
   "homeConfirmAllPlannedLabel": "Potvrdit vše",
+  "homeUnconfirmMealLabel": "Zrušit potvrzení jídla",
+  "homeUnconfirmFoodLabel": "Zrušit potvrzení",
+  "homeAddMealSlotLabel": "Přidat jídlo",
+  "homeRemoveMealSlotLabel": "Odebrat jídlo",
+  "waistLabel": "Pas",
+  "inchesLabel": "in",
+  "sevenDayAvgLabel": "7d průměr",
   "homePlannedEmptyHint": "Na dnes zatím nejsou naplánované žádné potraviny. Otevřete dnešní plán nebo nastavte týdenní jídelníček.",
   "homeConfirmedToDiarySnack": "Do deníku přidáno {count} naplánovaných potravin",
   "@homeConfirmedToDiarySnack": {

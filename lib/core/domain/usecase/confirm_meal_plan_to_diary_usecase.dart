@@ -1,8 +1,12 @@
+import 'package:opennutritracker/core/data/data_source/confirmed_plan_food_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -24,7 +28,7 @@ IntakeTypeEntity intakeTypeForMealPlan({
       lower.contains('abend')) {
     return IntakeTypeEntity.dinner;
   }
-  if (lower.contains('snack') || lower.contains('snack')) {
+  if (lower.contains('snack')) {
     return IntakeTypeEntity.snack;
   }
   return switch (mealIndex) {
@@ -59,12 +63,22 @@ MealEntity mealEntityFromPlanFood(MealPlanFoodEntry food) {
   );
 }
 
-/// Copies scheduled meal-plan foods into today's diary as logged intakes.
+/// Copies scheduled meal-plan foods into today's diary as logged intakes,
+/// and remembers the plan-entry → intake link for confirm/unconfirm UI.
 class ConfirmMealPlanToDiaryUsecase {
   final AddIntakeUsecase _addIntake;
   final AddTrackedDayUsecase _addTrackedDay;
+  final ConfirmedPlanFoodDataSource _confirmedLinks;
 
-  ConfirmMealPlanToDiaryUsecase(this._addIntake, this._addTrackedDay);
+  ConfirmMealPlanToDiaryUsecase(
+    this._addIntake,
+    this._addTrackedDay,
+    this._confirmedLinks,
+  );
+
+  Map<String, String> confirmedIntakeIdsForDate(DateTime day) {
+    return _confirmedLinks.intakeIdsForDate(day.toParsedDay());
+  }
 
   Future<int> confirmFood({
     required MealPlanFoodEntry food,
@@ -75,6 +89,13 @@ class ConfirmMealPlanToDiaryUsecase {
     required double fatGoal,
     required double proteinGoal,
   }) async {
+    final planDate = day.toParsedDay();
+    final existing = _confirmedLinks.getLink(
+      planDate: planDate,
+      entryId: food.id,
+    );
+    if (existing != null) return 0;
+
     await _logFood(
       food: food,
       meal: meal,
@@ -97,7 +118,7 @@ class ConfirmMealPlanToDiaryUsecase {
   }) async {
     var count = 0;
     for (final food in meal.entries) {
-      await _logFood(
+      count += await confirmFood(
         food: food,
         meal: meal,
         day: day,
@@ -106,7 +127,6 @@ class ConfirmMealPlanToDiaryUsecase {
         fatGoal: fatGoal,
         proteinGoal: proteinGoal,
       );
-      count++;
     }
     return count;
   }
@@ -149,17 +169,33 @@ class ConfirmMealPlanToDiaryUsecase {
     );
     final amount = food.quantity;
     final unit = food.unit.isEmpty ? 'g' : food.unit;
+    final intakeId = IdGenerator.getUniqueID();
+
+    // Prefer planned meal time when present (HH:MM); else noon.
+    var hour = 12;
+    var minute = 0;
+    final mealTime = meal.mealTime?.trim();
+    if (mealTime != null && mealTime.contains(':')) {
+      final parts = mealTime.split(':');
+      hour = int.tryParse(parts[0]) ?? 12;
+      minute = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+    }
 
     final intake = IntakeEntity(
-      id: IdGenerator.getUniqueID(),
+      id: intakeId,
       unit: unit,
       amount: amount,
       type: type,
       meal: mealEntity,
-      dateTime: DateTime(day.year, day.month, day.day, 12),
+      dateTime: DateTime(day.year, day.month, day.day, hour, minute),
     );
 
     await _addIntake.addIntake(intake);
+    await _confirmedLinks.putLink(
+      planDate: day.toParsedDay(),
+      entryId: food.id,
+      intakeId: intakeId,
+    );
 
     final hasDay = await _addTrackedDay.hasTrackedDay(day);
     if (!hasDay) {
@@ -178,5 +214,54 @@ class ConfirmMealPlanToDiaryUsecase {
       fatTracked: intake.totalFatsGram,
       proteinTracked: intake.totalProteinsGram,
     );
+  }
+}
+
+/// Removes a confirmed plan food from the diary and clears the confirm link.
+class UnconfirmMealPlanFoodUsecase {
+  final DeleteIntakeUsecase _deleteIntake;
+  final GetIntakeUsecase _getIntake;
+  final AddTrackedDayUsecase _addTrackedDay;
+  final ConfirmedPlanFoodDataSource _confirmedLinks;
+
+  UnconfirmMealPlanFoodUsecase(
+    this._deleteIntake,
+    this._getIntake,
+    this._addTrackedDay,
+    this._confirmedLinks,
+  );
+
+  Future<bool> unconfirmFood({
+    required String entryId,
+    required DateTime day,
+  }) async {
+    final planDate = day.toParsedDay();
+    final link = _confirmedLinks.getLink(planDate: planDate, entryId: entryId);
+    if (link == null) return false;
+
+    final intake = await _getIntake.getIntakeById(link.intakeId);
+    if (intake != null) {
+      await _deleteIntake.deleteIntake(intake);
+      await _addTrackedDay.removeDayCaloriesTracked(day, intake.totalKcal);
+      await _addTrackedDay.removeDayMacrosTracked(
+        day,
+        carbsTracked: intake.totalCarbsGram,
+        fatTracked: intake.totalFatsGram,
+        proteinTracked: intake.totalProteinsGram,
+      );
+    }
+    await _confirmedLinks.removeLink(planDate: planDate, entryId: entryId);
+    return true;
+  }
+
+  Future<int> unconfirmMeal({
+    required EffectiveMealBlock meal,
+    required DateTime day,
+  }) async {
+    var count = 0;
+    for (final food in meal.entries) {
+      if (await unconfirmFood(entryId: food.id, day: day)) count++;
+    }
+    return count;
   }
 }

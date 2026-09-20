@@ -1694,6 +1694,13 @@
   "homeConfirmMealLabel": "Confirm meal",
   "homeConfirmFoodLabel": "Confirm food",
   "homeConfirmAllPlannedLabel": "Confirm all",
+  "homeUnconfirmMealLabel": "Unconfirm meal",
+  "homeUnconfirmFoodLabel": "Unconfirm",
+  "homeAddMealSlotLabel": "Add meal",
+  "homeRemoveMealSlotLabel": "Remove meal",
+  "waistLabel": "Waist",
+  "inchesLabel": "in",
+  "sevenDayAvgLabel": "7d avg",
   "homePlannedEmptyHint": "No foods planned for today yet. Open today's plan or set up your weekly meals.",
   "homeConfirmedToDiarySnack": "Added {count} planned food(s) to your diary",
   "@homeConfirmedToDiarySnack": {

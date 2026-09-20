@@ -41,6 +41,52 @@ class ConfirmMealPlanDayEvent extends HomeEvent {
   const ConfirmMealPlanDayEvent();
 }
 
+class UnconfirmMealPlanFoodEvent extends HomeEvent {
+  final String entryId;
+
+  const UnconfirmMealPlanFoodEvent({required this.entryId});
+
+  @override
+  List<Object?> get props => [entryId];
+}
+
+class UnconfirmMealPlanMealEvent extends HomeEvent {
+  final EffectiveMealBlock meal;
+
+  const UnconfirmMealPlanMealEvent({required this.meal});
+
+  @override
+  List<Object?> get props => [meal];
+}
+
+class UpdateMealPlanMealMetaEvent extends HomeEvent {
+  final int mealIndex;
+  final String name;
+  final String? mealTime;
+
+  const UpdateMealPlanMealMetaEvent({
+    required this.mealIndex,
+    required this.name,
+    this.mealTime,
+  });
+
+  @override
+  List<Object?> get props => [mealIndex, name, mealTime];
+}
+
+class AddMealPlanMealSlotEvent extends HomeEvent {
+  const AddMealPlanMealSlotEvent();
+}
+
+class RemoveMealPlanMealSlotEvent extends HomeEvent {
+  final int mealIndex;
+
+  const RemoveMealPlanMealSlotEvent({required this.mealIndex});
+
+  @override
+  List<Object?> get props => [mealIndex];
+}
+
 class UpdateMealPlanFoodQuantityEvent extends HomeEvent {
   final int mealIndex;
   final String entryId;

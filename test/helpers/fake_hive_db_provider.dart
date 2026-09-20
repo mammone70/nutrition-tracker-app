@@ -2,6 +2,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/confirmed_plan_food_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -11,6 +12,7 @@ import 'package:opennutritracker/core/data/dbo/meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/waist_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
@@ -41,6 +43,8 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<WeeklyMealPlanEntryDBO>? _weeklyMealPlanEntryBox;
   final Box<DayMealDBO>? _dayMealBox;
   final Box<MealPlanEntryDBO>? _mealPlanEntryBox;
+  final Box<WaistLogDBO>? _waistLogBox;
+  final Box<ConfirmedPlanFoodDBO>? _confirmedPlanFoodBox;
 
   /// The profile the injected boxes belong to.
   ///
@@ -71,6 +75,8 @@ class FakeHiveDBProvider extends HiveDBProvider {
     Box<WeeklyMealPlanEntryDBO>? weeklyMealPlanEntryBox,
     Box<DayMealDBO>? dayMealBox,
     Box<MealPlanEntryDBO>? mealPlanEntryBox,
+    Box<WaistLogDBO>? waistLogBox,
+    Box<ConfirmedPlanFoodDBO>? confirmedPlanFoodBox,
   }) : _configBox = configBox,
        _appConfigBox = appConfigBox ?? configBox,
        _intakeBox = intakeBox,
@@ -88,7 +94,9 @@ class FakeHiveDBProvider extends HiveDBProvider {
        _weeklyMealBox = weeklyMealBox,
        _weeklyMealPlanEntryBox = weeklyMealPlanEntryBox,
        _dayMealBox = dayMealBox,
-       _mealPlanEntryBox = mealPlanEntryBox;
+       _mealPlanEntryBox = mealPlanEntryBox,
+       _waistLogBox = waistLogBox,
+       _confirmedPlanFoodBox = confirmedPlanFoodBox;
 
   T _require<T>(T? box) {
     if (box == null) {
@@ -136,4 +144,9 @@ class FakeHiveDBProvider extends HiveDBProvider {
   Box<DayMealDBO> get dayMealBox => _require(_dayMealBox);
   @override
   Box<MealPlanEntryDBO> get mealPlanEntryBox => _require(_mealPlanEntryBox);
+  @override
+  Box<WaistLogDBO> get waistLogBox => _require(_waistLogBox);
+  @override
+  Box<ConfirmedPlanFoodDBO> get confirmedPlanFoodBox =>
+      _require(_confirmedPlanFoodBox);
 }
