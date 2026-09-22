@@ -29,6 +29,7 @@ import 'package:opennutritracker/features/home/presentation/widgets/intake_verti
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
+import 'package:opennutritracker/features/trends/presentation/trends_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -177,20 +178,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
             ),
             const FastingHomeChip(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: ActionChip(
-                  key: const ValueKey('home-fitty-agent'),
-                  avatar: const Icon(Icons.smart_toy_outlined, size: 18),
-                  label: Text(S.of(context).fittyAgentTitle),
-                  onPressed: () => Navigator.of(
-                    context,
-                  ).pushNamed(NavigationOptions.fittyAgentRoute),
-                ),
-              ),
-            ),
             const SizedBox(height: Dimens.spacing8),
             DashboardWidget(
               totalKcalDaily: totalKcalDaily,
@@ -224,6 +211,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 spacing: Dimens.spacing8,
                 runSpacing: Dimens.spacing8,
                 children: [
+                  ActionChip(
+                    avatar: const Icon(Icons.insights_outlined, size: 18),
+                    label: Text(S.of(context).trendsLabel),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const TrendsPage(),
+                      ),
+                    ),
+                  ),
                   ActionChip(
                     avatar: const Icon(
                       Icons.calendar_view_week_rounded,

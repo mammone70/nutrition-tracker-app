@@ -1389,6 +1389,11 @@
   "weekdaySaturday": "Saturday",
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
+
+  "fittyAgentNavLabel": "Chat",
+  "fittyAgentSuggestionPeriod": "What was my average bodyweight and calories over the last week?",
+  "fittyAgentSuggestionPlan": "Create a 2-week carb-cycle plan averaging 4300 kcal/day with 225g protein and 80g fat.",
+  "fittyAgentSuggestionLeftovers": "How many calories and macros do I have left today? Suggest a final meal.",
   "fittyAgentSubtitle": "询问宏量营养素、膳食计划、进度与同步",
   "fittyAgentEmptyHint": "让 Fitty Agent 设置宏量营养素、规划餐食、查看今日日记或与 Calorie Tracker 同步。也可以附加餐食照片来更新计划。",
   "fittyAgentInputHint": "向 Fitty Agent 发送消息…",
