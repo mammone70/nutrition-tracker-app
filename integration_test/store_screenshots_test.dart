@@ -269,7 +269,7 @@ void main() {
       // reach it from Home.
       await _tapNav(tester, 'nav-home');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Trends'));
+      await tester.tap(find.byKey(const ValueKey('home-trends')));
       await tester.pumpAndSettle();
       await _shoot(
         tester,

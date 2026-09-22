@@ -212,6 +212,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 runSpacing: Dimens.spacing8,
                 children: [
                   ActionChip(
+                    key: const ValueKey('home-trends'),
                     avatar: const Icon(Icons.insights_outlined, size: 18),
                     label: Text(S.of(context).trendsLabel),
                     onPressed: () => Navigator.of(context).push(
