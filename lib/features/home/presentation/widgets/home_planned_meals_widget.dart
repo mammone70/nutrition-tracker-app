@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
 import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/meal_plan_utils.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_plan/meal_plan_editor_widgets.dart';
@@ -20,6 +21,7 @@ class HomePlannedMealsWidget extends StatelessWidget {
   final double plannedProtein;
   final double plannedFat;
   final double plannedCarbs;
+  final Map<String, String> confirmedPlanFoodIntakeIds;
 
   const HomePlannedMealsWidget({
     super.key,
@@ -30,10 +32,17 @@ class HomePlannedMealsWidget extends StatelessWidget {
     required this.plannedProtein,
     required this.plannedFat,
     required this.plannedCarbs,
+    this.confirmedPlanFoodIntakeIds = const {},
   });
 
   bool get _hasPlanFoods =>
       mealPlan.meals.any((meal) => meal.entries.isNotEmpty);
+
+  bool _isFoodConfirmed(MealPlanFoodEntry food) =>
+      confirmedPlanFoodIntakeIds.containsKey(food.id);
+
+  bool _isMealFullyConfirmed(EffectiveMealBlock meal) =>
+      meal.entries.isNotEmpty && meal.entries.every(_isFoodConfirmed);
 
   void _openDayPlan(BuildContext context) {
     Navigator.of(context).pushNamed(
@@ -46,10 +55,7 @@ class HomePlannedMealsWidget extends StatelessWidget {
     Navigator.of(context).pushNamed(NavigationOptions.weeklyMealPlansRoute);
   }
 
-  Future<void> _addFood(
-    BuildContext context,
-    EffectiveMealBlock meal,
-  ) async {
+  Future<void> _addFood(BuildContext context, EffectiveMealBlock meal) async {
     final food = await showAddMealPlanFoodDialog(context);
     if (food == null) return;
     homeBloc.add(
@@ -131,6 +137,71 @@ class HomePlannedMealsWidget extends StatelessWidget {
     );
   }
 
+  Future<void> _editMealMeta(
+    BuildContext context,
+    EffectiveMealBlock meal,
+  ) async {
+    final nameController = TextEditingController(text: meal.name);
+    final timeController = TextEditingController(text: meal.mealTime ?? '');
+    final result = await showDialog<({String name, String? time})>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(S.of(context).mealNameLabel),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: S.of(context).mealNameLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: Dimens.spacing12),
+              TextField(
+                controller: timeController,
+                decoration: InputDecoration(
+                  labelText: S.of(context).mealTimeShortLabel,
+                  hintText: 'HH:MM',
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                final time = timeController.text.trim();
+                Navigator.of(context).pop((
+                  name: name.isEmpty ? meal.name : name,
+                  time: time.isEmpty ? null : time,
+                ));
+              },
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
+        );
+      },
+    );
+    nameController.dispose();
+    timeController.dispose();
+    if (result == null) return;
+    homeBloc.add(
+      UpdateMealPlanMealMetaEvent(
+        mealIndex: meal.mealIndex,
+        name: result.name,
+        mealTime: result.time,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -178,10 +249,7 @@ class HomePlannedMealsWidget extends StatelessWidget {
             const SizedBox(height: Dimens.spacing8),
           ],
           if (!_hasPlanFoods) ...[
-            Text(
-              s.homePlannedEmptyHint,
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(s.homePlannedEmptyHint, style: theme.textTheme.bodyMedium),
             const SizedBox(height: Dimens.spacing8),
             Wrap(
               spacing: Dimens.spacing8,
@@ -217,8 +285,37 @@ class HomePlannedMealsWidget extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: Dimens.spacing12),
+            const SizedBox(height: Dimens.spacing8),
+            Row(
+              children: [
+                Text(
+                  '${s.mealNameLabel}: ${mealPlan.meals.length}',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const Spacer(),
+                IconButton(
+                  tooltip: s.homeRemoveMealSlotLabel,
+                  onPressed: mealPlan.meals.length <= minMealsPerDay
+                      ? null
+                      : () => homeBloc.add(
+                          RemoveMealPlanMealSlotEvent(
+                            mealIndex: mealPlan.meals.last.mealIndex,
+                          ),
+                        ),
+                  icon: const Icon(Icons.remove_circle_outline),
+                ),
+                IconButton(
+                  tooltip: s.homeAddMealSlotLabel,
+                  onPressed: mealPlan.meals.length >= maxMealsPerDay
+                      ? null
+                      : () => homeBloc.add(const AddMealPlanMealSlotEvent()),
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
+              ],
+            ),
+            const SizedBox(height: Dimens.spacing8),
             ...mealPlan.meals.map((meal) {
+              final mealConfirmed = _isMealFullyConfirmed(meal);
               return Padding(
                 padding: const EdgeInsets.only(bottom: Dimens.spacing12),
                 child: AppCard(
@@ -229,19 +326,54 @@ class HomePlannedMealsWidget extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              meal.name,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
+                            child: InkWell(
+                              onTap: () => _editMealMeta(context, meal),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    meal.name,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  if (meal.mealTime != null &&
+                                      meal.mealTime!.isNotEmpty)
+                                    Text(
+                                      meal.mealTime!,
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                ],
                               ),
                             ),
+                          ),
+                          IconButton(
+                            tooltip: s.mealNameLabel,
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            onPressed: () => _editMealMeta(context, meal),
                           ),
                           if (meal.entries.isNotEmpty)
                             TextButton(
                               onPressed: () => homeBloc.add(
-                                ConfirmMealPlanMealEvent(meal: meal),
+                                mealConfirmed
+                                    ? UnconfirmMealPlanMealEvent(meal: meal)
+                                    : ConfirmMealPlanMealEvent(meal: meal),
                               ),
-                              child: Text(s.homeConfirmMealLabel),
+                              child: Text(
+                                mealConfirmed
+                                    ? s.homeUnconfirmMealLabel
+                                    : s.homeConfirmMealLabel,
+                              ),
+                            ),
+                          if (mealPlan.meals.length > minMealsPerDay)
+                            IconButton(
+                              tooltip: s.homeRemoveMealSlotLabel,
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: () => homeBloc.add(
+                                RemoveMealPlanMealSlotEvent(
+                                  mealIndex: meal.mealIndex,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -256,6 +388,7 @@ class HomePlannedMealsWidget extends StatelessWidget {
                           ),
                         ),
                       ...meal.entries.map((food) {
+                        final confirmed = _isFoodConfirmed(food);
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           dense: true,
@@ -276,13 +409,23 @@ class HomePlannedMealsWidget extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                tooltip: s.homeConfirmFoodLabel,
-                                icon: const Icon(Icons.check_circle_outline),
+                                tooltip: confirmed
+                                    ? s.homeUnconfirmFoodLabel
+                                    : s.homeConfirmFoodLabel,
+                                icon: Icon(
+                                  confirmed
+                                      ? Icons.check_circle
+                                      : Icons.check_circle_outline,
+                                ),
                                 onPressed: () => homeBloc.add(
-                                  ConfirmMealPlanFoodEvent(
-                                    food: food,
-                                    meal: meal,
-                                  ),
+                                  confirmed
+                                      ? UnconfirmMealPlanFoodEvent(
+                                          entryId: food.id,
+                                        )
+                                      : ConfirmMealPlanFoodEvent(
+                                          food: food,
+                                          meal: meal,
+                                        ),
                                 ),
                               ),
                               IconButton(

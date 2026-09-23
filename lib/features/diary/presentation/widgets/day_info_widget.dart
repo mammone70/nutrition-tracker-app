@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
@@ -20,6 +21,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_day_meals_editor.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -59,24 +61,31 @@ class DayInfoWidget extends StatefulWidget {
   // sort, in which case every section starts on [DiarySortType.timeAdded].
   final Map<String, int>? diarySortPreferences;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
-      onDeleteIntake;
+  onDeleteIntake;
   final Function(
     UserActivityEntity userActivityEntity,
     TrackedDayEntity? trackedDayEntity,
-  ) onDeleteActivity;
+  )
+  onDeleteActivity;
   final Function(
     IntakeEntity intake,
     TrackedDayEntity? trackedDayEntity,
     AddMealType? type,
-  ) onCopyIntake;
+  )
+  onCopyIntake;
   final Function(
     UserActivityEntity userActivityEntity,
     TrackedDayEntity? trackedDayEntity,
-  ) onCopyActivity;
-  final Function(BuildContext context, IntakeEntity intake, bool usesImperialUnits)?
-      onEditIntake;
+  )
+  onCopyActivity;
+  final Function(
+    BuildContext context,
+    IntakeEntity intake,
+    bool usesImperialUnits,
+  )?
+  onEditIntake;
   final Function(BuildContext context, UserActivityEntity activity)?
-      onEditActivity;
+  onEditActivity;
 
   const DayInfoWidget({
     super.key,
@@ -119,6 +128,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
   // copy so the picker updates optimistically without waiting for the next
   // calendar-day reload.
   late Map<IntakeTypeEntity, DiarySortType> _sortByMeal;
+  List<DayMealEntity> _dayMeals = const [];
 
   @override
   void initState() {
@@ -141,11 +151,11 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     Map<String, int>? persisted,
   ) {
     Map<IntakeTypeEntity, DiarySortType> defaults() => {
-          IntakeTypeEntity.breakfast: DiarySortType.timeAdded,
-          IntakeTypeEntity.lunch: DiarySortType.timeAdded,
-          IntakeTypeEntity.dinner: DiarySortType.timeAdded,
-          IntakeTypeEntity.snack: DiarySortType.timeAdded,
-        };
+      IntakeTypeEntity.breakfast: DiarySortType.timeAdded,
+      IntakeTypeEntity.lunch: DiarySortType.timeAdded,
+      IntakeTypeEntity.dinner: DiarySortType.timeAdded,
+      IntakeTypeEntity.snack: DiarySortType.timeAdded,
+    };
 
     if (persisted == null) return defaults();
 
@@ -171,8 +181,25 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     // Persist asynchronously — we don't block the UI on the write. The
     // optimistic widget-state update above means the picker reflects the
     // user's choice immediately even if the disk write is still in flight.
-    locator<CalendarDayBloc>()
-        .setDiarySortPreference(mealType.name, sortType.index);
+    locator<CalendarDayBloc>().setDiarySortPreference(
+      mealType.name,
+      sortType.index,
+    );
+  }
+
+  String _sectionTitle(IntakeTypeEntity type, String fallback) {
+    final index = switch (type) {
+      IntakeTypeEntity.breakfast => 0,
+      IntakeTypeEntity.lunch => 1,
+      IntakeTypeEntity.dinner => 2,
+      IntakeTypeEntity.snack => 3,
+    };
+    for (final meal in _dayMeals) {
+      if (meal.mealIndex == index && meal.name.trim().isNotEmpty) {
+        return meal.name.trim();
+      }
+    }
+    return fallback;
   }
 
   @override
@@ -194,8 +221,9 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               Expanded(
                 child: Text(
                   DateFormat.yMMMMEEEEd().format(widget.selectedDay),
-                  style: textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               IconButton(
@@ -211,6 +239,12 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             ],
           ),
         ),
+        DiaryDayMealsEditor(
+          day: widget.selectedDay,
+          onMealsChanged: (meals) {
+            setState(() => _dayMeals = meals);
+          },
+        ),
         const SizedBox(height: Dimens.spacing8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +257,9 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 : const SizedBox(),
             trackedDay != null
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Dimens.spacing16,
+                    ),
                     child: AppCard(
                       padding: const EdgeInsets.fromLTRB(
                         Dimens.spacing20,
@@ -246,7 +282,9 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                             ),
                             child: Text(
                               _getCaloriesTrackedDisplayString(
-                                  context, trackedDay),
+                                context,
+                                trackedDay,
+                              ),
                               style: textTheme.titleLarge?.copyWith(
                                 color: widget.trackedDayEntity
                                     ?.getRatingDayTextColor(context),
@@ -256,12 +294,18 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                           ),
                           const SizedBox(height: Dimens.spacing16),
                           MacroNutrientsView(
-                            totalCarbsIntake: _allIntakes
-                                .fold(0.0, (sum, i) => sum + i.totalCarbsGram),
-                            totalFatsIntake: _allIntakes
-                                .fold(0.0, (sum, i) => sum + i.totalFatsGram),
-                            totalProteinsIntake: _allIntakes
-                                .fold(0.0, (sum, i) => sum + i.totalProteinsGram),
+                            totalCarbsIntake: _allIntakes.fold(
+                              0.0,
+                              (sum, i) => sum + i.totalCarbsGram,
+                            ),
+                            totalFatsIntake: _allIntakes.fold(
+                              0.0,
+                              (sum, i) => sum + i.totalFatsGram,
+                            ),
+                            totalProteinsIntake: _allIntakes.fold(
+                              0.0,
+                              (sum, i) => sum + i.totalProteinsGram,
+                            ),
                             totalCarbsGoal: trackedDay.carbsGoal ?? 0.0,
                             totalFatsGoal: trackedDay.fatGoal ?? 0.0,
                             totalProteinsGoal: trackedDay.proteinGoal ?? 0.0,
@@ -296,9 +340,11 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemTappedCallback: widget.onEditActivity,
                 onCopyActivityCallback:
                     DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : (activity) =>
-                            widget.onCopyActivity(activity, widget.trackedDayEntity),
+                    ? null
+                    : (activity) => widget.onCopyActivity(
+                        activity,
+                        widget.trackedDayEntity,
+                      ),
               ),
             ],
             // #150 follow-up: a 0% share hides the section entirely so OMAD
@@ -308,18 +354,22 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             if (widget.breakfastSharePct > 0)
               IntakeVerticalList(
                 day: widget.selectedDay,
-                title: S.of(context).breakfastLabel,
+                title: _sectionTitle(
+                  IntakeTypeEntity.breakfast,
+                  S.of(context).breakfastLabel,
+                ),
                 listIcon: Icons.bakery_dining_outlined,
                 addMealType: AddMealType.breakfastType,
-                intakeList: _sortByMeal[IntakeTypeEntity.breakfast]!
-                    .apply(widget.breakfastIntake),
+                intakeList: _sortByMeal[IntakeTypeEntity.breakfast]!.apply(
+                  widget.breakfastIntake,
+                ),
                 onDeleteIntakeCallback: widget.onDeleteIntake,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 onCopyIntakeCallback:
                     DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                    ? null
+                    : widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 trackedDayEntity: trackedDay,
@@ -331,11 +381,15 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             if (widget.lunchSharePct > 0)
               IntakeVerticalList(
                 day: widget.selectedDay,
-                title: S.of(context).lunchLabel,
+                title: _sectionTitle(
+                  IntakeTypeEntity.lunch,
+                  S.of(context).lunchLabel,
+                ),
                 listIcon: Icons.lunch_dining_outlined,
                 addMealType: AddMealType.lunchType,
-                intakeList: _sortByMeal[IntakeTypeEntity.lunch]!
-                    .apply(widget.lunchIntake),
+                intakeList: _sortByMeal[IntakeTypeEntity.lunch]!.apply(
+                  widget.lunchIntake,
+                ),
                 onDeleteIntakeCallback: widget.onDeleteIntake,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
@@ -343,8 +397,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 showMealMacros: widget.showMealMacros,
                 onCopyIntakeCallback:
                     DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                    ? null
+                    : widget.onCopyIntake,
                 trackedDayEntity: trackedDay,
                 mealKcalTarget: widget.lunchKcalTarget,
                 sortType: _sortByMeal[IntakeTypeEntity.lunch],
@@ -354,18 +408,22 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             if (widget.dinnerSharePct > 0)
               IntakeVerticalList(
                 day: widget.selectedDay,
-                title: S.of(context).dinnerLabel,
+                title: _sectionTitle(
+                  IntakeTypeEntity.dinner,
+                  S.of(context).dinnerLabel,
+                ),
                 listIcon: Icons.dinner_dining_outlined,
                 addMealType: AddMealType.dinnerType,
-                intakeList: _sortByMeal[IntakeTypeEntity.dinner]!
-                    .apply(widget.dinnerIntake),
+                intakeList: _sortByMeal[IntakeTypeEntity.dinner]!.apply(
+                  widget.dinnerIntake,
+                ),
                 onDeleteIntakeCallback: widget.onDeleteIntake,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 onCopyIntakeCallback:
                     DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                    ? null
+                    : widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 mealKcalTarget: widget.dinnerKcalTarget,
@@ -376,11 +434,15 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             if (widget.snackSharePct > 0)
               IntakeVerticalList(
                 day: widget.selectedDay,
-                title: S.of(context).snackLabel,
+                title: _sectionTitle(
+                  IntakeTypeEntity.snack,
+                  S.of(context).snackLabel,
+                ),
                 listIcon: CustomIcons.food_apple_outline,
                 addMealType: AddMealType.snackType,
-                intakeList: _sortByMeal[IntakeTypeEntity.snack]!
-                    .apply(widget.snackIntake),
+                intakeList: _sortByMeal[IntakeTypeEntity.snack]!.apply(
+                  widget.snackIntake,
+                ),
                 onDeleteIntakeCallback: widget.onDeleteIntake,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
@@ -388,8 +450,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 showMealMacros: widget.showMealMacros,
                 onCopyIntakeCallback:
                     DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                    ? null
+                    : widget.onCopyIntake,
                 trackedDayEntity: trackedDay,
                 mealKcalTarget: widget.snackKcalTarget,
                 sortType: _sortByMeal[IntakeTypeEntity.snack],
@@ -405,17 +467,18 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
 
   // #182: Compute from actual intakes instead of stale cached values
   List<IntakeEntity> get _allIntakes => [
-        ...widget.breakfastIntake,
-        ...widget.lunchIntake,
-        ...widget.dinnerIntake,
-        ...widget.snackIntake,
-      ];
+    ...widget.breakfastIntake,
+    ...widget.lunchIntake,
+    ...widget.dinnerIntake,
+    ...widget.snackIntake,
+  ];
 
   String _getCaloriesTrackedDisplayString(
-      BuildContext context, TrackedDayEntity trackedDay) {
+    BuildContext context,
+    TrackedDayEntity trackedDay,
+  ) {
     final actualKcal = _allIntakes.fold(0.0, (sum, i) => sum + i.totalKcal);
-    final usesKilojoules =
-        context.watch<EnergyUnitProvider>().usesKilojoules;
+    final usesKilojoules = context.watch<EnergyUnitProvider>().usesKilojoules;
     final clampedKcal = actualKcal < 0 ? 0.0 : actualKcal;
     final displayActual = usesKilojoules
         ? UnitCalc.kcalToKj(clampedKcal).toInt()
@@ -423,7 +486,9 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     final displayGoal = usesKilojoules
         ? UnitCalc.kcalToKj(trackedDay.calorieGoal).toInt()
         : trackedDay.calorieGoal.toInt();
-    final unit = usesKilojoules ? S.of(context).kjLabel : S.of(context).kcalLabel;
+    final unit = usesKilojoules
+        ? S.of(context).kjLabel
+        : S.of(context).kcalLabel;
     return '$displayActual/$displayGoal $unit';
   }
 
@@ -452,9 +517,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
       IntakeTypeEntity.snack => AddMealType.snackType,
     };
 
-    final copyDialog = CopyDialog(
-      initialValue: defaultMealType,
-    );
+    final copyDialog = CopyDialog(initialValue: defaultMealType);
     final selectedMealType = await showDialog<AddMealType>(
       context: context,
       builder: (context) => copyDialog,

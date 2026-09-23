@@ -28,15 +28,18 @@ import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/materialize_meal_plan_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/waist_log_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_plan_utils.dart';
+import 'package:opennutritracker/core/utils/moving_average.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:uuid/uuid.dart';
@@ -66,9 +69,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetEffectiveMealPlanUsecase _getEffectiveMealPlanUsecase;
   final GetEffectiveMacroTargetUsecase _getEffectiveMacroTargetUsecase;
   final ConfirmMealPlanToDiaryUsecase _confirmMealPlanToDiaryUsecase;
+  final UnconfirmMealPlanFoodUsecase _unconfirmMealPlanFoodUsecase;
   final SaveDayMealsUsecase _saveDayMealsUsecase;
   final MaterializeWeeklyToDayUsecase _materializeWeeklyToDayUsecase;
   final GetDayMealsUsecase _getDayMealsUsecase;
+  final GetWeightLogUsecase _getWeightLogUsecase;
+  final GetWaistLogUsecase _getWaistLogUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -91,9 +97,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._getEffectiveMealPlanUsecase,
     this._getEffectiveMacroTargetUsecase,
     this._confirmMealPlanToDiaryUsecase,
+    this._unconfirmMealPlanFoodUsecase,
     this._saveDayMealsUsecase,
     this._materializeWeeklyToDayUsecase,
     this._getDayMealsUsecase,
+    this._getWeightLogUsecase,
+    this._getWaistLogUsecase,
   ) : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -205,12 +214,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         totalFatsGoal = scheduledMacros.fatG;
         totalProteinsGoal = scheduledMacros.proteinG;
       } else {
-        totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-          userEntity: user,
-        );
-        totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
-          totalKcalGoal,
-        );
+        totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(userEntity: user);
+        totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
         totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
         totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
           totalKcalGoal,
@@ -229,14 +234,55 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       final plannedFat = mealPlan.meals.fold<double>(
         0,
-        (sum, meal) =>
-            sum + meal.entries.fold<double>(0, (s, e) => s + e.fatG),
+        (sum, meal) => sum + meal.entries.fold<double>(0, (s, e) => s + e.fatG),
       );
       final plannedCarbs = mealPlan.meals.fold<double>(
         0,
         (sum, meal) =>
             sum + meal.entries.fold<double>(0, (s, e) => s + e.carbsG),
       );
+
+      final confirmedPlanFoodIntakeIds = _confirmMealPlanToDiaryUsecase
+          .confirmedIntakeIdsForDate(currentDay);
+
+      final dayOnly = DateTime(
+        currentDay.year,
+        currentDay.month,
+        currentDay.day,
+      );
+      final rangeFrom = dayOnly.subtract(const Duration(days: 13));
+      final weightLogs = await _getWeightLogUsecase.getEntriesInRange(
+        rangeFrom,
+        dayOnly,
+      );
+      final waistLogs = await _getWaistLogUsecase.getEntriesInRange(
+        rangeFrom,
+        dayOnly,
+      );
+      final weightByDay = <String, double>{
+        for (final entry in weightLogs)
+          entry.date.toParsedDay(): entry.weightKg,
+      };
+      final waistByDay = <String, double>{
+        for (final entry in waistLogs) entry.date.toParsedDay(): entry.inches,
+      };
+      final weightSeries = sevenDayMovingAverage(
+        from: rangeFrom,
+        to: dayOnly,
+        valuesByDay: weightByDay,
+      );
+      final waistSeries = sevenDayMovingAverage(
+        from: rangeFrom,
+        to: dayOnly,
+        valuesByDay: waistByDay,
+      );
+      final weightAvg7dKg = weightSeries.isEmpty
+          ? null
+          : weightSeries.last.average7d;
+      final waistAvg7dInches = waistSeries.isEmpty
+          ? null
+          : waistSeries.last.average7d;
+      final waistInchesToday = waistByDay[dayOnly.toParsedDay()];
 
       final totalKcalLeft = CalorieGoalCalc.getDailyKcalLeft(
         totalKcalGoal,
@@ -311,6 +357,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           plannedFat: plannedFat,
           plannedCarbs: plannedCarbs,
           confirmedToDiaryCount: event.confirmedToDiaryCount,
+          confirmedPlanFoodIntakeIds: confirmedPlanFoodIntakeIds,
+          waistInchesToday: waistInchesToday,
+          weightAvg7dKg: weightAvg7dKg,
+          waistAvg7dInches: waistAvg7dInches,
         ),
       );
     });
@@ -358,6 +408,106 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       await _updateDiaryPage(currentDay);
       add(LoadItemsEvent(confirmedToDiaryCount: count));
+    });
+
+    on<UnconfirmMealPlanFoodEvent>((event, emit) async {
+      await _unconfirmMealPlanFoodUsecase.unconfirmFood(
+        entryId: event.entryId,
+        day: currentDay,
+      );
+      await _updateDiaryPage(currentDay);
+      add(const LoadItemsEvent());
+    });
+
+    on<UnconfirmMealPlanMealEvent>((event, emit) async {
+      await _unconfirmMealPlanFoodUsecase.unconfirmMeal(
+        meal: event.meal,
+        day: currentDay,
+      );
+      await _updateDiaryPage(currentDay);
+      add(const LoadItemsEvent());
+    });
+
+    on<UpdateMealPlanMealMetaEvent>((event, emit) async {
+      await _mutateDayMealPlan(
+        (meals, entries) {
+          final existing = meals.firstWhereOrNull(
+            (m) => m.mealIndex == event.mealIndex,
+          );
+          final name = event.name.trim().isEmpty
+              ? defaultMealName(event.mealIndex)
+              : event.name.trim();
+          final now = DateTime.now().toUtc();
+          if (existing == null) {
+            meals.add(
+              DayMealEntity(
+                id: _uuid.v4(),
+                planDate: currentDay.toParsedDay(),
+                mealIndex: event.mealIndex,
+                name: name,
+                mealTime: event.mealTime,
+                updatedAt: now,
+              ),
+            );
+          } else {
+            final index = meals.indexOf(existing);
+            meals[index] = DayMealEntity(
+              id: existing.id,
+              planDate: existing.planDate,
+              mealIndex: existing.mealIndex,
+              name: name,
+              mealTime: event.mealTime,
+              updatedAt: now,
+            );
+          }
+        },
+        ensureMealSlots: true,
+        seedMealIndex: event.mealIndex,
+        seedMealName: event.name,
+        seedMealTime: event.mealTime,
+      );
+    });
+
+    on<AddMealPlanMealSlotEvent>((event, emit) async {
+      await _mutateDayMealPlan((meals, entries) {
+        if (meals.length >= maxMealsPerDay) return;
+        final index = meals.length;
+        meals.add(
+          DayMealEntity(
+            id: _uuid.v4(),
+            planDate: currentDay.toParsedDay(),
+            mealIndex: index,
+            name: defaultMealName(index),
+            mealTime: null,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+        );
+      });
+    });
+
+    on<RemoveMealPlanMealSlotEvent>((event, emit) async {
+      await _mutateDayMealPlan((meals, entries) {
+        if (meals.length <= minMealsPerDay) return;
+        final meal = meals.firstWhereOrNull(
+          (m) => m.mealIndex == event.mealIndex,
+        );
+        if (meal == null) return;
+        entries.removeWhere((e) => e.dayMealId == meal.id);
+        meals.removeWhere((m) => m.id == meal.id);
+        meals.sort((a, b) => a.mealIndex.compareTo(b.mealIndex));
+        final now = DateTime.now().toUtc();
+        for (var i = 0; i < meals.length; i++) {
+          final old = meals[i];
+          meals[i] = DayMealEntity(
+            id: old.id,
+            planDate: old.planDate,
+            mealIndex: i,
+            name: old.name,
+            mealTime: old.mealTime,
+            updatedAt: now,
+          );
+        }
+      });
     });
 
     on<UpdateMealPlanFoodQuantityEvent>((event, emit) async {
@@ -635,7 +785,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
-  Future<({double calorieGoal, double carbsGoal, double fatGoal, double proteinGoal})>
+  Future<
+    ({double calorieGoal, double carbsGoal, double fatGoal, double proteinGoal})
+  >
   _confirmGoals() async {
     final planDate = currentDay.toParsedDay();
     final macros = await _getEffectiveMacroTargetUsecase.execute(planDate);
@@ -683,10 +835,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
 
     // Weekly with no rows, or an empty plan: seed day meals so edits stick.
-    if (meals.isEmpty &&
-        (ensureMealSlots || effective.meals.isNotEmpty)) {
+    if (meals.isEmpty && (ensureMealSlots || effective.meals.isNotEmpty)) {
       final now = DateTime.now().toUtc();
-      if (effective.meals.isNotEmpty && effective.source != MealPlanSource.override) {
+      if (effective.meals.isNotEmpty &&
+          effective.source != MealPlanSource.override) {
         // Copy effective (weekly) blocks into day entities — IDs refreshed.
         for (final block in effective.meals) {
           final mealId = _uuid.v4();

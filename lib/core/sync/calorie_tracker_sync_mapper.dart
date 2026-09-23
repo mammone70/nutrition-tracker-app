@@ -161,6 +161,18 @@ class CalorieTrackerSyncMapper {
     };
   }
 
+  static Map<String, dynamic> waistCircumferencePayload({
+    required DateTime date,
+    required double inches,
+    String? note,
+  }) {
+    return {
+      'loggedOn': date.toParsedDay(),
+      'inches': inches,
+      'notes': ?note,
+    };
+  }
+
   static Map<String, dynamic> weeklyMacroTargetPayload(
     WeeklyMacroTargetEntity target,
   ) {

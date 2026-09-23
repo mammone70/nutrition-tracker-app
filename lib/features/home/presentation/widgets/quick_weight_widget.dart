@@ -19,11 +19,13 @@ import 'package:opennutritracker/generated/l10n.dart';
 class QuickWeightWidget extends StatelessWidget {
   final double weightKg;
   final BodyWeightUnit bodyWeightUnit;
+  final double? avg7dKg;
 
   const QuickWeightWidget({
     super.key,
     required this.weightKg,
     required this.bodyWeightUnit,
+    this.avg7dKg,
   });
 
   @override
@@ -35,6 +37,15 @@ class QuickWeightWidget extends StatelessWidget {
       lbLabel: S.of(context).lbsLabel,
       stLabel: S.of(context).stLabel,
     );
+    final avgStr = avg7dKg == null
+        ? null
+        : formatBodyWeight(
+            avg7dKg!,
+            bodyWeightUnit,
+            kgLabel: S.of(context).kgLabel,
+            lbLabel: S.of(context).lbsLabel,
+            stLabel: S.of(context).stLabel,
+          );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
@@ -57,24 +68,43 @@ class QuickWeightWidget extends StatelessWidget {
               borderRadius: Dimens.borderRadiusM,
               border: Border.all(color: palette.border, width: Dimens.hairline),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.monitor_weight_rounded,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.monitor_weight_rounded,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: Dimens.spacing8),
+                    Text(
+                      displayStr,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: palette.textStrong,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: Dimens.spacing4),
+                    Icon(
+                      Icons.edit_rounded,
+                      size: 15,
+                      color: palette.textMuted,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: Dimens.spacing8),
-                Text(
-                  displayStr,
-                  style: textTheme.labelLarge?.copyWith(
-                    color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                if (avgStr != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '${S.of(context).sevenDayAvgLabel}: $avgStr',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: palette.textMuted,
+                    ),
                   ),
-                ),
-                const SizedBox(width: Dimens.spacing4),
-                Icon(Icons.edit_rounded, size: 15, color: palette.textMuted),
+                ],
               ],
             ),
           ),
@@ -86,10 +116,8 @@ class QuickWeightWidget extends StatelessWidget {
   Future<void> _showWeightDialog(BuildContext context) async {
     final newKg = await showDialog<double>(
       context: context,
-      builder: (context) => SetWeightDialog(
-        initialKg: weightKg,
-        unit: bodyWeightUnit,
-      ),
+      builder: (context) =>
+          SetWeightDialog(initialKg: weightKg, unit: bodyWeightUnit),
     );
 
     if (newKg == null || !context.mounted) return;

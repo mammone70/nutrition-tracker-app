@@ -1402,6 +1402,13 @@
   "homeConfirmMealLabel": "Öğünü onayla",
   "homeConfirmFoodLabel": "Yiyeceği onayla",
   "homeConfirmAllPlannedLabel": "Tümünü onayla",
+  "homeUnconfirmMealLabel": "Öğün onayını kaldır",
+  "homeUnconfirmFoodLabel": "Onayı kaldır",
+  "homeAddMealSlotLabel": "Öğün ekle",
+  "homeRemoveMealSlotLabel": "Öğün kaldır",
+  "waistLabel": "Bel",
+  "inchesLabel": "in",
+  "sevenDayAvgLabel": "7g ort.",
   "homePlannedEmptyHint": "Bugün için henüz planlanmış yiyecek yok. Günün planını açın veya haftalık öğünleri ayarlayın.",
   "homeConfirmedToDiarySnack": "Günlüğe {count} planlanmış yiyecek eklendi",
   "@homeConfirmedToDiarySnack": {

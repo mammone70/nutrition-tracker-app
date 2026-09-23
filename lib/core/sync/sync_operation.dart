@@ -10,12 +10,16 @@ enum SyncEntityType {
   mealPlanEntries('meal_plan_entries'),
   exercises('exercises'),
   /// Local-only: pushed via `POST /api/body-weight`, not `/api/sync/push`.
-  bodyWeight('__body_weight');
+  bodyWeight('__body_weight'),
+  /// Local-only: pushed via `POST /api/waist-circumference`.
+  waistCircumference('__waist_circumference');
 
   final String apiName;
   const SyncEntityType(this.apiName);
 
-  bool get isSyncPushEntity => this != SyncEntityType.bodyWeight;
+  bool get isSyncPushEntity =>
+      this != SyncEntityType.bodyWeight &&
+      this != SyncEntityType.waistCircumference;
 
   static SyncEntityType fromApiName(String name) {
     return SyncEntityType.values.firstWhere((e) => e.apiName == name);

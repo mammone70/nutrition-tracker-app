@@ -28,6 +28,7 @@ import 'package:opennutritracker/features/home/presentation/widgets/home_planned
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/quick_waist_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -168,6 +169,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   QuickWeightWidget(
                     weightKg: userWeightKg,
                     bodyWeightUnit: bodyWeightUnit,
+                    avg7dKg: state.weightAvg7dKg,
+                  ),
+                  QuickWaistWidget(
+                    waistInches: state.waistInchesToday,
+                    avg7dInches: state.waistAvg7dInches,
                   ),
                   QuickWaterWidget(
                     waterMlToday: waterMlToday,
@@ -212,6 +218,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               plannedProtein: state.plannedProtein,
               plannedFat: state.plannedFat,
               plannedCarbs: state.plannedCarbs,
+              confirmedPlanFoodIntakeIds: state.confirmedPlanFoodIntakeIds,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(

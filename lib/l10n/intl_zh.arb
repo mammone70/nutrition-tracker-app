@@ -1372,6 +1372,13 @@
   "homeConfirmMealLabel": "确认整餐",
   "homeConfirmFoodLabel": "确认食物",
   "homeConfirmAllPlannedLabel": "全部确认",
+  "homeUnconfirmMealLabel": "取消确认整餐",
+  "homeUnconfirmFoodLabel": "取消确认",
+  "homeAddMealSlotLabel": "添加餐次",
+  "homeRemoveMealSlotLabel": "移除餐次",
+  "waistLabel": "腰围",
+  "inchesLabel": "英寸",
+  "sevenDayAvgLabel": "7日均值",
   "homePlannedEmptyHint": "今天还没有计划食物。打开今日计划或设置每周餐食。",
   "homeConfirmedToDiarySnack": "已将 {count} 种计划食物添加到日记",
   "@homeConfirmedToDiarySnack": {

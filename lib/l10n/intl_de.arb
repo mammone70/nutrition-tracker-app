@@ -1402,6 +1402,13 @@
   "homeConfirmMealLabel": "Mahlzeit bestätigen",
   "homeConfirmFoodLabel": "Lebensmittel bestätigen",
   "homeConfirmAllPlannedLabel": "Alles bestätigen",
+  "homeUnconfirmMealLabel": "Bestätigung aufheben",
+  "homeUnconfirmFoodLabel": "Zurücknehmen",
+  "homeAddMealSlotLabel": "Mahlzeit hinzufügen",
+  "homeRemoveMealSlotLabel": "Mahlzeit entfernen",
+  "waistLabel": "Taille",
+  "inchesLabel": "Zoll",
+  "sevenDayAvgLabel": "7-T-Ø",
   "homePlannedEmptyHint": "Für heute sind noch keine Lebensmittel geplant. Öffnen Sie den Tagesplan oder richten Sie Ihre Wochenmahlzeiten ein.",
   "homeConfirmedToDiarySnack": "{count} geplante Lebensmittel zum Tagebuch hinzugefügt",
   "@homeConfirmedToDiarySnack": {

@@ -14,11 +14,13 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/confirmed_plan_food_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/macro_target_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_plan_entry_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_meal_plan_entry_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/waist_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/hive_registrar.g.dart';
@@ -58,6 +60,8 @@ class HiveDBProvider extends ChangeNotifier {
   // #70 follow-up: saved Custom activity templates (name + typical kcal).
   static const customActivityTemplateBoxName = 'CustomActivityTemplateBox';
   static const weightLogBoxName = 'WeightLogBox';
+  static const waistLogBoxName = 'WaistLogBox';
+  static const confirmedPlanFoodBoxName = 'ConfirmedPlanFoodBox';
   // #32: per-entry water intake log keyed by uuid; one row per sip so the
   // dialog's "undo last" can roll a single entry back without losing the
   // rest of the day.
@@ -94,6 +98,8 @@ class HiveDBProvider extends ChangeNotifier {
     userBoxName,
     trackedDayBoxName,
     weightLogBoxName,
+    waistLogBoxName,
+    confirmedPlanFoodBoxName,
     waterIntakeBoxName,
     fastingBoxName,
     weeklyMacroTargetBoxName,
@@ -127,6 +133,8 @@ class HiveDBProvider extends ChangeNotifier {
   Box<UserDBO>? _userBox;
   Box<TrackedDayDBO>? _trackedDayBox;
   Box<WeightLogDBO>? _weightLogBox;
+  Box<WaistLogDBO>? _waistLogBox;
+  Box<ConfirmedPlanFoodDBO>? _confirmedPlanFoodBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
   Box<WeeklyMacroTargetDBO>? _weeklyMacroTargetBox;
@@ -152,6 +160,10 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_trackedDayBox, trackedDayBoxName);
   Box<WeightLogDBO> get weightLogBox =>
       _requireBox(_weightLogBox, weightLogBoxName);
+  Box<WaistLogDBO> get waistLogBox =>
+      _requireBox(_waistLogBox, waistLogBoxName);
+  Box<ConfirmedPlanFoodDBO> get confirmedPlanFoodBox =>
+      _requireBox(_confirmedPlanFoodBox, confirmedPlanFoodBoxName);
   Box<WaterIntakeDBO> get waterIntakeBox =>
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
@@ -260,6 +272,12 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = await _openEncryptedBox(
       boxNameFor(weightLogBoxName, suffix),
     );
+    _waistLogBox = await _openEncryptedBox(
+      boxNameFor(waistLogBoxName, suffix),
+    );
+    _confirmedPlanFoodBox = await _openEncryptedBox(
+      boxNameFor(confirmedPlanFoodBoxName, suffix),
+    );
     _waterIntakeBox = await _openEncryptedBox(
       boxNameFor(waterIntakeBoxName, suffix),
     );
@@ -290,6 +308,8 @@ class HiveDBProvider extends ChangeNotifier {
       if (_userBox != null) _userBox!.close(),
       if (_trackedDayBox != null) _trackedDayBox!.close(),
       if (_weightLogBox != null) _weightLogBox!.close(),
+      if (_waistLogBox != null) _waistLogBox!.close(),
+      if (_confirmedPlanFoodBox != null) _confirmedPlanFoodBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
       if (_weeklyMacroTargetBox != null) _weeklyMacroTargetBox!.close(),
@@ -305,6 +325,8 @@ class HiveDBProvider extends ChangeNotifier {
     _userBox = null;
     _trackedDayBox = null;
     _weightLogBox = null;
+    _waistLogBox = null;
+    _confirmedPlanFoodBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
     _weeklyMacroTargetBox = null;

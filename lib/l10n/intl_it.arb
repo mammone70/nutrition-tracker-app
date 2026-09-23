@@ -1371,6 +1371,13 @@
   "homeConfirmMealLabel": "Conferma pasto",
   "homeConfirmFoodLabel": "Conferma alimento",
   "homeConfirmAllPlannedLabel": "Conferma tutto",
+  "homeUnconfirmMealLabel": "Annulla conferma pasto",
+  "homeUnconfirmFoodLabel": "Annulla conferma",
+  "homeAddMealSlotLabel": "Aggiungi pasto",
+  "homeRemoveMealSlotLabel": "Rimuovi pasto",
+  "waistLabel": "Vita",
+  "inchesLabel": "in",
+  "sevenDayAvgLabel": "Media 7g",
   "homePlannedEmptyHint": "Nessun alimento pianificato per oggi. Apri il piano di oggi o configura i pasti settimanali.",
   "homeConfirmedToDiarySnack": "Aggiunti {count} alimenti pianificati al diario",
   "@homeConfirmedToDiarySnack": {

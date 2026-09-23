@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/calories_profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/confirmed_plan_food_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/day_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -25,6 +26,7 @@ import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/waist_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_macro_target_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weekly_meal_dbo.dart';
@@ -36,6 +38,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(AppThemeDBOAdapter());
     registerAdapter(CaloriesProfileDBOAdapter());
     registerAdapter(ConfigDBOAdapter());
+    registerAdapter(ConfirmedPlanFoodDBOAdapter());
     registerAdapter(CustomActivityTemplateDBOAdapter());
     registerAdapter(DayMealDBOAdapter());
     registerAdapter(FastingSessionDBOAdapter());
@@ -57,6 +60,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(UserGenderDBOAdapter());
     registerAdapter(UserPALDBOAdapter());
     registerAdapter(UserWeightGoalDBOAdapter());
+    registerAdapter(WaistLogDBOAdapter());
     registerAdapter(WaterIntakeDBOAdapter());
     registerAdapter(WeeklyMacroTargetDBOAdapter());
     registerAdapter(WeeklyMealDBOAdapter());
@@ -70,6 +74,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(AppThemeDBOAdapter());
     registerAdapter(CaloriesProfileDBOAdapter());
     registerAdapter(ConfigDBOAdapter());
+    registerAdapter(ConfirmedPlanFoodDBOAdapter());
     registerAdapter(CustomActivityTemplateDBOAdapter());
     registerAdapter(DayMealDBOAdapter());
     registerAdapter(FastingSessionDBOAdapter());
@@ -91,6 +96,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(UserGenderDBOAdapter());
     registerAdapter(UserPALDBOAdapter());
     registerAdapter(UserWeightGoalDBOAdapter());
+    registerAdapter(WaistLogDBOAdapter());
     registerAdapter(WaterIntakeDBOAdapter());
     registerAdapter(WeeklyMacroTargetDBOAdapter());
     registerAdapter(WeeklyMealDBOAdapter());

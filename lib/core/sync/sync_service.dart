@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/domain/entity/weekly_macro_target_entity.d
 import 'package:opennutritracker/core/domain/entity/weekly_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weekly_meal_plan_entry_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/domain/entity/waist_log_entity.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_api_client.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_credentials.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_mapper.dart';
@@ -129,6 +130,34 @@ class SyncService extends ChangeNotifier {
     // day so a later online sync can resolve via range fetch if needed.
     await _outbox.enqueue(
       entityType: SyncEntityType.bodyWeight,
+      action: SyncAction.delete,
+      entityId: date.toParsedDay(),
+      payload: {'loggedOn': date.toParsedDay()},
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWaistLogUpsert(WaistLogEntity entry) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.waistCircumference,
+      action: SyncAction.create,
+      entityId: entry.date.toParsedDay(),
+      payload: CalorieTrackerSyncMapper.waistCircumferencePayload(
+        date: entry.date,
+        inches: entry.inches,
+        note: entry.note,
+      ),
+    );
+    await refreshPendingCount();
+    unawaited(syncNow());
+  }
+
+  Future<void> enqueueWaistLogDelete(DateTime date) async {
+    if (!await _credentials.isConfigured()) return;
+    await _outbox.enqueue(
+      entityType: SyncEntityType.waistCircumference,
       action: SyncAction.delete,
       entityId: date.toParsedDay(),
       payload: {'loggedOn': date.toParsedDay()},
@@ -348,6 +377,9 @@ class SyncService extends ChangeNotifier {
         pending.where((op) => op.entityType.isSyncPushEntity).toList();
     final weightOps =
         pending.where((op) => op.entityType == SyncEntityType.bodyWeight).toList();
+    final waistOps = pending
+        .where((op) => op.entityType == SyncEntityType.waistCircumference)
+        .toList();
 
     if (syncOps.isNotEmpty) {
       // Prefer create→update mapping: collapsing always stores latest action;
@@ -364,6 +396,22 @@ class SyncService extends ChangeNotifier {
           continue;
         }
         await _api.upsertBodyWeight(op.payload ?? const {});
+        await _outbox.remove(op.id);
+      } catch (error) {
+        await _outbox.update(
+          op.copyWith(attempts: op.attempts + 1, lastError: error.toString()),
+        );
+        rethrow;
+      }
+    }
+
+    for (final op in waistOps) {
+      try {
+        if (op.action == SyncAction.delete) {
+          await _outbox.remove(op.id);
+          continue;
+        }
+        await _api.upsertWaistCircumference(op.payload ?? const {});
         await _outbox.remove(op.id);
       } catch (error) {
         await _outbox.update(
