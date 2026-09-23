@@ -30,19 +30,25 @@ class FittyAgentPhotoLimits {
 }
 
 class FittyAgentScreen extends StatelessWidget {
-  const FittyAgentScreen({super.key});
+  /// When true (bottom-nav tab), the screen still owns its Scaffold/AppBar
+  /// because [MainScreen] hides the outer app bar on the chat tab.
+  const FittyAgentScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => locator<FittyAgentBloc>()..add(const FittyAgentStarted()),
-      child: const _FittyAgentView(),
+      child: _FittyAgentView(embedded: embedded),
     );
   }
 }
 
 class _FittyAgentView extends StatefulWidget {
-  const _FittyAgentView();
+  const _FittyAgentView({required this.embedded});
+
+  final bool embedded;
 
   @override
   State<_FittyAgentView> createState() => _FittyAgentViewState();
@@ -72,6 +78,7 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
     final s = S.of(context);
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.embedded,
         title: Text(s.fittyAgentTitle),
         actions: [
           IconButton(
@@ -137,15 +144,12 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
             children: [
               Expanded(
                 child: state.bubbles.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(Dimens.spacing24),
-                          child: Text(
-                            s.fittyAgentEmptyHint,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
+                    ? _EmptySuggestions(
+                        onSelect: (prompt) {
+                          context.read<FittyAgentBloc>().add(
+                            FittyAgentMessageSubmitted(prompt),
+                          );
+                        },
                       )
                     : ListView.builder(
                         controller: _scrollController,
@@ -377,6 +381,45 @@ class _FittyAgentViewState extends State<_FittyAgentView> {
     setState(() => _attachedImages.clear());
     context.read<FittyAgentBloc>().add(
       FittyAgentMessageSubmitted(text, images: images),
+    );
+  }
+}
+
+class _EmptySuggestions extends StatelessWidget {
+  const _EmptySuggestions({required this.onSelect});
+
+  final void Function(String prompt) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    final theme = Theme.of(context);
+    final prompts = [
+      s.fittyAgentSuggestionPeriod,
+      s.fittyAgentSuggestionPlan,
+      s.fittyAgentSuggestionLeftovers,
+    ];
+    return ListView(
+      padding: const EdgeInsets.all(Dimens.spacing24),
+      children: [
+        Text(
+          s.fittyAgentEmptyHint,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge,
+        ),
+        const SizedBox(height: Dimens.spacing24),
+        for (final prompt in prompts) ...[
+          OutlinedButton(
+            onPressed: () => onSelect(prompt),
+            style: OutlinedButton.styleFrom(
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+            child: Text(prompt, textAlign: TextAlign.start),
+          ),
+          const SizedBox(height: Dimens.spacing12),
+        ],
+      ],
     );
   }
 }

@@ -1426,6 +1426,11 @@
   "weekdaySaturday": "Saturday",
   "weekdaySunday": "Sunday",
   "fittyAgentTitle": "Fitty Agent",
+
+  "fittyAgentNavLabel": "Chat",
+  "fittyAgentSuggestionPeriod": "What was my average bodyweight and calories over the last week?",
+  "fittyAgentSuggestionPlan": "Create a 2-week carb-cycle plan averaging 4300 kcal/day with 225g protein and 80g fat.",
+  "fittyAgentSuggestionLeftovers": "How many calories and macros do I have left today? Suggest a final meal.",
   "fittyAgentSubtitle": "Otázky o makrá, jedálničky, pokrok a sync",
   "fittyAgentEmptyHint": "Požiadaj Fitty Agenta o makrá, plán jedál, dnešný denník alebo sync s Calorie Tracker. Môžeš aj priložiť fotky jedla a upraviť plán.",
   "fittyAgentInputHint": "Správa pre Fitty Agent…",

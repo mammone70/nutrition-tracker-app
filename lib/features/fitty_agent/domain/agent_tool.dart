@@ -267,6 +267,130 @@ const List<AgentToolDefinition> fittyAgentTools = [
     },
   ),
   AgentToolDefinition(
+    name: 'get_period_summary',
+    description:
+        'Summarise a date range: daily and average calories/macros from '
+        'tracked diary days, plus body-weight entries and average weight. '
+        'Prefer this over calling get_diary_day many times.',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'start_date': {
+          'type': 'string',
+          'description': 'YYYY-MM-DD inclusive start.',
+        },
+        'end_date': {
+          'type': 'string',
+          'description': 'YYYY-MM-DD inclusive end. Defaults to today.',
+        },
+      },
+      'required': ['start_date'],
+      'additionalProperties': false,
+    },
+  ),
+  AgentToolDefinition(
+    name: 'get_remaining_macros',
+    description:
+        'Effective calorie/macro targets for a day minus what is already '
+        'logged in the diary. Use before planning a final meal from leftovers.',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'date': {
+          'type': 'string',
+          'description': 'YYYY-MM-DD. Defaults to today when omitted.',
+        },
+      },
+      'additionalProperties': false,
+    },
+  ),
+  AgentToolDefinition(
+    name: 'set_daily_macro_targets',
+    description:
+        'Set day-specific macro/calorie overrides for many dates in one call. '
+        'Use for a finite window (e.g. next 14 days). For an ongoing weekday '
+        'pattern, prefer set_weekly_macro_targets.',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'targets': {
+          'type': 'array',
+          'items': {
+            'type': 'object',
+            'properties': {
+              'date': {'type': 'string', 'description': 'YYYY-MM-DD'},
+              'calories': {'type': 'integer'},
+              'protein_g': {'type': 'number'},
+              'fat_g': {'type': 'number'},
+              'carbs_g': {'type': 'number'},
+            },
+            'required': [
+              'date',
+              'calories',
+              'protein_g',
+              'fat_g',
+              'carbs_g',
+            ],
+            'additionalProperties': false,
+          },
+        },
+      },
+      'required': ['targets'],
+      'additionalProperties': false,
+    },
+  ),
+  AgentToolDefinition(
+    name: 'search_custom_meals',
+    description:
+        'Search the user\'s custom food database by name (and optional brand). '
+        'Returns per-100g nutrition. Use before inventing leftovers nutrition.',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'query': {'type': 'string', 'description': 'Food name fragment.'},
+        'limit': {'type': 'integer', 'description': 'Max results, default 10.'},
+      },
+      'required': ['query'],
+      'additionalProperties': false,
+    },
+  ),
+  AgentToolDefinition(
+    name: 'log_intake',
+    description:
+        'Log a food into the diary for a date and meal type. Nutrition must '
+        'come from search_custom_meals, the user, or another tool — never invent. '
+        'Synced when Calorie Tracker sync is on.',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'date': {'type': 'string', 'description': 'YYYY-MM-DD'},
+        'meal_type': {
+          'type': 'string',
+          'description': 'breakfast | lunch | dinner | snack',
+        },
+        'name': {'type': 'string'},
+        'brand': {'type': 'string'},
+        'quantity': {'type': 'number'},
+        'unit': {'type': 'string', 'description': 'Default g'},
+        'calories_per_100': {'type': 'number'},
+        'protein_per_100': {'type': 'number'},
+        'fat_per_100': {'type': 'number'},
+        'carbs_per_100': {'type': 'number'},
+      },
+      'required': [
+        'date',
+        'meal_type',
+        'name',
+        'quantity',
+        'calories_per_100',
+        'protein_per_100',
+        'fat_per_100',
+        'carbs_per_100',
+      ],
+      'additionalProperties': false,
+    },
+  ),
+  AgentToolDefinition(
     name: 'get_profile_summary',
     description:
         'Read the user profile relevant to goals and progress: age band, '
@@ -281,11 +405,15 @@ const List<AgentToolDefinition> fittyAgentTools = [
   ),
   AgentToolDefinition(
     name: 'get_weight_history',
-    description: 'List recent body-weight log entries.',
+    description:
+        'List body-weight log entries. Prefer start_date/end_date for weekly '
+        'averages; otherwise limit recent entries.',
     parameters: {
       'type': 'object',
       'properties': {
         'limit': {'type': 'integer', 'description': 'Max entries, default 14.'},
+        'start_date': {'type': 'string', 'description': 'YYYY-MM-DD optional.'},
+        'end_date': {'type': 'string', 'description': 'YYYY-MM-DD optional.'},
       },
       'additionalProperties': false,
     },
@@ -334,18 +462,35 @@ const List<AgentToolDefinition> fittyAgentTools = [
 ];
 
 const fittyAgentSystemPrompt = '''
-You are Fitty Agent for the Fitty Kitties nutrition app.
-You help the user with macro targets, meal planning, diary progress, profile goals, and Calorie Tracker sync.
-Use tools to read or write local data. Writes are stored on-device first and synced through the REST API when sync is configured.
+You are Fitty Chat for the Fitty Kitties nutrition app — the primary way the user
+queries and changes their nutrition data in natural language.
+You help with macro targets, meal planning, diary progress, leftovers meals,
+body-weight history, profile goals, and Calorie Tracker sync.
+Use tools to read or write local data. Writes are stored on-device first and synced
+through the REST API when sync is configured.
 Rules:
 - Prefer tools over guessing. If data is missing, say so.
 - Dates are YYYY-MM-DD. Weekdays use 0=Monday through 6=Sunday.
-- When setting macros for several weekdays (carb cycling, high/low days, etc.), use set_weekly_macro_targets once with every day — do not call set_weekly_macro_target seven times.
+- For weekly averages (weight, calories, macros), use get_period_summary (or
+  get_weight_history with start_date/end_date) — do not call get_diary_day once
+  per day unless you need item-level detail.
+- For "how much is left today", call get_remaining_macros.
+- When setting an ongoing weekday pattern (carb cycling), use
+  set_weekly_macro_targets once with every day.
+- When the user wants a finite horizon (e.g. next 2 weeks), use
+  set_daily_macro_targets with one entry per date. You may also set weekly
+  templates if they want the pattern to continue after that window.
 - When you need several independent tools, call them together in one step.
-- Protein/carbs are 4 kcal/g and fat is 9 kcal/g when deriving carbs from remaining calories.
-- Never invent nutrition numbers for foods the user already logged; diary macros come from stored food data via get_diary_day.
-- For meal-plan foods, only use nutrition values the user provided in this chat or that tools returned. Do not invent nutrition.
-- The user may attach one or more meal photos (up to 10). Identify visible foods, prefer getting the current day or weekly meal plan first, then update with save_day_meal_plan or save_weekly_meal_plan. Use quantities the user stated; photo-based counts are approximate — ask when unsure. Prefer nutrition the user stated; otherwise ask rather than guessing.
-- Keep answers concise and actionable.
-- After writing, briefly confirm what changed (include calories and macros per day type).
+- Protein/carbs are 4 kcal/g and fat is 9 kcal/g when deriving carbs from
+  remaining calories (carbs_g = (kcal - protein_g*4 - fat_g*9) / 4).
+- Never invent nutrition numbers. For leftovers or named foods, call
+  search_custom_meals first; if nothing matches, ask the user for per-100g
+  values or portions. Then save_day_meal_plan and/or log_intake.
+- Diary macros come from stored food data via get_diary_day / get_period_summary.
+- The user may attach one or more meal photos (up to 10). Identify visible foods,
+  prefer getting the current day or weekly meal plan first, then update with
+  save_day_meal_plan or save_weekly_meal_plan. Use quantities the user stated;
+  photo-based counts are approximate — ask when unsure.
+- Keep answers concise and actionable. After writing, briefly confirm what
+  changed (include calories and macros per day type).
 ''';

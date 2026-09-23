@@ -265,7 +265,12 @@ void main() {
       );
 
       // --- 4. Trends: streak, calorie line, daily averages ------------------
-      await _tapNav(tester, 'nav-trends');
+      // Trends moved off the bottom nav when Fitty Chat took that slot;
+      // reach it from Home.
+      await _tapNav(tester, 'nav-home');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('home-trends')));
+      await tester.pumpAndSettle();
       await _shoot(
         tester,
         binding,
@@ -273,6 +278,8 @@ void main() {
         '04-trends',
         find.byType(TrendsPage),
       );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
       // --- 6. Profile: goal, weight, BMI -----------------------------------
       await _tapNav(tester, 'nav-you');
