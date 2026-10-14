@@ -6,7 +6,13 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:opennutritracker/core/data/repository/day_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/macro_target_repository.dart';
+import 'package:opennutritracker/core/data/repository/meal_plan_entry_repository.dart';
+import 'package:opennutritracker/core/data/repository/weekly_macro_target_repository.dart';
+import 'package:opennutritracker/core/data/repository/weekly_meal_plan_entry_repository.dart';
+import 'package:opennutritracker/core/data/repository/weekly_meal_repository.dart';
 import 'package:opennutritracker/core/domain/entity/day_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/macro_target_entity.dart';
@@ -28,11 +34,18 @@ import 'package:synchronized/synchronized.dart';
 ///
 /// Writes go to Hive first; this service queues API mutations and drains them
 /// through `POST /api/sync/push` (plus `POST /api/body-weight` for weight).
+/// Pull applies diary logs **and** daily/weekly meal plans + macro targets.
 class SyncService extends ChangeNotifier {
   final CalorieTrackerSyncCredentials _credentials;
   final SyncOutboxDataSource _outbox;
   final CalorieTrackerApiClient _api;
   final IntakeRepository _intakeRepository;
+  final DayMealRepository _dayMealRepository;
+  final MealPlanEntryRepository _mealPlanEntryRepository;
+  final WeeklyMealRepository _weeklyMealRepository;
+  final WeeklyMealPlanEntryRepository _weeklyMealPlanEntryRepository;
+  final MacroTargetRepository _macroTargetRepository;
+  final WeeklyMacroTargetRepository _weeklyMacroTargetRepository;
 
   final _log = Logger('SyncService');
   final _lock = Lock();
@@ -47,10 +60,22 @@ class SyncService extends ChangeNotifier {
     required SyncOutboxDataSource outbox,
     required CalorieTrackerApiClient api,
     required IntakeRepository intakeRepository,
-  })  : _credentials = credentials,
-        _outbox = outbox,
-        _api = api,
-        _intakeRepository = intakeRepository;
+    required DayMealRepository dayMealRepository,
+    required MealPlanEntryRepository mealPlanEntryRepository,
+    required WeeklyMealRepository weeklyMealRepository,
+    required WeeklyMealPlanEntryRepository weeklyMealPlanEntryRepository,
+    required MacroTargetRepository macroTargetRepository,
+    required WeeklyMacroTargetRepository weeklyMacroTargetRepository,
+  }) : _credentials = credentials,
+       _outbox = outbox,
+       _api = api,
+       _intakeRepository = intakeRepository,
+       _dayMealRepository = dayMealRepository,
+       _mealPlanEntryRepository = mealPlanEntryRepository,
+       _weeklyMealRepository = weeklyMealRepository,
+       _weeklyMealPlanEntryRepository = weeklyMealPlanEntryRepository,
+       _macroTargetRepository = macroTargetRepository,
+       _weeklyMacroTargetRepository = weeklyMacroTargetRepository;
 
   bool get isSyncing => _syncing;
   String? get lastError => _lastError;
@@ -65,8 +90,10 @@ class SyncService extends ChangeNotifier {
   Future<void> enqueueIntakeUpsert(IntakeEntity intake) async {
     if (!await _credentials.isConfigured()) return;
     final foodId = CalorieTrackerSyncMapper.foodIdForMeal(intake.meal);
-    final dayMealId =
-        CalorieTrackerSyncMapper.dayMealIdFor(intake.dateTime, intake.type);
+    final dayMealId = CalorieTrackerSyncMapper.dayMealIdFor(
+      intake.dateTime,
+      intake.type,
+    );
 
     await _outbox.enqueue(
       entityType: SyncEntityType.foods,
@@ -241,10 +268,11 @@ class SyncService extends ChangeNotifier {
     WeeklyMealPlanEntryEntity entry,
   ) async {
     if (!await _credentials.isConfigured()) return;
+    final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
     await _outbox.enqueue(
       entityType: SyncEntityType.foods,
       action: SyncAction.create,
-      entityId: entry.foodId,
+      entityId: foodId,
       payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
         foodName: entry.foodName,
         brand: entry.brand,
@@ -258,7 +286,10 @@ class SyncService extends ChangeNotifier {
       entityType: SyncEntityType.weeklyMealPlanEntries,
       action: SyncAction.create,
       entityId: entry.id,
-      payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(entry),
+      payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(
+        entry,
+        foodIdOverride: foodId,
+      ),
     );
     await refreshPendingCount();
     unawaited(syncNow());
@@ -300,10 +331,11 @@ class SyncService extends ChangeNotifier {
 
   Future<void> enqueueMealPlanEntryUpsert(MealPlanEntryEntity entry) async {
     if (!await _credentials.isConfigured()) return;
+    final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
     await _outbox.enqueue(
       entityType: SyncEntityType.foods,
       action: SyncAction.create,
-      entityId: entry.foodId,
+      entityId: foodId,
       payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
         foodName: entry.foodName,
         brand: entry.brand,
@@ -317,7 +349,10 @@ class SyncService extends ChangeNotifier {
       entityType: SyncEntityType.mealPlanEntries,
       action: SyncAction.create,
       entityId: entry.id,
-      payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(entry),
+      payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(
+        entry,
+        foodIdOverride: foodId,
+      ),
     );
     await refreshPendingCount();
     unawaited(syncNow());
@@ -349,14 +384,29 @@ class SyncService extends ChangeNotifier {
       _syncing = true;
       _lastError = null;
       notifyListeners();
+      var pushOk = true;
       try {
-        await _pushOutbox();
+        // First sync: upload any local meal plans that predate enabling sync,
+        // then pull remote plans so both directions populate.
+        final firstSync = await _credentials.getLastPullAt() == null;
+        if (firstSync) {
+          await _seedOutboxFromLocalMealPlans();
+        }
+        try {
+          await _pushOutbox();
+        } catch (error, stackTrace) {
+          // Pull must still run — REST → Hive is how the diary/plan screens
+          // get populated, and a bad local outbox row must not block that.
+          pushOk = false;
+          _log.warning('Push failed; continuing with pull', error, stackTrace);
+          _lastError = error.toString();
+        }
         if (pull) {
           await _pullRemote();
         }
         _lastSyncAt = DateTime.now().toUtc();
         await refreshPendingCount();
-        return true;
+        return pushOk;
       } catch (error, stackTrace) {
         _log.warning('Sync failed', error, stackTrace);
         _lastError = error.toString();
@@ -369,23 +419,146 @@ class SyncService extends ChangeNotifier {
     });
   }
 
+  /// Queues every local daily/weekly meal plan + macro target for push.
+  ///
+  /// Used on the first sync so plans created before credentials were saved
+  /// still reach the server. Collapsing in the outbox keeps this compact.
+  Future<void> _seedOutboxFromLocalMealPlans() async {
+    for (final meal in await _dayMealRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(meal.id)) continue;
+      await _outbox.enqueue(
+        entityType: SyncEntityType.dayMeals,
+        action: SyncAction.create,
+        entityId: meal.id,
+        payload: CalorieTrackerSyncMapper.dayMealEntityPayload(meal),
+      );
+    }
+    for (final entry in await _mealPlanEntryRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(entry.id) ||
+          !CalorieTrackerSyncMapper.isUuid(entry.dayMealId)) {
+        continue;
+      }
+      final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
+      await _outbox.enqueue(
+        entityType: SyncEntityType.foods,
+        action: SyncAction.create,
+        entityId: foodId,
+        payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
+          foodName: entry.foodName,
+          brand: entry.brand,
+          caloriesPer100: entry.caloriesPer100,
+          proteinPer100: entry.proteinPer100,
+          fatPer100: entry.fatPer100,
+          carbsPer100: entry.carbsPer100,
+        ),
+      );
+      await _outbox.enqueue(
+        entityType: SyncEntityType.mealPlanEntries,
+        action: SyncAction.create,
+        entityId: entry.id,
+        payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(
+          entry,
+          foodIdOverride: foodId,
+        ),
+      );
+    }
+    for (final meal in await _weeklyMealRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(meal.id)) continue;
+      await _outbox.enqueue(
+        entityType: SyncEntityType.weeklyMeals,
+        action: SyncAction.create,
+        entityId: meal.id,
+        payload: CalorieTrackerSyncMapper.weeklyMealPayload(meal),
+      );
+    }
+    for (final entry in await _weeklyMealPlanEntryRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(entry.id) ||
+          !CalorieTrackerSyncMapper.isUuid(entry.weeklyMealId)) {
+        continue;
+      }
+      final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
+      await _outbox.enqueue(
+        entityType: SyncEntityType.foods,
+        action: SyncAction.create,
+        entityId: foodId,
+        payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
+          foodName: entry.foodName,
+          brand: entry.brand,
+          caloriesPer100: entry.caloriesPer100,
+          proteinPer100: entry.proteinPer100,
+          fatPer100: entry.fatPer100,
+          carbsPer100: entry.carbsPer100,
+        ),
+      );
+      await _outbox.enqueue(
+        entityType: SyncEntityType.weeklyMealPlanEntries,
+        action: SyncAction.create,
+        entityId: entry.id,
+        payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(
+          entry,
+          foodIdOverride: foodId,
+        ),
+      );
+    }
+    for (final target in await _macroTargetRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(target.id)) continue;
+      await _outbox.enqueue(
+        entityType: SyncEntityType.macroTargets,
+        action: SyncAction.create,
+        entityId: target.id,
+        payload: CalorieTrackerSyncMapper.macroTargetPayload(target),
+      );
+    }
+    for (final target in await _weeklyMacroTargetRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(target.id)) continue;
+      await _outbox.enqueue(
+        entityType: SyncEntityType.weeklyMacroTargets,
+        action: SyncAction.create,
+        entityId: target.id,
+        payload: CalorieTrackerSyncMapper.weeklyMacroTargetPayload(target),
+      );
+    }
+  }
+
   Future<void> _pushOutbox() async {
     final pending = await _outbox.getAll();
     if (pending.isEmpty) return;
 
-    final syncOps =
-        pending.where((op) => op.entityType.isSyncPushEntity).toList();
-    final weightOps =
-        pending.where((op) => op.entityType == SyncEntityType.bodyWeight).toList();
+    final syncOps = pending
+        .where((op) => op.entityType.isSyncPushEntity)
+        .toList();
+    final weightOps = pending
+        .where((op) => op.entityType == SyncEntityType.bodyWeight)
+        .toList();
     final waistOps = pending
         .where((op) => op.entityType == SyncEntityType.waistCircumference)
         .toList();
 
     if (syncOps.isNotEmpty) {
-      // Prefer create→update mapping: collapsing always stores latest action;
-      // foods/day_meals use create (upsert-friendly on server with entityId).
-      await _api.pushMutations(syncOps);
-      await _outbox.removeAll(syncOps.map((op) => op.id));
+      // Remap / drop ops the API would reject (non-UUID entityIds such as
+      // Fitty Agent's `agent:oatmeal` food codes). Dropped ops are removed
+      // from the outbox so they cannot block every subsequent sync.
+      final sanitized = <SyncOperation>[];
+      final dropIds = <String>[];
+      for (final op in syncOps) {
+        final fixed = CalorieTrackerSyncMapper.sanitizePushOperation(op);
+        if (fixed == null) {
+          _log.warning(
+            'Dropping sync push op ${op.entityType.apiName}/${op.entityId}: '
+            'not a valid UUID and could not be remapped',
+          );
+          dropIds.add(op.id);
+          continue;
+        }
+        sanitized.add(fixed);
+      }
+      if (dropIds.isNotEmpty) {
+        await _outbox.removeAll(dropIds);
+      }
+      if (sanitized.isNotEmpty) {
+        await _api.pushMutations(sanitized);
+        await _outbox.removeAll(sanitized.map((op) => op.id));
+      }
     }
 
     for (final op in weightOps) {
@@ -425,29 +598,71 @@ class SyncService extends ChangeNotifier {
   Future<void> _pullRemote() async {
     final since = await _credentials.getLastPullAt();
     final pull = await _api.pullSince(since);
-    final logs = (pull['foodLogEntries'] as List? ?? const [])
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
-    final foods = (pull['foods'] as List? ?? const [])
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
     final foodById = {
-      for (final f in foods) f['id'] as String: f,
+      for (final f in _maps(pull, 'foods')) f['id'] as String: f,
     };
 
-    final pendingIds = (await _outbox.getAll())
-        .where((op) => op.entityType == SyncEntityType.foodLogEntries)
+    final pending = await _outbox.getAll();
+    Set<String> pendingOf(SyncEntityType type) => pending
+        .where((op) => op.entityType == type)
         .map((op) => op.entityId)
         .toSet();
 
+    await _applyFoodLogEntries(
+      _maps(pull, 'foodLogEntries'),
+      foodById,
+      pendingOf(SyncEntityType.foodLogEntries),
+    );
+    await _applyDayMeals(
+      _maps(pull, 'dayMeals'),
+      pendingOf(SyncEntityType.dayMeals),
+    );
+    await _applyMealPlanEntries(
+      _maps(pull, 'mealPlanEntries'),
+      foodById,
+      pendingOf(SyncEntityType.mealPlanEntries),
+    );
+    await _applyWeeklyMeals(
+      _maps(pull, 'weeklyMeals'),
+      pendingOf(SyncEntityType.weeklyMeals),
+    );
+    await _applyWeeklyMealPlanEntries(
+      _maps(pull, 'weeklyMealPlanEntries'),
+      foodById,
+      pendingOf(SyncEntityType.weeklyMealPlanEntries),
+    );
+    await _applyMacroTargets(
+      _maps(pull, 'macroTargets'),
+      pendingOf(SyncEntityType.macroTargets),
+    );
+    await _applyWeeklyMacroTargets(
+      _maps(pull, 'weeklyMacroTargets'),
+      pendingOf(SyncEntityType.weeklyMacroTargets),
+    );
+
+    final serverTime = pull['serverTime'] as String?;
+    await _credentials.setLastPullAt(
+      serverTime != null ? DateTime.parse(serverTime) : DateTime.now().toUtc(),
+    );
+  }
+
+  List<Map<String, dynamic>> _maps(Map<String, dynamic> pull, String key) {
+    return (pull[key] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+  }
+
+  Future<void> _applyFoodLogEntries(
+    List<Map<String, dynamic>> logs,
+    Map<String, Map<String, dynamic>> foodById,
+    Set<String> pendingIds,
+  ) async {
     final toApply = <IntakeDBO>[];
     for (final log in logs) {
       final id = log['id'] as String?;
       if (id == null || pendingIds.contains(id)) continue;
       if (log['deletedAt'] != null) {
-        // Soft-deleted remotely — drop local copy if present.
         final existing = await _intakeRepository.getIntakeById(id);
         if (existing != null) {
           await _intakeRepository.deleteIntake(existing);
@@ -461,13 +676,132 @@ class SyncService extends ChangeNotifier {
     if (toApply.isNotEmpty) {
       await _intakeRepository.addAllIntakeDBOs(toApply);
     }
+  }
 
-    final serverTime = pull['serverTime'] as String?;
-    await _credentials.setLastPullAt(
-      serverTime != null
-          ? DateTime.parse(serverTime)
-          : DateTime.now().toUtc(),
-    );
+  Future<void> _applyDayMeals(
+    List<Map<String, dynamic>> rows,
+    Set<String> pendingIds,
+  ) async {
+    final toUpsert = <DayMealEntity>[];
+    for (final raw in rows) {
+      final id = raw['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (raw['deletedAt'] != null) {
+        await _dayMealRepository.deleteById(id);
+        continue;
+      }
+      final entity = CalorieTrackerSyncMapper.dayMealFromRemote(raw);
+      if (entity != null) toUpsert.add(entity);
+    }
+    if (toUpsert.isNotEmpty) {
+      await _dayMealRepository.upsertAll(toUpsert);
+    }
+  }
+
+  Future<void> _applyMealPlanEntries(
+    List<Map<String, dynamic>> rows,
+    Map<String, Map<String, dynamic>> foodById,
+    Set<String> pendingIds,
+  ) async {
+    final toUpsert = <MealPlanEntryEntity>[];
+    for (final raw in rows) {
+      final id = raw['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (raw['deletedAt'] != null) {
+        await _mealPlanEntryRepository.deleteById(id);
+        continue;
+      }
+      final foodId = raw['foodId'] as String?;
+      final entity = CalorieTrackerSyncMapper.mealPlanEntryFromRemote(
+        raw,
+        foodId == null ? null : foodById[foodId],
+      );
+      if (entity != null) toUpsert.add(entity);
+    }
+    if (toUpsert.isNotEmpty) {
+      await _mealPlanEntryRepository.upsertAll(toUpsert);
+    }
+  }
+
+  Future<void> _applyWeeklyMeals(
+    List<Map<String, dynamic>> rows,
+    Set<String> pendingIds,
+  ) async {
+    final toUpsert = <WeeklyMealEntity>[];
+    for (final raw in rows) {
+      final id = raw['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (raw['deletedAt'] != null) {
+        await _weeklyMealRepository.deleteById(id);
+        continue;
+      }
+      final entity = CalorieTrackerSyncMapper.weeklyMealFromRemote(raw);
+      if (entity != null) toUpsert.add(entity);
+    }
+    if (toUpsert.isNotEmpty) {
+      await _weeklyMealRepository.upsertAll(toUpsert);
+    }
+  }
+
+  Future<void> _applyWeeklyMealPlanEntries(
+    List<Map<String, dynamic>> rows,
+    Map<String, Map<String, dynamic>> foodById,
+    Set<String> pendingIds,
+  ) async {
+    final toUpsert = <WeeklyMealPlanEntryEntity>[];
+    for (final raw in rows) {
+      final id = raw['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (raw['deletedAt'] != null) {
+        await _weeklyMealPlanEntryRepository.deleteById(id);
+        continue;
+      }
+      final foodId = raw['foodId'] as String?;
+      final entity = CalorieTrackerSyncMapper.weeklyMealPlanEntryFromRemote(
+        raw,
+        foodId == null ? null : foodById[foodId],
+      );
+      if (entity != null) toUpsert.add(entity);
+    }
+    if (toUpsert.isNotEmpty) {
+      await _weeklyMealPlanEntryRepository.upsertAll(toUpsert);
+    }
+  }
+
+  Future<void> _applyMacroTargets(
+    List<Map<String, dynamic>> rows,
+    Set<String> pendingIds,
+  ) async {
+    for (final raw in rows) {
+      final id = raw['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (raw['deletedAt'] != null) {
+        await _macroTargetRepository.deleteById(id);
+        continue;
+      }
+      final entity = CalorieTrackerSyncMapper.macroTargetFromRemote(raw);
+      if (entity != null) {
+        await _macroTargetRepository.upsert(entity);
+      }
+    }
+  }
+
+  Future<void> _applyWeeklyMacroTargets(
+    List<Map<String, dynamic>> rows,
+    Set<String> pendingIds,
+  ) async {
+    for (final raw in rows) {
+      final id = raw['id'] as String?;
+      if (id == null || pendingIds.contains(id)) continue;
+      if (raw['deletedAt'] != null) {
+        await _weeklyMacroTargetRepository.deleteById(id);
+        continue;
+      }
+      final entity = CalorieTrackerSyncMapper.weeklyMacroTargetFromRemote(raw);
+      if (entity != null) {
+        await _weeklyMacroTargetRepository.upsert(entity);
+      }
+    }
   }
 
   IntakeDBO _intakeFromRemote(

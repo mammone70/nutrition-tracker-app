@@ -731,6 +731,12 @@ Future<void> initLocator() async {
       outbox: locator(),
       api: locator(),
       intakeRepository: locator(),
+      dayMealRepository: locator(),
+      mealPlanEntryRepository: locator(),
+      weeklyMealRepository: locator(),
+      weeklyMealPlanEntryRepository: locator(),
+      macroTargetRepository: locator(),
+      weeklyMacroTargetRepository: locator(),
     ),
   );
   locator.registerLazySingleton<AgentToolExecutor>(

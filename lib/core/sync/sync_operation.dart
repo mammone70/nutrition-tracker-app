@@ -9,8 +9,10 @@ enum SyncEntityType {
   weeklyMealPlanEntries('weekly_meal_plan_entries'),
   mealPlanEntries('meal_plan_entries'),
   exercises('exercises'),
+
   /// Local-only: pushed via `POST /api/body-weight`, not `/api/sync/push`.
   bodyWeight('__body_weight'),
+
   /// Local-only: pushed via `POST /api/waist-circumference`.
   waistCircumference('__waist_circumference');
 
@@ -26,11 +28,7 @@ enum SyncEntityType {
   }
 }
 
-enum SyncAction {
-  create,
-  update,
-  delete,
-}
+enum SyncAction { create, update, delete }
 
 /// One pending local → remote mutation matching calorie-tracker sync push.
 class SyncOperation {
@@ -57,6 +55,7 @@ class SyncOperation {
   });
 
   SyncOperation copyWith({
+    String? entityId,
     int? attempts,
     String? lastError,
     Map<String, dynamic>? payload,
@@ -65,7 +64,7 @@ class SyncOperation {
       id: id,
       entityType: entityType,
       action: action,
-      entityId: entityId,
+      entityId: entityId ?? this.entityId,
       clientUpdatedAt: clientUpdatedAt,
       enqueuedAt: enqueuedAt,
       payload: payload ?? this.payload,
@@ -75,25 +74,25 @@ class SyncOperation {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'entityType': entityType.apiName,
-        'action': action.name,
-        'entityId': entityId,
-        'payload': payload,
-        'clientUpdatedAt': clientUpdatedAt.toUtc().toIso8601String(),
-        'enqueuedAt': enqueuedAt.toUtc().toIso8601String(),
-        'attempts': attempts,
-        'lastError': lastError,
-      };
+    'id': id,
+    'entityType': entityType.apiName,
+    'action': action.name,
+    'entityId': entityId,
+    'payload': payload,
+    'clientUpdatedAt': clientUpdatedAt.toUtc().toIso8601String(),
+    'enqueuedAt': enqueuedAt.toUtc().toIso8601String(),
+    'attempts': attempts,
+    'lastError': lastError,
+  };
 
   /// Wire format for `POST /api/sync/push`.
   Map<String, dynamic> toPushMutation() => {
-        'entityType': entityType.apiName,
-        'entityId': entityId,
-        'action': action.name,
-        if (payload != null) 'payload': payload,
-        'clientUpdatedAt': clientUpdatedAt.toUtc().toIso8601String(),
-      };
+    'entityType': entityType.apiName,
+    'entityId': entityId,
+    'action': action.name,
+    if (payload != null) 'payload': payload,
+    'clientUpdatedAt': clientUpdatedAt.toUtc().toIso8601String(),
+  };
 
   factory SyncOperation.fromJson(Map<String, dynamic> json) {
     return SyncOperation(

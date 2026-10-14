@@ -26,17 +26,17 @@ using the same local-first pattern as that project's web client:
 
 ## Diary mapping
 
-| OpenNutriTracker | calorie-tracker |
-|------------------|-----------------|
-| Intake (meal log) | `foods` + `day_meals` + `food_log_entries` |
-| Weight log | `POST /api/body-weight` (`unit: kg`) |
-| Weekly macro targets | `weekly_macro_targets` |
-| Daily macro override | `macro_targets` |
-| Weekly meals | `weekly_meals` |
-| Weekly meal plan foods | `foods` + `weekly_meal_plan_entries` |
-| Day meal overrides | `day_meals` |
-| Day meal plan foods | `foods` + `meal_plan_entries` |
-| Activities / water / full profile | not mirrored yet |
+| OpenNutriTracker | calorie-tracker | Direction |
+|------------------|-----------------|-----------|
+| Intake (meal log) | `foods` + `day_meals` + `food_log_entries` | push + pull |
+| Weight log | `POST /api/body-weight` (`unit: kg`) | push |
+| Weekly macro targets | `weekly_macro_targets` | push + pull |
+| Daily macro override | `macro_targets` | push + pull |
+| Weekly meals | `weekly_meals` | push + pull |
+| Weekly meal plan foods | `foods` + `weekly_meal_plan_entries` | push + pull |
+| Day meal overrides | `day_meals` | push + pull |
+| Day meal plan foods | `foods` + `meal_plan_entries` | push + pull |
+| Activities / water / full profile | not mirrored yet | — |
 
 Food and day-meal IDs are deterministic UUIDv5 values so repeated logs of the
 same product reuse one remote food row. Intake ids (already UUIDs) become
@@ -46,6 +46,24 @@ Meal slots: breakfast=0, lunch=1, dinner=2, snack=3.
 
 Weekly templates use `dayOfWeek` 0=Monday … 6=Sunday. Effective targets and
 meal plans resolve as: **day override → weekly template → none**.
+
+### Meal-plan sync behaviour
+
+- **Push:** every local save/delete of a day plan, weekly plan, or macro target
+  enqueues an outbox mutation and drains on `syncNow` (Settings → Sync now,
+  app resume, or after a write). Non-UUID food codes (e.g. legacy Fitty Agent
+  `agent:…` ids) are remapped to deterministic UUIDv5 values before push; ops
+  that still cannot be made valid are dropped so they do not block sync.
+- **Pull:** `GET /api/sync?since=` applies `dayMeals`, `mealPlanEntries`,
+  `weeklyMeals`, `weeklyMealPlanEntries`, `macroTargets`, and
+  `weeklyMacroTargets` into Hive (joining `foods` for denormalized nutrients).
+  Rows still pending in the outbox are skipped so a local edit wins the round
+  trip. Soft-deleted remote rows (`deletedAt`) remove the local copy.
+  **Pull still runs if push fails** — populating Hive from the REST API is
+  not blocked by a bad local outbox row.
+- **First sync:** when no pull cursor exists yet, local day/weekly plans and
+  macro targets are seeded into the outbox before push, then remote rows are
+  pulled — so both directions populate on the first successful sync.
 
 ## Code map
 

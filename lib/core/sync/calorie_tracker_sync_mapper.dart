@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart'
 import 'package:opennutritracker/core/domain/entity/weekly_macro_target_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weekly_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weekly_meal_plan_entry_entity.dart';
+import 'package:opennutritracker/core/sync/sync_operation.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -13,6 +14,24 @@ import 'package:uuid/uuid.dart';
 /// Maps OpenNutriTracker diary rows onto calorie-tracker sync payloads.
 class CalorieTrackerSyncMapper {
   static const _uuid = Uuid();
+
+  /// Whether [value] is a UUID the calorie-tracker API will accept
+  /// (`z.string().uuid()` on every sync `entityId` / foreign key).
+  static bool isUuid(String? value) {
+    if (value == null || value.isEmpty) return false;
+    return Uuid.isValidUUID(fromString: value);
+  }
+
+  /// Food id safe to send on the wire.
+  ///
+  /// Local plan entries may carry non-UUID codes such as Fitty Agent's
+  /// `agent:oatmeal`. The API rejects those, so they are mapped to a
+  /// deterministic UUIDv5 from the local code — the same mapping for the
+  /// `foods` row and every plan-entry `foodId` foreign key.
+  static String syncFoodId(String foodId) {
+    if (isUuid(foodId)) return foodId;
+    return _uuid.v5(Namespace.url.value, 'opennutri-food-key:$foodId');
+  }
 
   /// Deterministic food UUID so the same product reuses one remote food row.
   static String foodIdForMeal(MealEntity meal) {
@@ -166,11 +185,7 @@ class CalorieTrackerSyncMapper {
     required double inches,
     String? note,
   }) {
-    return {
-      'loggedOn': date.toParsedDay(),
-      'inches': inches,
-      'notes': ?note,
-    };
+    return {'loggedOn': date.toParsedDay(), 'inches': inches, 'notes': ?note};
   }
 
   static Map<String, dynamic> weeklyMacroTargetPayload(
@@ -205,23 +220,265 @@ class CalorieTrackerSyncMapper {
   }
 
   static Map<String, dynamic> weeklyMealPlanEntryPayload(
-    WeeklyMealPlanEntryEntity entry,
-  ) {
+    WeeklyMealPlanEntryEntity entry, {
+    String? foodIdOverride,
+  }) {
     return {
       'weeklyMealId': entry.weeklyMealId,
-      'foodId': entry.foodId,
+      'foodId': foodIdOverride ?? syncFoodId(entry.foodId),
       'quantity': entry.quantity,
       'unit': entry.unit.isEmpty ? 'g' : entry.unit,
     };
   }
 
-  static Map<String, dynamic> mealPlanEntryPayload(MealPlanEntryEntity entry) {
+  static Map<String, dynamic> mealPlanEntryPayload(
+    MealPlanEntryEntity entry, {
+    String? foodIdOverride,
+  }) {
     return {
       'planDate': entry.planDate,
       'dayMealId': entry.dayMealId,
-      'foodId': entry.foodId,
+      'foodId': foodIdOverride ?? syncFoodId(entry.foodId),
       'quantity': entry.quantity,
       'unit': entry.unit.isEmpty ? 'g' : entry.unit,
     };
+  }
+
+  /// Remaps a queued push mutation so every `entityId` (and nested food /
+  /// day-meal / weekly-meal ids in the payload) is a UUID the API accepts.
+  ///
+  /// Returns null when the op cannot be repaired and should be dropped.
+  static SyncOperation? sanitizePushOperation(SyncOperation operation) {
+    var entityId = operation.entityId;
+    var payload = operation.payload == null
+        ? null
+        : Map<String, dynamic>.from(operation.payload!);
+
+    if (!isUuid(entityId)) {
+      if (operation.entityType == SyncEntityType.foods) {
+        entityId = syncFoodId(entityId);
+      } else if (operation.action == SyncAction.delete) {
+        // Deletes for non-UUID ids cannot hit the server; drop them.
+        return null;
+      } else {
+        return null;
+      }
+    }
+
+    if (payload != null) {
+      payload = _sanitizePayloadUuids(operation.entityType, payload);
+      if (payload == null) return null;
+    }
+
+    if (entityId == operation.entityId &&
+        mapEquals(payload, operation.payload)) {
+      return operation;
+    }
+    return operation.copyWith(entityId: entityId, payload: payload);
+  }
+
+  /// Returns null when a required foreign key cannot be made a UUID.
+  static Map<String, dynamic>? _sanitizePayloadUuids(
+    SyncEntityType type,
+    Map<String, dynamic> payload,
+  ) {
+    final out = Map<String, dynamic>.from(payload);
+    switch (type) {
+      case SyncEntityType.mealPlanEntries:
+        final foodId = out['foodId'] as String?;
+        final dayMealId = out['dayMealId'] as String?;
+        if (foodId == null || dayMealId == null) return null;
+        if (!isUuid(dayMealId)) return null;
+        out['foodId'] = syncFoodId(foodId);
+      case SyncEntityType.weeklyMealPlanEntries:
+        final foodId = out['foodId'] as String?;
+        final weeklyMealId = out['weeklyMealId'] as String?;
+        if (foodId == null || weeklyMealId == null) return null;
+        if (!isUuid(weeklyMealId)) return null;
+        out['foodId'] = syncFoodId(foodId);
+      case SyncEntityType.foodLogEntries:
+        final foodId = out['foodId'] as String?;
+        final dayMealId = out['dayMealId'] as String?;
+        if (foodId == null || dayMealId == null) return null;
+        if (!isUuid(dayMealId)) return null;
+        out['foodId'] = syncFoodId(foodId);
+      default:
+        break;
+    }
+    return out;
+  }
+
+  static bool mapEquals(Map<String, dynamic>? a, Map<String, dynamic>? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (a[key] != b[key]) return false;
+    }
+    return true;
+  }
+
+  // --- Pull (remote JSON → local entities) ---------------------------------
+
+  static DateTime _updatedAt(Map<String, dynamic> raw) {
+    final value = raw['updatedAt'] ?? raw['clientUpdatedAt'];
+    if (value is String) {
+      return DateTime.tryParse(value)?.toLocal() ?? DateTime.now();
+    }
+    return DateTime.now();
+  }
+
+  static double _num(Object? value, [double fallback = 0]) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  static int _int(Object? value, [int fallback = 0]) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  /// Nutrients from a pulled `foods` row (`nutrientsPer100g`).
+  static ({
+    String name,
+    String? brand,
+    double calories,
+    double protein,
+    double fat,
+    double carbs,
+  })
+  foodNutrients(Map<String, dynamic>? food) {
+    final nutrients =
+        food?['nutrientsPer100g'] as Map<String, dynamic>? ?? const {};
+    return (
+      name: food?['name'] as String? ?? 'Food',
+      brand: food?['brand'] as String?,
+      calories: _num(nutrients['calories']),
+      protein: _num(nutrients['protein']),
+      fat: _num(nutrients['fat']),
+      carbs: _num(nutrients['carbs']),
+    );
+  }
+
+  static DayMealEntity? dayMealFromRemote(Map<String, dynamic> raw) {
+    final id = raw['id'] as String?;
+    final planDate = raw['planDate'] as String?;
+    if (id == null || planDate == null || planDate.isEmpty) return null;
+    return DayMealEntity(
+      id: id,
+      planDate: planDate,
+      mealIndex: _int(raw['mealIndex']),
+      name: (raw['name'] as String?)?.trim().isNotEmpty == true
+          ? (raw['name'] as String).trim()
+          : 'Meal',
+      mealTime: raw['mealTime'] as String?,
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static MealPlanEntryEntity? mealPlanEntryFromRemote(
+    Map<String, dynamic> raw,
+    Map<String, dynamic>? food,
+  ) {
+    final id = raw['id'] as String?;
+    final planDate = raw['planDate'] as String?;
+    final dayMealId = raw['dayMealId'] as String?;
+    final foodId = raw['foodId'] as String?;
+    if (id == null || planDate == null || dayMealId == null || foodId == null) {
+      return null;
+    }
+    final n = foodNutrients(food);
+    return MealPlanEntryEntity(
+      id: id,
+      planDate: planDate,
+      dayMealId: dayMealId,
+      foodId: foodId,
+      foodName: n.name,
+      brand: n.brand,
+      caloriesPer100: n.calories,
+      proteinPer100: n.protein,
+      fatPer100: n.fat,
+      carbsPer100: n.carbs,
+      quantity: _num(raw['quantity'], 100),
+      unit: (raw['unit'] as String?)?.trim().isNotEmpty == true
+          ? (raw['unit'] as String).trim()
+          : 'g',
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static WeeklyMealEntity? weeklyMealFromRemote(Map<String, dynamic> raw) {
+    final id = raw['id'] as String?;
+    if (id == null) return null;
+    return WeeklyMealEntity(
+      id: id,
+      dayOfWeek: _int(raw['dayOfWeek']),
+      mealIndex: _int(raw['mealIndex']),
+      name: (raw['name'] as String?)?.trim().isNotEmpty == true
+          ? (raw['name'] as String).trim()
+          : 'Meal',
+      mealTime: raw['mealTime'] as String?,
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static WeeklyMealPlanEntryEntity? weeklyMealPlanEntryFromRemote(
+    Map<String, dynamic> raw,
+    Map<String, dynamic>? food,
+  ) {
+    final id = raw['id'] as String?;
+    final weeklyMealId = raw['weeklyMealId'] as String?;
+    final foodId = raw['foodId'] as String?;
+    if (id == null || weeklyMealId == null || foodId == null) return null;
+    final n = foodNutrients(food);
+    return WeeklyMealPlanEntryEntity(
+      id: id,
+      weeklyMealId: weeklyMealId,
+      foodId: foodId,
+      foodName: n.name,
+      brand: n.brand,
+      caloriesPer100: n.calories,
+      proteinPer100: n.protein,
+      fatPer100: n.fat,
+      carbsPer100: n.carbs,
+      quantity: _num(raw['quantity'], 100),
+      unit: (raw['unit'] as String?)?.trim().isNotEmpty == true
+          ? (raw['unit'] as String).trim()
+          : 'g',
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static MacroTargetEntity? macroTargetFromRemote(Map<String, dynamic> raw) {
+    final id = raw['id'] as String?;
+    final targetDate = raw['targetDate'] as String?;
+    if (id == null || targetDate == null || targetDate.isEmpty) return null;
+    return MacroTargetEntity(
+      id: id,
+      targetDate: targetDate,
+      calories: _int(raw['calories']),
+      proteinG: _num(raw['proteinG']),
+      fatG: _num(raw['fatG']),
+      carbsG: _num(raw['carbsG']),
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static WeeklyMacroTargetEntity? weeklyMacroTargetFromRemote(
+    Map<String, dynamic> raw,
+  ) {
+    final id = raw['id'] as String?;
+    if (id == null) return null;
+    return WeeklyMacroTargetEntity(
+      id: id,
+      dayOfWeek: _int(raw['dayOfWeek']),
+      calories: _int(raw['calories']),
+      proteinG: _num(raw['proteinG']),
+      fatG: _num(raw['fatG']),
+      carbsG: _num(raw['carbsG']),
+      updatedAt: _updatedAt(raw),
+    );
   }
 }
