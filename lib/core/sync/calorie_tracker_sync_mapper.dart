@@ -166,11 +166,7 @@ class CalorieTrackerSyncMapper {
     required double inches,
     String? note,
   }) {
-    return {
-      'loggedOn': date.toParsedDay(),
-      'inches': inches,
-      'notes': ?note,
-    };
+    return {'loggedOn': date.toParsedDay(), 'inches': inches, 'notes': ?note};
   }
 
   static Map<String, dynamic> weeklyMacroTargetPayload(
@@ -223,5 +219,170 @@ class CalorieTrackerSyncMapper {
       'quantity': entry.quantity,
       'unit': entry.unit.isEmpty ? 'g' : entry.unit,
     };
+  }
+
+  // --- Pull (remote JSON → local entities) ---------------------------------
+
+  static DateTime _updatedAt(Map<String, dynamic> raw) {
+    final value = raw['updatedAt'] ?? raw['clientUpdatedAt'];
+    if (value is String) {
+      return DateTime.tryParse(value)?.toLocal() ?? DateTime.now();
+    }
+    return DateTime.now();
+  }
+
+  static double _num(Object? value, [double fallback = 0]) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  static int _int(Object? value, [int fallback = 0]) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  /// Nutrients from a pulled `foods` row (`nutrientsPer100g`).
+  static ({
+    String name,
+    String? brand,
+    double calories,
+    double protein,
+    double fat,
+    double carbs,
+  })
+  foodNutrients(Map<String, dynamic>? food) {
+    final nutrients =
+        food?['nutrientsPer100g'] as Map<String, dynamic>? ?? const {};
+    return (
+      name: food?['name'] as String? ?? 'Food',
+      brand: food?['brand'] as String?,
+      calories: _num(nutrients['calories']),
+      protein: _num(nutrients['protein']),
+      fat: _num(nutrients['fat']),
+      carbs: _num(nutrients['carbs']),
+    );
+  }
+
+  static DayMealEntity? dayMealFromRemote(Map<String, dynamic> raw) {
+    final id = raw['id'] as String?;
+    final planDate = raw['planDate'] as String?;
+    if (id == null || planDate == null || planDate.isEmpty) return null;
+    return DayMealEntity(
+      id: id,
+      planDate: planDate,
+      mealIndex: _int(raw['mealIndex']),
+      name: (raw['name'] as String?)?.trim().isNotEmpty == true
+          ? (raw['name'] as String).trim()
+          : 'Meal',
+      mealTime: raw['mealTime'] as String?,
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static MealPlanEntryEntity? mealPlanEntryFromRemote(
+    Map<String, dynamic> raw,
+    Map<String, dynamic>? food,
+  ) {
+    final id = raw['id'] as String?;
+    final planDate = raw['planDate'] as String?;
+    final dayMealId = raw['dayMealId'] as String?;
+    final foodId = raw['foodId'] as String?;
+    if (id == null || planDate == null || dayMealId == null || foodId == null) {
+      return null;
+    }
+    final n = foodNutrients(food);
+    return MealPlanEntryEntity(
+      id: id,
+      planDate: planDate,
+      dayMealId: dayMealId,
+      foodId: foodId,
+      foodName: n.name,
+      brand: n.brand,
+      caloriesPer100: n.calories,
+      proteinPer100: n.protein,
+      fatPer100: n.fat,
+      carbsPer100: n.carbs,
+      quantity: _num(raw['quantity'], 100),
+      unit: (raw['unit'] as String?)?.trim().isNotEmpty == true
+          ? (raw['unit'] as String).trim()
+          : 'g',
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static WeeklyMealEntity? weeklyMealFromRemote(Map<String, dynamic> raw) {
+    final id = raw['id'] as String?;
+    if (id == null) return null;
+    return WeeklyMealEntity(
+      id: id,
+      dayOfWeek: _int(raw['dayOfWeek']),
+      mealIndex: _int(raw['mealIndex']),
+      name: (raw['name'] as String?)?.trim().isNotEmpty == true
+          ? (raw['name'] as String).trim()
+          : 'Meal',
+      mealTime: raw['mealTime'] as String?,
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static WeeklyMealPlanEntryEntity? weeklyMealPlanEntryFromRemote(
+    Map<String, dynamic> raw,
+    Map<String, dynamic>? food,
+  ) {
+    final id = raw['id'] as String?;
+    final weeklyMealId = raw['weeklyMealId'] as String?;
+    final foodId = raw['foodId'] as String?;
+    if (id == null || weeklyMealId == null || foodId == null) return null;
+    final n = foodNutrients(food);
+    return WeeklyMealPlanEntryEntity(
+      id: id,
+      weeklyMealId: weeklyMealId,
+      foodId: foodId,
+      foodName: n.name,
+      brand: n.brand,
+      caloriesPer100: n.calories,
+      proteinPer100: n.protein,
+      fatPer100: n.fat,
+      carbsPer100: n.carbs,
+      quantity: _num(raw['quantity'], 100),
+      unit: (raw['unit'] as String?)?.trim().isNotEmpty == true
+          ? (raw['unit'] as String).trim()
+          : 'g',
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static MacroTargetEntity? macroTargetFromRemote(Map<String, dynamic> raw) {
+    final id = raw['id'] as String?;
+    final targetDate = raw['targetDate'] as String?;
+    if (id == null || targetDate == null || targetDate.isEmpty) return null;
+    return MacroTargetEntity(
+      id: id,
+      targetDate: targetDate,
+      calories: _int(raw['calories']),
+      proteinG: _num(raw['proteinG']),
+      fatG: _num(raw['fatG']),
+      carbsG: _num(raw['carbsG']),
+      updatedAt: _updatedAt(raw),
+    );
+  }
+
+  static WeeklyMacroTargetEntity? weeklyMacroTargetFromRemote(
+    Map<String, dynamic> raw,
+  ) {
+    final id = raw['id'] as String?;
+    if (id == null) return null;
+    return WeeklyMacroTargetEntity(
+      id: id,
+      dayOfWeek: _int(raw['dayOfWeek']),
+      calories: _int(raw['calories']),
+      proteinG: _num(raw['proteinG']),
+      fatG: _num(raw['fatG']),
+      carbsG: _num(raw['carbsG']),
+      updatedAt: _updatedAt(raw),
+    );
   }
 }
