@@ -1,7 +1,87 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_mapper.dart';
+import 'package:opennutritracker/core/sync/sync_operation.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
+  group('CalorieTrackerSyncMapper syncFoodId / sanitizePushOperation', () {
+    test('maps agent: food codes to a stable UUID', () {
+      final a = CalorieTrackerSyncMapper.syncFoodId('agent:oatmeal');
+      final b = CalorieTrackerSyncMapper.syncFoodId('agent:oatmeal');
+      expect(Uuid.isValidUUID(fromString: a), isTrue);
+      expect(a, b);
+      expect(a, isNot('agent:oatmeal'));
+    });
+
+    test('leaves real UUIDs unchanged', () {
+      const id = '11111111-1111-4111-8111-111111111111';
+      expect(CalorieTrackerSyncMapper.syncFoodId(id), id);
+    });
+
+    test('sanitizes a foods push with an agent: entityId', () {
+      final op = SyncOperation(
+        id: 'op-1',
+        entityType: SyncEntityType.foods,
+        action: SyncAction.create,
+        entityId: 'agent:oatmeal',
+        payload: {
+          'name': 'Oatmeal',
+          'nutrientsPer100g': {
+            'calories': 350,
+            'protein': 12,
+            'fat': 7,
+            'carbs': 60,
+          },
+        },
+        clientUpdatedAt: DateTime.utc(2026, 10, 14),
+        enqueuedAt: DateTime.utc(2026, 10, 14),
+      );
+      final fixed = CalorieTrackerSyncMapper.sanitizePushOperation(op);
+      expect(fixed, isNotNull);
+      expect(Uuid.isValidUUID(fromString: fixed!.entityId), isTrue);
+      expect(
+        fixed.entityId,
+        CalorieTrackerSyncMapper.syncFoodId('agent:oatmeal'),
+      );
+    });
+
+    test('sanitizes meal_plan_entries payload foodId', () {
+      final op = SyncOperation(
+        id: 'op-2',
+        entityType: SyncEntityType.mealPlanEntries,
+        action: SyncAction.create,
+        entityId: '22222222-2222-4222-8222-222222222222',
+        payload: {
+          'planDate': '2026-10-14',
+          'dayMealId': '33333333-3333-4333-8333-333333333333',
+          'foodId': 'agent:oatmeal',
+          'quantity': 80,
+          'unit': 'g',
+        },
+        clientUpdatedAt: DateTime.utc(2026, 10, 14),
+        enqueuedAt: DateTime.utc(2026, 10, 14),
+      );
+      final fixed = CalorieTrackerSyncMapper.sanitizePushOperation(op);
+      expect(fixed, isNotNull);
+      expect(
+        fixed!.payload!['foodId'],
+        CalorieTrackerSyncMapper.syncFoodId('agent:oatmeal'),
+      );
+    });
+
+    test('drops deletes for non-UUID entity ids', () {
+      final op = SyncOperation(
+        id: 'op-3',
+        entityType: SyncEntityType.mealPlanEntries,
+        action: SyncAction.delete,
+        entityId: 'agent:oatmeal',
+        clientUpdatedAt: DateTime.utc(2026, 10, 14),
+        enqueuedAt: DateTime.utc(2026, 10, 14),
+      );
+      expect(CalorieTrackerSyncMapper.sanitizePushOperation(op), isNull);
+    });
+  });
+
   group('CalorieTrackerSyncMapper pull mappers', () {
     test('dayMealFromRemote maps a remote day meal', () {
       final meal = CalorieTrackerSyncMapper.dayMealFromRemote({

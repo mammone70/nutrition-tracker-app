@@ -51,12 +51,16 @@ meal plans resolve as: **day override → weekly template → none**.
 
 - **Push:** every local save/delete of a day plan, weekly plan, or macro target
   enqueues an outbox mutation and drains on `syncNow` (Settings → Sync now,
-  app resume, or after a write).
+  app resume, or after a write). Non-UUID food codes (e.g. legacy Fitty Agent
+  `agent:…` ids) are remapped to deterministic UUIDv5 values before push; ops
+  that still cannot be made valid are dropped so they do not block sync.
 - **Pull:** `GET /api/sync?since=` applies `dayMeals`, `mealPlanEntries`,
   `weeklyMeals`, `weeklyMealPlanEntries`, `macroTargets`, and
   `weeklyMacroTargets` into Hive (joining `foods` for denormalized nutrients).
   Rows still pending in the outbox are skipped so a local edit wins the round
   trip. Soft-deleted remote rows (`deletedAt`) remove the local copy.
+  **Pull still runs if push fails** — populating Hive from the REST API is
+  not blocked by a bad local outbox row.
 - **First sync:** when no pull cursor exists yet, local day/weekly plans and
   macro targets are seeded into the outbox before push, then remote rows are
   pulled — so both directions populate on the first successful sync.

@@ -268,10 +268,11 @@ class SyncService extends ChangeNotifier {
     WeeklyMealPlanEntryEntity entry,
   ) async {
     if (!await _credentials.isConfigured()) return;
+    final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
     await _outbox.enqueue(
       entityType: SyncEntityType.foods,
       action: SyncAction.create,
-      entityId: entry.foodId,
+      entityId: foodId,
       payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
         foodName: entry.foodName,
         brand: entry.brand,
@@ -285,7 +286,10 @@ class SyncService extends ChangeNotifier {
       entityType: SyncEntityType.weeklyMealPlanEntries,
       action: SyncAction.create,
       entityId: entry.id,
-      payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(entry),
+      payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(
+        entry,
+        foodIdOverride: foodId,
+      ),
     );
     await refreshPendingCount();
     unawaited(syncNow());
@@ -327,10 +331,11 @@ class SyncService extends ChangeNotifier {
 
   Future<void> enqueueMealPlanEntryUpsert(MealPlanEntryEntity entry) async {
     if (!await _credentials.isConfigured()) return;
+    final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
     await _outbox.enqueue(
       entityType: SyncEntityType.foods,
       action: SyncAction.create,
-      entityId: entry.foodId,
+      entityId: foodId,
       payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
         foodName: entry.foodName,
         brand: entry.brand,
@@ -344,7 +349,10 @@ class SyncService extends ChangeNotifier {
       entityType: SyncEntityType.mealPlanEntries,
       action: SyncAction.create,
       entityId: entry.id,
-      payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(entry),
+      payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(
+        entry,
+        foodIdOverride: foodId,
+      ),
     );
     await refreshPendingCount();
     unawaited(syncNow());
@@ -376,6 +384,7 @@ class SyncService extends ChangeNotifier {
       _syncing = true;
       _lastError = null;
       notifyListeners();
+      var pushOk = true;
       try {
         // First sync: upload any local meal plans that predate enabling sync,
         // then pull remote plans so both directions populate.
@@ -383,13 +392,21 @@ class SyncService extends ChangeNotifier {
         if (firstSync) {
           await _seedOutboxFromLocalMealPlans();
         }
-        await _pushOutbox();
+        try {
+          await _pushOutbox();
+        } catch (error, stackTrace) {
+          // Pull must still run — REST → Hive is how the diary/plan screens
+          // get populated, and a bad local outbox row must not block that.
+          pushOk = false;
+          _log.warning('Push failed; continuing with pull', error, stackTrace);
+          _lastError = error.toString();
+        }
         if (pull) {
           await _pullRemote();
         }
         _lastSyncAt = DateTime.now().toUtc();
         await refreshPendingCount();
-        return true;
+        return pushOk;
       } catch (error, stackTrace) {
         _log.warning('Sync failed', error, stackTrace);
         _lastError = error.toString();
@@ -408,6 +425,7 @@ class SyncService extends ChangeNotifier {
   /// still reach the server. Collapsing in the outbox keeps this compact.
   Future<void> _seedOutboxFromLocalMealPlans() async {
     for (final meal in await _dayMealRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(meal.id)) continue;
       await _outbox.enqueue(
         entityType: SyncEntityType.dayMeals,
         action: SyncAction.create,
@@ -416,10 +434,15 @@ class SyncService extends ChangeNotifier {
       );
     }
     for (final entry in await _mealPlanEntryRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(entry.id) ||
+          !CalorieTrackerSyncMapper.isUuid(entry.dayMealId)) {
+        continue;
+      }
+      final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
       await _outbox.enqueue(
         entityType: SyncEntityType.foods,
         action: SyncAction.create,
-        entityId: entry.foodId,
+        entityId: foodId,
         payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
           foodName: entry.foodName,
           brand: entry.brand,
@@ -433,10 +456,14 @@ class SyncService extends ChangeNotifier {
         entityType: SyncEntityType.mealPlanEntries,
         action: SyncAction.create,
         entityId: entry.id,
-        payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(entry),
+        payload: CalorieTrackerSyncMapper.mealPlanEntryPayload(
+          entry,
+          foodIdOverride: foodId,
+        ),
       );
     }
     for (final meal in await _weeklyMealRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(meal.id)) continue;
       await _outbox.enqueue(
         entityType: SyncEntityType.weeklyMeals,
         action: SyncAction.create,
@@ -445,10 +472,15 @@ class SyncService extends ChangeNotifier {
       );
     }
     for (final entry in await _weeklyMealPlanEntryRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(entry.id) ||
+          !CalorieTrackerSyncMapper.isUuid(entry.weeklyMealId)) {
+        continue;
+      }
+      final foodId = CalorieTrackerSyncMapper.syncFoodId(entry.foodId);
       await _outbox.enqueue(
         entityType: SyncEntityType.foods,
         action: SyncAction.create,
-        entityId: entry.foodId,
+        entityId: foodId,
         payload: CalorieTrackerSyncMapper.foodPayloadFromPlanEntry(
           foodName: entry.foodName,
           brand: entry.brand,
@@ -462,10 +494,14 @@ class SyncService extends ChangeNotifier {
         entityType: SyncEntityType.weeklyMealPlanEntries,
         action: SyncAction.create,
         entityId: entry.id,
-        payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(entry),
+        payload: CalorieTrackerSyncMapper.weeklyMealPlanEntryPayload(
+          entry,
+          foodIdOverride: foodId,
+        ),
       );
     }
     for (final target in await _macroTargetRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(target.id)) continue;
       await _outbox.enqueue(
         entityType: SyncEntityType.macroTargets,
         action: SyncAction.create,
@@ -474,6 +510,7 @@ class SyncService extends ChangeNotifier {
       );
     }
     for (final target in await _weeklyMacroTargetRepository.getAll()) {
+      if (!CalorieTrackerSyncMapper.isUuid(target.id)) continue;
       await _outbox.enqueue(
         entityType: SyncEntityType.weeklyMacroTargets,
         action: SyncAction.create,
@@ -498,10 +535,30 @@ class SyncService extends ChangeNotifier {
         .toList();
 
     if (syncOps.isNotEmpty) {
-      // Prefer create→update mapping: collapsing always stores latest action;
-      // foods/day_meals use create (upsert-friendly on server with entityId).
-      await _api.pushMutations(syncOps);
-      await _outbox.removeAll(syncOps.map((op) => op.id));
+      // Remap / drop ops the API would reject (non-UUID entityIds such as
+      // Fitty Agent's `agent:oatmeal` food codes). Dropped ops are removed
+      // from the outbox so they cannot block every subsequent sync.
+      final sanitized = <SyncOperation>[];
+      final dropIds = <String>[];
+      for (final op in syncOps) {
+        final fixed = CalorieTrackerSyncMapper.sanitizePushOperation(op);
+        if (fixed == null) {
+          _log.warning(
+            'Dropping sync push op ${op.entityType.apiName}/${op.entityId}: '
+            'not a valid UUID and could not be remapped',
+          );
+          dropIds.add(op.id);
+          continue;
+        }
+        sanitized.add(fixed);
+      }
+      if (dropIds.isNotEmpty) {
+        await _outbox.removeAll(dropIds);
+      }
+      if (sanitized.isNotEmpty) {
+        await _api.pushMutations(sanitized);
+        await _outbox.removeAll(sanitized.map((op) => op.id));
+      }
     }
 
     for (final op in weightOps) {

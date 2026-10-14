@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/meal_plan_entry_entity.dart'
 import 'package:opennutritracker/core/domain/entity/weekly_macro_target_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weekly_meal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weekly_meal_plan_entry_entity.dart';
+import 'package:opennutritracker/core/sync/sync_operation.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -13,6 +14,24 @@ import 'package:uuid/uuid.dart';
 /// Maps OpenNutriTracker diary rows onto calorie-tracker sync payloads.
 class CalorieTrackerSyncMapper {
   static const _uuid = Uuid();
+
+  /// Whether [value] is a UUID the calorie-tracker API will accept
+  /// (`z.string().uuid()` on every sync `entityId` / foreign key).
+  static bool isUuid(String? value) {
+    if (value == null || value.isEmpty) return false;
+    return Uuid.isValidUUID(fromString: value);
+  }
+
+  /// Food id safe to send on the wire.
+  ///
+  /// Local plan entries may carry non-UUID codes such as Fitty Agent's
+  /// `agent:oatmeal`. The API rejects those, so they are mapped to a
+  /// deterministic UUIDv5 from the local code — the same mapping for the
+  /// `foods` row and every plan-entry `foodId` foreign key.
+  static String syncFoodId(String foodId) {
+    if (isUuid(foodId)) return foodId;
+    return _uuid.v5(Namespace.url.value, 'opennutri-food-key:$foodId');
+  }
 
   /// Deterministic food UUID so the same product reuses one remote food row.
   static String foodIdForMeal(MealEntity meal) {
@@ -201,24 +220,101 @@ class CalorieTrackerSyncMapper {
   }
 
   static Map<String, dynamic> weeklyMealPlanEntryPayload(
-    WeeklyMealPlanEntryEntity entry,
-  ) {
+    WeeklyMealPlanEntryEntity entry, {
+    String? foodIdOverride,
+  }) {
     return {
       'weeklyMealId': entry.weeklyMealId,
-      'foodId': entry.foodId,
+      'foodId': foodIdOverride ?? syncFoodId(entry.foodId),
       'quantity': entry.quantity,
       'unit': entry.unit.isEmpty ? 'g' : entry.unit,
     };
   }
 
-  static Map<String, dynamic> mealPlanEntryPayload(MealPlanEntryEntity entry) {
+  static Map<String, dynamic> mealPlanEntryPayload(
+    MealPlanEntryEntity entry, {
+    String? foodIdOverride,
+  }) {
     return {
       'planDate': entry.planDate,
       'dayMealId': entry.dayMealId,
-      'foodId': entry.foodId,
+      'foodId': foodIdOverride ?? syncFoodId(entry.foodId),
       'quantity': entry.quantity,
       'unit': entry.unit.isEmpty ? 'g' : entry.unit,
     };
+  }
+
+  /// Remaps a queued push mutation so every `entityId` (and nested food /
+  /// day-meal / weekly-meal ids in the payload) is a UUID the API accepts.
+  ///
+  /// Returns null when the op cannot be repaired and should be dropped.
+  static SyncOperation? sanitizePushOperation(SyncOperation operation) {
+    var entityId = operation.entityId;
+    var payload = operation.payload == null
+        ? null
+        : Map<String, dynamic>.from(operation.payload!);
+
+    if (!isUuid(entityId)) {
+      if (operation.entityType == SyncEntityType.foods) {
+        entityId = syncFoodId(entityId);
+      } else if (operation.action == SyncAction.delete) {
+        // Deletes for non-UUID ids cannot hit the server; drop them.
+        return null;
+      } else {
+        return null;
+      }
+    }
+
+    if (payload != null) {
+      payload = _sanitizePayloadUuids(operation.entityType, payload);
+      if (payload == null) return null;
+    }
+
+    if (entityId == operation.entityId &&
+        mapEquals(payload, operation.payload)) {
+      return operation;
+    }
+    return operation.copyWith(entityId: entityId, payload: payload);
+  }
+
+  /// Returns null when a required foreign key cannot be made a UUID.
+  static Map<String, dynamic>? _sanitizePayloadUuids(
+    SyncEntityType type,
+    Map<String, dynamic> payload,
+  ) {
+    final out = Map<String, dynamic>.from(payload);
+    switch (type) {
+      case SyncEntityType.mealPlanEntries:
+        final foodId = out['foodId'] as String?;
+        final dayMealId = out['dayMealId'] as String?;
+        if (foodId == null || dayMealId == null) return null;
+        if (!isUuid(dayMealId)) return null;
+        out['foodId'] = syncFoodId(foodId);
+      case SyncEntityType.weeklyMealPlanEntries:
+        final foodId = out['foodId'] as String?;
+        final weeklyMealId = out['weeklyMealId'] as String?;
+        if (foodId == null || weeklyMealId == null) return null;
+        if (!isUuid(weeklyMealId)) return null;
+        out['foodId'] = syncFoodId(foodId);
+      case SyncEntityType.foodLogEntries:
+        final foodId = out['foodId'] as String?;
+        final dayMealId = out['dayMealId'] as String?;
+        if (foodId == null || dayMealId == null) return null;
+        if (!isUuid(dayMealId)) return null;
+        out['foodId'] = syncFoodId(foodId);
+      default:
+        break;
+    }
+    return out;
+  }
+
+  static bool mapEquals(Map<String, dynamic>? a, Map<String, dynamic>? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (a[key] != b[key]) return false;
+    }
+    return true;
   }
 
   // --- Pull (remote JSON → local entities) ---------------------------------

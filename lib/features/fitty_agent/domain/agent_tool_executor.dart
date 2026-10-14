@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/weekly_macro_target_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/weekly_meals_usecase.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_credentials.dart';
+import 'package:opennutritracker/core/sync/calorie_tracker_sync_mapper.dart';
 import 'package:opennutritracker/core/sync/sync_service.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/meal_plan_utils.dart';
@@ -334,17 +335,30 @@ class AgentToolExecutor {
     DateTime now,
   ) {
     final name = f['name'] as String;
+    final brand = f['brand'] as String?;
+    final calories = (f['calories_per_100'] as num).toDouble();
+    final protein = (f['protein_per_100'] as num).toDouble();
+    final fat = (f['fat_per_100'] as num).toDouble();
+    final carbs = (f['carbs_per_100'] as num).toDouble();
     return MealPlanEntryEntity(
       id: _uuid.v4(),
       planDate: date,
       dayMealId: mealId,
-      foodId: 'agent:${name.toLowerCase().replaceAll(' ', '-')}',
+      // UUIDv5 — calorie-tracker sync rejects non-UUID food ids.
+      foodId: CalorieTrackerSyncMapper.foodIdForManual(
+        name: name,
+        brand: brand,
+        caloriesPer100: calories,
+        proteinPer100: protein,
+        fatPer100: fat,
+        carbsPer100: carbs,
+      ),
       foodName: name,
-      brand: f['brand'] as String?,
-      caloriesPer100: (f['calories_per_100'] as num).toDouble(),
-      proteinPer100: (f['protein_per_100'] as num).toDouble(),
-      fatPer100: (f['fat_per_100'] as num).toDouble(),
-      carbsPer100: (f['carbs_per_100'] as num).toDouble(),
+      brand: brand,
+      caloriesPer100: calories,
+      proteinPer100: protein,
+      fatPer100: fat,
+      carbsPer100: carbs,
       quantity: (f['quantity'] as num).toDouble(),
       unit: (f['unit'] as String?) ?? 'g',
       updatedAt: now,
@@ -443,17 +457,30 @@ class AgentToolExecutor {
       final foods = (m['foods'] as List?)?.cast<Map<String, dynamic>>() ?? [];
       for (final f in foods) {
         final name = f['name'] as String;
+        final brand = f['brand'] as String?;
+        final calories = (f['calories_per_100'] as num).toDouble();
+        final protein = (f['protein_per_100'] as num).toDouble();
+        final fat = (f['fat_per_100'] as num).toDouble();
+        final carbs = (f['carbs_per_100'] as num).toDouble();
         entries.add(
           WeeklyMealPlanEntryEntity(
             id: _uuid.v4(),
             weeklyMealId: mealId,
-            foodId: 'agent:${name.toLowerCase().replaceAll(' ', '-')}',
+            // UUIDv5 — calorie-tracker sync rejects non-UUID food ids.
+            foodId: CalorieTrackerSyncMapper.foodIdForManual(
+              name: name,
+              brand: brand,
+              caloriesPer100: calories,
+              proteinPer100: protein,
+              fatPer100: fat,
+              carbsPer100: carbs,
+            ),
             foodName: name,
-            brand: f['brand'] as String?,
-            caloriesPer100: (f['calories_per_100'] as num).toDouble(),
-            proteinPer100: (f['protein_per_100'] as num).toDouble(),
-            fatPer100: (f['fat_per_100'] as num).toDouble(),
-            carbsPer100: (f['carbs_per_100'] as num).toDouble(),
+            brand: brand,
+            caloriesPer100: calories,
+            proteinPer100: protein,
+            fatPer100: fat,
+            carbsPer100: carbs,
             quantity: (f['quantity'] as num).toDouble(),
             unit: (f['unit'] as String?) ?? 'g',
             updatedAt: now,
