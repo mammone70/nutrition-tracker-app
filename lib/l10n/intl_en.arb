@@ -1553,6 +1553,36 @@
   "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
   "bulkAddPhotoNoCreditLabel": "That request couldn't be paid for: your provider account is out of credit. Top up with your provider, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead.",
+  "nutritionLabelScanButton": "Scan nutrition label",
+  "nutritionLabelScanTooltip": "Photograph a nutrition facts panel to fill a custom food",
+  "nutritionLabelTakePhoto": "Photograph nutrition label",
+  "nutritionLabelReading": "Reading nutrition label…",
+  "nutritionLabelNeedsAiTitle": "AI meal assistance required",
+  "nutritionLabelNeedsAiContent": "Reading a nutrition label uses the same AI provider you configure for meal photos. Turn it on in Settings, then try again.",
+  "nutritionLabelNoFacts": "No nutrition facts found in that photo. Try a clearer picture of the panel.",
+  "nutritionLabelUnreadable": "Couldn't use that image. Try another photo of the nutrition label.",
+  "nutritionLabelFailed": "Couldn't read the nutrition label. Check your connection and try again.",
+  "nutritionLabelCameraFailed": "Couldn't open the camera. Check camera permission and try again.",
+  "nutritionLabelReviewSnackbar": "Review the values from the label before saving.",
+  "nutritionLabelDisclosureAnthropic": "The photo is sent to Anthropic to read the nutrition facts printed on the label.",
+  "nutritionLabelDisclosureOpenRouter": "The photo is sent to OpenRouter, which forwards it to {provider} to read the nutrition facts printed on the label.",
+  "@nutritionLabelDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionLabelDisclosureOpenAI": "The photo is sent to OpenAI to read the nutrition facts printed on the label. OpenAI keeps it for up to 30 days to monitor for abuse, and longer if the law requires it or it is reasonably necessary to protect its services or a third party from harm.",
+  "nutritionLabelDisclosureOwnServer": "The photo is sent to {host} to read the nutrition facts printed on the label.",
+  "@nutritionLabelDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "scannerCreateFromLabelButton": "Create custom food from label photo",
   "settingsHealthSyncSubtitle": "Import workouts",
   "healthSyncAutoImportLabel": "Automatically import workouts from {platform}",
   "@healthSyncAutoImportLabel": {

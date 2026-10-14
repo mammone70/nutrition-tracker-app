@@ -261,6 +261,7 @@ lib/
     meal_detail/  # Nutritional detail view for a food item, with daily kcal banner
     edit_meal/    # Edit a logged intake entry, custom meal create / template
     scanner/      # Barcode camera scanner (with manual entry fallback)
+    nutrition_label/ # Photograph a nutrition facts panel → custom meal (AI BYO-key)
     add_activity/ # Log physical activity, including custom kcal templates
     activity_detail/ # View logged activity
     fasting/      # Intermittent-fasting timer with content-warning gate
