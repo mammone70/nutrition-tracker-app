@@ -36,6 +36,11 @@ void main() {
       expect(camera.toLowerCase(), contains('photograph a meal'));
     });
 
+    test('names reading a nutrition facts label', () {
+      final camera = valueFor('NSCameraUsageDescription')!.toLowerCase();
+      expect(camera, contains('nutrition facts label'));
+    });
+
     // The AI clause was added to a string that already had two purposes.
     // Neither may be dropped on the way past.
     test('keeps the barcode and custom-meal purposes', () {
@@ -248,7 +253,8 @@ void main() {
         expect(
           indexed,
           isNot(contains(word)),
-          reason: '"$word" is already in the name or subtitle; Apple combines '
+          reason:
+              '"$word" is already in the name or subtitle; Apple combines '
               'those fields when indexing, so repeating it wastes a slot',
         );
       }

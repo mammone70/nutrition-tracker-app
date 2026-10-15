@@ -18,6 +18,8 @@ import 'package:opennutritracker/features/home/presentation/screens/import_activ
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/nutrition_label/presentation/nutrition_label_capture.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -141,15 +143,32 @@ class _ScannerScreenState extends State<ScannerScreen>
             });
           }
         } else if (state is ScannerFailedState) {
+          final notFound = state.type == ScannerFailedStateType.productNotFound;
           return Scaffold(
             backgroundColor: palette.canvas,
             appBar: AppBar(backgroundColor: palette.canvas),
             body: Center(
-              child: ErrorDialog(
-                errorText: state.type == ScannerFailedStateType.productNotFound
-                    ? S.of(context).errorProductNotFound
-                    : S.of(context).errorFetchingProductData,
-                onRefreshPressed: _onRefreshButtonPressed,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ErrorDialog(
+                    errorText: notFound
+                        ? S.of(context).errorProductNotFound
+                        : S.of(context).errorFetchingProductData,
+                    onRefreshPressed: _onRefreshButtonPressed,
+                  ),
+                  if (notFound && !_pickMode) ...[
+                    const SizedBox(height: Dimens.spacing16),
+                    Semantics(
+                      identifier: 'scanner-create-from-label',
+                      child: OutlinedButton.icon(
+                        onPressed: _onCreateFromLabelPressed,
+                        icon: const Icon(Icons.document_scanner_outlined),
+                        label: Text(S.of(context).scannerCreateFromLabelButton),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           );
@@ -244,8 +263,13 @@ class _ScannerScreenState extends State<ScannerScreen>
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   shape: Dimens.shapeM,
-                  side: BorderSide(color: palette.border, width: Dimens.hairline),
-                  padding: const EdgeInsets.symmetric(vertical: Dimens.spacing16),
+                  side: BorderSide(
+                    color: palette.border,
+                    width: Dimens.hairline,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Dimens.spacing16,
+                  ),
                 ),
                 icon: const Icon(Icons.keyboard_rounded),
                 label: Text(S.of(context).scannerManualEntryButton),
@@ -292,7 +316,8 @@ class _ScannerScreenState extends State<ScannerScreen>
             Semantics(
               identifier: 'scanner-manual-entry-submit',
               child: TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+                onPressed: () =>
+                    Navigator.of(dialogContext).pop(controller.text.trim()),
                 child: Text(S.of(dialogContext).scannerManualEntrySubmit),
               ),
             ),
@@ -358,6 +383,24 @@ class _ScannerScreenState extends State<ScannerScreen>
       );
     }
   }
+
+  /// Product missing from OFF — offer a nutrition-label photo that becomes a
+  /// custom meal, carrying the scanned barcode so a later scan recalls it.
+  Future<void> _onCreateFromLabelPressed() async {
+    final label = await NutritionLabelCapture.capture(context);
+    if (!mounted || label == null) return;
+    final meal = label.toMealEntity(barcodeOverride: _scannedBarcode);
+    final day = _day;
+    final intakeType = _intakeTypeEntity;
+    if (day == null || intakeType == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(S.of(context).nutritionLabelReviewSnackbar)),
+    );
+    await Navigator.of(context).pushReplacementNamed(
+      NavigationOptions.editMealRoute,
+      arguments: EditMealScreenArguments(day, meal, intakeType, false),
+    );
+  }
 }
 
 class ScannerScreenArguments {
@@ -376,15 +419,15 @@ class ScannerScreenArguments {
     DateTime forDay,
     IntakeTypeEntity forIntakeType, {
     this.initialBarcode,
-  })  : day = forDay,
-        intakeTypeEntity = forIntakeType,
-        pickMode = false;
+  }) : day = forDay,
+       intakeTypeEntity = forIntakeType,
+       pickMode = false;
 
   /// Opens the scanner in "pick" mode: on a successful product load it pops
   /// the resulting [MealEntity] back to the caller instead of routing into
   /// the meal-detail logging screen. Used by the recipe ingredient picker.
   ScannerScreenArguments.pick({this.initialBarcode})
-      : day = null,
-        intakeTypeEntity = null,
-        pickMode = true;
+    : day = null,
+      intakeTypeEntity = null,
+      pickMode = true;
 }
