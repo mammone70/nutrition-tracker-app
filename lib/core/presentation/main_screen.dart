@@ -12,10 +12,10 @@ import 'package:opennutritracker/core/utils/meal_type_suggester.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
+import 'package:opennutritracker/features/fitty_agent/presentation/fitty_agent_screen.dart';
 import 'package:opennutritracker/features/home/home_page.dart';
 import 'package:opennutritracker/core/presentation/widgets/main_appbar.dart';
 import 'package:opennutritracker/features/profile/profile_page.dart';
-import 'package:opennutritracker/features/trends/presentation/trends_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MainScreen extends StatefulWidget {
@@ -107,18 +107,28 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     await Navigator.of(context).pushNamed(NavigationOptions.healthSyncRoute);
   }
 
+  /// Bottom-nav index for Fitty Chat. Chat owns its own AppBar, so MainScreen
+  /// omits the outer app bar on this tab.
+  static const _chatTabIndex = 2;
+
   @override
   void didChangeDependencies() {
     _bodyPages = [
       const HomePage(),
       const DiaryPage(),
-      const TrendsPage(),
+      // Embedded: no nested Scaffold; chrome comes from FittyAgentScreen itself
+      // when pushed as a route, and from this body when used as a tab.
+      const FittyAgentScreen(embedded: true),
       const ProfilePage(),
     ];
     _appbarPages = [
       const HomeAppbar(),
       MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
-      MainAppbar(title: S.of(context).trendsLabel, iconData: Icons.insights),
+      // Placeholder — never shown while chat tab is selected.
+      MainAppbar(
+        title: S.of(context).fittyAgentNavLabel,
+        iconData: Icons.chat_bubble_outline_rounded,
+      ),
       MainAppbar(title: S.of(context).youLabel, iconData: Icons.account_circle),
     ];
     super.didChangeDependencies();
@@ -128,8 +138,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
+    final onChat = _selectedPageIndex == _chatTabIndex;
     return Scaffold(
-      appBar: _appbarPages[_selectedPageIndex],
+      appBar: onChat ? null : _appbarPages[_selectedPageIndex],
       body: Column(
         children: [
           if (_isDemoData) const DemoModeBanner(),
@@ -141,14 +152,16 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           ),
         ],
       ),
-      floatingActionButton: Semantics(
-        identifier: 'fab-add-item',
-        child: FloatingActionButton(
-          onPressed: () => _onFabPressed(context),
-          tooltip: S.of(context).addLabel,
-          child: const Icon(Icons.add, size: 30),
-        ),
-      ),
+      floatingActionButton: onChat
+          ? null
+          : Semantics(
+              identifier: 'fab-add-item',
+              child: FloatingActionButton(
+                onPressed: () => _onFabPressed(context),
+                tooltip: S.of(context).addLabel,
+                child: const Icon(Icons.add, size: 30),
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         color: palette.surface,
@@ -156,7 +169,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         elevation: 0,
         height: 78,
         padding: EdgeInsets.zero,
-        shape: const CircularNotchedRectangle(),
+        shape: onChat ? null : const CircularNotchedRectangle(),
         notchMargin: 8,
         child: Row(
           children: [
@@ -180,12 +193,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
               palette: palette,
               onTap: _setPage,
             ),
-            const SizedBox(width: 64), // notch gap for the centre Add FAB
+            if (!onChat) const SizedBox(width: 64), // notch gap for the centre Add FAB
             _NavItem(
-              id: 'nav-trends',
-              icon: Icons.insights_outlined,
-              selectedIcon: Icons.insights_rounded,
-              label: S.of(context).trendsLabel,
+              id: 'nav-chat',
+              icon: Icons.chat_bubble_outline_rounded,
+              selectedIcon: Icons.chat_bubble_rounded,
+              label: S.of(context).fittyAgentNavLabel,
               index: 2,
               selectedIndex: _selectedPageIndex,
               palette: palette,
