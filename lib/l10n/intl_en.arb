@@ -1683,6 +1683,21 @@
   "materializeWeeklyLabel": "Copy from weekly",
   "resetToWeeklyLabel": "Reset to weekly",
   "addMealPlanFoodLabel": "Add food",
+  "mealPlanEnterManuallyLabel": "Enter manually",
+  "mealPlanQuantityLabel": "Quantity ({unit})",
+  "@mealPlanQuantityLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealPlanCustomMealsSectionLabel": "Custom meals",
+  "mealPlanManualEntrySectionLabel": "Or enter manually",
+  "mealPlanKcalPer100Label": "kcal/100g",
+  "mealPlanProteinPer100Label": "P/100g",
+  "mealPlanFatPer100Label": "F/100g",
+  "mealPlanCarbsPer100Label": "C/100g",
   "mealPlanEmptyLabel": "No meals yet — add a meal slot to get started",
   "settingsWeeklyTargetsLabel": "Weekly calorie/macro targets",
   "settingsWeeklyMealPlansLabel": "Weekly meal plans",

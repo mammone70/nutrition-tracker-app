@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/ensure_custom_meal_for_plan_food.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/sync/calorie_tracker_sync_mapper.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/meal_plan_utils.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_plan/meal_plan_macro_summary.dart';
+import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
+import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_quantity_dialog.dart';
+import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:uuid/uuid.dart';
 
@@ -64,15 +70,225 @@ class EditableMealBlock {
   double get carbsG => entries.fold(0.0, (sum, e) => sum + e.carbsG);
 }
 
+/// Builds a meal-plan food row from a searched [MealEntity] and user amount.
+///
+/// Amounts are converted to base grams/ml so meal-plan macro math
+/// (`per100 * quantity / 100`) and diary confirm stay consistent.
+@visibleForTesting
+EditableMealPlanFood? editableFoodFromMeal({
+  required MealEntity meal,
+  required double amount,
+  required String unit,
+  String? id,
+  ComputeRecipeNutritionUseCase? computeUseCase,
+}) {
+  final compute = computeUseCase ?? ComputeRecipeNutritionUseCase();
+  final converted = compute.convertAmountToGrams(
+    amount: amount,
+    unit: unit,
+    servingQuantityG: meal.scalableServingQuantity,
+  );
+  if (converted == null || converted <= 0) return null;
+
+  final n = meal.nutriments;
+  final baseUnit = meal.isLiquid ? 'ml' : 'g';
+  return EditableMealPlanFood(
+    id: id ?? const Uuid().v4(),
+    foodId: CalorieTrackerSyncMapper.foodIdForMeal(meal),
+    foodName: meal.name ?? 'Food',
+    brand: meal.brands,
+    caloriesPer100: n.energyKcal100 ?? 0,
+    proteinPer100: n.proteins100 ?? 0,
+    fatPer100: n.fat100 ?? 0,
+    carbsPer100: n.carbohydrates100 ?? 0,
+    quantity: converted,
+    unit: baseUnit,
+  );
+}
+
+/// Opens searchable food pick → quantity dialog, or manual entry.
 Future<EditableMealPlanFood?> showAddMealPlanFoodDialog(
   BuildContext context,
 ) async {
+  final result = await Navigator.of(context).push<Object>(
+    MaterialPageRoute(
+      builder: (searchContext) => Scaffold(
+        appBar: AppBar(
+          title: Text(S.of(context).addMealPlanFoodLabel),
+          actions: [
+            Semantics(
+              identifier: 'meal-plan-food-manual',
+              child: TextButton(
+                onPressed: () async {
+                  final food = await _showManualAddMealPlanFoodSheet(
+                    searchContext,
+                  );
+                  if (food != null && searchContext.mounted) {
+                    Navigator.of(searchContext).pop(food);
+                  }
+                },
+                child: Text(S.of(context).mealPlanEnterManuallyLabel),
+              ),
+            ),
+          ],
+        ),
+        body: FoodSearchTabView(
+          onMealSelected: (meal) => Navigator.of(searchContext).pop(meal),
+          onBarcodePressed: () async {
+            final scannedMeal = await Navigator.of(searchContext).pushNamed(
+              NavigationOptions.scannerRoute,
+              arguments: ScannerScreenArguments.pick(),
+            );
+            if (scannedMeal is MealEntity && searchContext.mounted) {
+              Navigator.of(searchContext).pop(scannedMeal);
+            }
+          },
+        ),
+      ),
+    ),
+  );
+
+  if (result == null || !context.mounted) return null;
+  if (result is EditableMealPlanFood) return result;
+  if (result is! MealEntity) return null;
+
+  final selection = await showIngredientQuantityDialog(context, meal: result);
+  if (selection == null || !context.mounted) return null;
+
+  final food = editableFoodFromMeal(
+    meal: result,
+    amount: selection.amount,
+    unit: selection.unit,
+  );
+  if (food == null) return null;
+
+  await ensureCustomMealForPlanFood(
+    customMeals: locator<CustomMealDataSource>(),
+    name: food.foodName,
+    brand: food.brand,
+    caloriesPer100: food.caloriesPer100,
+    proteinPer100: food.proteinPer100,
+    fatPer100: food.fatPer100,
+    carbsPer100: food.carbsPer100,
+    unit: food.unit,
+    preferredCode: food.foodId,
+  );
+  return food;
+}
+
+Future<void> showEditMealPlanFoodQuantityDialog(
+  BuildContext context, {
+  required EditableMealPlanFood food,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) => _EditMealPlanFoodQuantitySheet(food: food),
+  );
+}
+
+Future<EditableMealPlanFood?> _showManualAddMealPlanFoodSheet(
+  BuildContext context,
+) {
   return showModalBottomSheet<EditableMealPlanFood>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     builder: (context) => const _AddMealPlanFoodSheet(),
   );
+}
+
+class _EditMealPlanFoodQuantitySheet extends StatefulWidget {
+  final EditableMealPlanFood food;
+
+  const _EditMealPlanFoodQuantitySheet({required this.food});
+
+  @override
+  State<_EditMealPlanFoodQuantitySheet> createState() =>
+      _EditMealPlanFoodQuantitySheetState();
+}
+
+class _EditMealPlanFoodQuantitySheetState
+    extends State<_EditMealPlanFoodQuantitySheet> {
+  late TextEditingController _qtyController;
+
+  @override
+  void initState() {
+    super.initState();
+    final qty = widget.food.quantity;
+    _qtyController = TextEditingController(
+      text: qty % 1 == 0 ? qty.toStringAsFixed(0) : qty.toStringAsFixed(1),
+    );
+  }
+
+  @override
+  void dispose() {
+    _qtyController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final raw = _qtyController.text.replaceAll(',', '.');
+    final qty = double.tryParse(raw);
+    if (qty == null || qty <= 0) return;
+    widget.food.quantity = qty;
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    final unit = widget.food.unit.isEmpty ? 'g' : widget.food.unit;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        Dimens.spacing16,
+        0,
+        Dimens.spacing16,
+        bottom + Dimens.spacing16,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            widget.food.foodName,
+            style: Theme.of(context).textTheme.titleLarge,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: Dimens.spacing12),
+          Semantics(
+            identifier: 'meal-plan-food-edit-quantity',
+            child: TextField(
+              controller: _qtyController,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d+([.,]\d{0,2})?$'),
+                ),
+              ],
+              decoration: InputDecoration(
+                labelText: S.of(context).mealPlanQuantityLabel(unit),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+          ),
+          const SizedBox(height: Dimens.spacing16),
+          Semantics(
+            identifier: 'meal-plan-food-edit-save',
+            child: FilledButton(
+              onPressed: _save,
+              child: Text(S.of(context).buttonSaveLabel),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _AddMealPlanFoodSheet extends StatefulWidget {
@@ -189,22 +405,22 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              S.of(context).addMealPlanFoodLabel,
+              S.of(context).mealPlanEnterManuallyLabel,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Dimens.spacing12),
             TextField(
               controller: _qtyController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Quantity (g)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: S.of(context).mealPlanQuantityLabel('g'),
+                border: const OutlineInputBorder(),
               ),
             ),
             if (_customMeals.isNotEmpty) ...[
               const SizedBox(height: Dimens.spacing12),
               Text(
-                'Custom meals',
+                S.of(context).mealPlanCustomMealsSectionLabel,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: Dimens.spacing8),
@@ -221,23 +437,23 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
               const Divider(),
             ],
             Text(
-              'Or enter manually',
+              S.of(context).mealPlanManualEntrySectionLabel,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: Dimens.spacing8),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: S.of(context).mealNameLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: Dimens.spacing8),
             TextField(
               controller: _brandController,
-              decoration: const InputDecoration(
-                labelText: 'Brand (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: S.of(context).mealBrandsLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: Dimens.spacing8),
@@ -247,9 +463,9 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
                   child: TextField(
                     controller: _calController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'kcal/100g',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: S.of(context).mealPlanKcalPer100Label,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -258,9 +474,9 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
                   child: TextField(
                     controller: _proteinController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'P/100g',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: S.of(context).mealPlanProteinPer100Label,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -273,9 +489,9 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
                   child: TextField(
                     controller: _fatController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'F/100g',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: S.of(context).mealPlanFatPer100Label,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -284,18 +500,21 @@ class _AddMealPlanFoodSheetState extends State<_AddMealPlanFoodSheet> {
                   child: TextField(
                     controller: _carbsController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'C/100g',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: S.of(context).mealPlanCarbsPer100Label,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: Dimens.spacing16),
-            FilledButton(
-              onPressed: _submitManual,
-              child: Text(S.of(context).addMealPlanFoodLabel),
+            Semantics(
+              identifier: 'meal-plan-food-manual-submit',
+              child: FilledButton(
+                onPressed: _submitManual,
+                child: Text(S.of(context).addMealPlanFoodLabel),
+              ),
             ),
           ],
         ),
@@ -432,7 +651,11 @@ Widget buildMealBlocksEditor({
                 ...meal.entries.map((entry) {
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(entry.foodName),
+                    title: Text(
+                      entry.foodName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     subtitle: MealPlanFoodMacrosSubtitle(
                       quantityLabel:
                           '${entry.quantity.toStringAsFixed(0)} ${entry.unit}',
@@ -441,6 +664,13 @@ Widget buildMealBlocksEditor({
                       fatG: entry.fatG,
                       carbsG: entry.carbsG,
                     ),
+                    onTap: () async {
+                      await showEditMealPlanFoodQuantityDialog(
+                        context,
+                        food: entry,
+                      );
+                      onChanged();
+                    },
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
                       onPressed: () {
@@ -450,17 +680,20 @@ Widget buildMealBlocksEditor({
                     ),
                   );
                 }),
-                TextButton.icon(
-                  onPressed: () async {
-                    final food = await showAddMealPlanFoodDialog(context);
-                    if (food != null) {
-                      meal.entries.add(food);
-                      onChanged();
-                    }
-                    await onAddFood();
-                  },
-                  icon: const Icon(Icons.add),
-                  label: Text(S.of(context).addMealPlanFoodLabel),
+                Semantics(
+                  identifier: 'meal-plan-add-food',
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      final food = await showAddMealPlanFoodDialog(context);
+                      if (food != null) {
+                        meal.entries.add(food);
+                        onChanged();
+                      }
+                      await onAddFood();
+                    },
+                    icon: const Icon(Icons.add),
+                    label: Text(S.of(context).addMealPlanFoodLabel),
+                  ),
                 ),
               ],
             ),
